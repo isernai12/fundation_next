@@ -1,0 +1,563 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum BeneficiaryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GroupStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ContributionStatus {
+  PENDING
+  PARTIAL
+  PAID
+  CANCELLED
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DEFAULTED
+}
+
+enum GrantStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum LedgerType {
+  CONTRIBUTION
+  LOAN
+  REPAYMENT
+  GRANT
+  TRANSFER
+  ADJUSTMENT
+  CORRECTION
+}
+
+enum DocumentType {
+  IMAGE
+  PDF
+  DOCUMENT
+  MULTIPLE
+}
+
+enum TargetType {
+  MEMBER
+  BENEFICIARY
+  LOAN
+  GRANT
+  FOUNDATION
+  GROUP
+}
+
+// -----------------------------------------------------------------------------
+// CORE ENTITIES
+// -----------------------------------------------------------------------------
+
+model Foundation {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  groups    Group[]
+  documents Document[]
+}
+
+model Group {
+  id           String      @id @default(uuid())
+  foundationId String
+  name         String
+  code         String      @unique
+  description  String?
+  status       GroupStatus @default(ACTIVE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  createdBy    String?
+  updatedBy    String?
+
+  foundation Foundation @relation(fields: [foundationId], references: [id], onDelete: Restrict)
+  members    Member[]
+  funds      Fund[]
+  documents  Document[]
+}
+
+model Member {
+  id        String       @id @default(uuid())
+  memberId  String       @unique
+  groupId   String
+  firstName String
+  lastName  String
+  
+  // Personal Information
+  fatherName String?
+  motherName String?
+  gender     String?
+  dob        DateTime?
+  nationalId String?     @unique
+  occupation String?
+  monthlyIncome Int?
+  bloodGroup String?
+  
+  // Contact Information
+  mobile           String? @unique
+  altMobile        String?
+  email            String? @unique
+  phone            String?
+  presentAddress   String?
+  permanentAddress String?
+  
+  // Emergency Contact
+  emergencyContactName     String?
+  emergencyContactMobile   String?
+  emergencyContactRelation String?
+
+  // Organization Information
+  joinDate  DateTime?
+  status    MemberStatus @default(ACTIVE)
+  remarks   String?
+  
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  group                  Group                   @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  beneficiaries          Beneficiary[]
+  contributions          MonthlyContribution[]
+  loans                  Loan[]
+  documents              Document[]
+}
+
+model Beneficiary {
+  id               String            @id @default(uuid())
+  beneficiaryId    String            @unique
+  memberId         String?
+  firstName        String
+  lastName         String
+  email            String?
+  phone            String?
+  mobile           String?
+  address          String?
+  nationalId       String?           @unique
+  occupation       String?
+  remarks          String?
+  relationToMember String?
+  status           BeneficiaryStatus @default(ACTIVE)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  createdBy        String?
+  updatedBy        String?
+
+  member    Member?    @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  loans     Loan[]
+  grants    Grant[]
+  documents Document[]
+}
+
+// -----------------------------------------------------------------------------
+// FINANCIAL & FUND ENTITIES
+// -----------------------------------------------------------------------------
+
+model Fund {
+  id          String   @id @default(uuid())
+  groupId     String?  // If null, represents the Foundation's general fund
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  group       Group?           @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  ledgerLines LedgerEntry[]
+  allocations FundAllocation[]
+}
+
+model MonthlyContribution {
+  id             String             @id @default(uuid())
+  memberId       String
+  month          Int
+  year           Int
+  expectedAmount Int
+  isAdditional   Boolean            @default(false)
+  status         ContributionStatus @default(PENDING)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  createdBy      String?
+  updatedBy      String?
+
+  member   Member                @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  payments ContributionPayment[]
+
+  @@unique([memberId, month, year, isAdditional])
+}
+
+model ContributionPayment {
+  id                    String   @id @default(uuid())
+  monthlyContributionId String
+  ledgerTransactionId   String   @unique
+  amount                Int
+  paymentDate           DateTime
+  paymentMethod         String
+  referenceNumber       String?
+  notes                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  createdBy             String?
+  updatedBy             String?
+
+  monthlyContribution MonthlyContribution @relation(fields: [monthlyContributionId], references: [id], onDelete: Restrict)
+  ledgerTransaction   LedgerTransaction   @relation(fields: [ledgerTransactionId], references: [id], onDelete: Restrict)
+}
+
+// -----------------------------------------------------------------------------
+// LEDGER (SINGLE SOURCE OF TRUTH)
+// -----------------------------------------------------------------------------
+
+model LedgerTransaction {
+  id          String     @id @default(uuid())
+  date        DateTime
+  type        LedgerType
+  referenceId String?    // Polymorphic link, handled in app logic (no explicit FK to keep generic)
+  status      String     @default("COMPLETED")
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  entries             LedgerEntry[]
+  contributionPayment ContributionPayment?
+  loanRepayment       LoanRepayment?
+}
+
+model LedgerEntry {
+  id            String   @id @default(uuid())
+  transactionId String
+  fundId        String
+  isCredit      Boolean  // True = Credit (+), False = Debit (-)
+  amount        Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+  updatedBy     String?
+
+  transaction LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  fund        Fund              @relation(fields: [fundId], references: [id], onDelete: Restrict)
+
+  @@index([fundId])
+  @@index([transactionId])
+}
+
+// -----------------------------------------------------------------------------
+// LOANS & GRANTS
+// -----------------------------------------------------------------------------
+
+model Loan {
+  id                String     @id @default(uuid())
+  loanNumber        String     @unique
+  memberId          String?
+  beneficiaryId     String?
+  amount            Int
+  purpose           String
+  requestedDate     DateTime   @default(now())
+  dateApproved      DateTime?
+  disbursedDate     DateTime?
+  installmentCount  Int
+  installmentAmount Int
+  status            LoanStatus @default(PENDING)
+  notes             String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  createdBy         String?
+  updatedBy         String?
+
+  member        Member?          @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  beneficiary   Beneficiary?     @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  allocations   FundAllocation[]
+  installments  LoanInstallment[]
+  repayments    LoanRepayment[]
+  documents     Document[]
+
+  @@index([memberId])
+  @@index([beneficiaryId])
+}
+
+model LoanInstallment {
+  id        String   @id @default(uuid())
+  loanId    String
+  amount    Int
+  dueDate   DateTime
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  loan Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+}
+
+model LoanRepayment {
+  id                  String   @id @default(uuid())
+  loanId              String
+  ledgerTransactionId String   @unique
+  amount              Int
+  date                DateTime
+  status              String   @default("COMPLETED")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  createdBy           String?
+  updatedBy           String?
+
+  loan              Loan              @relation(fields: [loanId], references: [id], onDelete: Restrict)
+  ledgerTransaction LedgerTransaction @relation(fields: [ledgerTransactionId], references: [id], onDelete: Restrict)
+}
+
+model Grant {
+  id            String      @id @default(uuid())
+  grantNumber   String      @unique
+  beneficiaryId String
+  amount        Int
+  purpose       String
+  dateApproved  DateTime?
+  disbursedDate DateTime?
+  status        GrantStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  createdBy     String?
+  updatedBy     String?
+
+  beneficiary Beneficiary      @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  allocations FundAllocation[]
+  documents   Document[]
+}
+
+model FundAllocation {
+  id         String     @id @default(uuid())
+  fundId     String
+  targetType TargetType // Typically LOAN or GRANT
+  loanId     String?
+  grantId    String?
+  amount     Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?
+  updatedBy  String?
+
+  fund  Fund   @relation(fields: [fundId], references: [id], onDelete: Restrict)
+  loan  Loan?  @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  grant Grant? @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  @@index([fundId])
+  @@index([loanId])
+  @@index([grantId])
+}
+
+// -----------------------------------------------------------------------------
+// SYSTEM ENTITIES
+// -----------------------------------------------------------------------------
+
+model DocumentCategory {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  documents   Document[]
+}
+
+model Document {
+  id                String           @id @default(uuid())
+  documentNumber    String           @unique
+  title             String
+  categoryId        String?
+  type              DocumentType
+  url               String
+  originalFilename  String
+  generatedFilename String
+  mimeType          String
+  sizeBytes         Int
+  targetType        TargetType
+  entityId          String?          // Virtual ID for polymorphic relations if needed
+  
+  description       String?
+  remarks           String?
+  status            String           @default("ACTIVE")
+
+  foundationId  String?
+  groupId       String?
+  memberId      String?
+  beneficiaryId String?
+  loanId        String?
+  grantId       String?
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  createdBy     String?
+  updatedBy     String?
+
+  category    DocumentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  foundation  Foundation?       @relation(fields: [foundationId], references: [id], onDelete: Cascade)
+  group       Group?            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  member      Member?           @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  beneficiary Beneficiary?      @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  loan        Loan?             @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  grant       Grant?            @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  @@index([foundationId])
+  @@index([groupId])
+  @@index([memberId])
+  @@index([beneficiaryId])
+  @@index([loanId])
+  @@index([grantId])
+  @@index([targetType])
+}
+
+
+model Settings {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+}
+
+// -----------------------------------------------------------------------------
+// AUTHENTICATION & AUTHORIZATION
+// -----------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  username  String   @unique
+  email     String?  @unique
+  mobile    String?  @unique
+  password  String
+  roleId    String
+  status    String   @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  lastLogin DateTime?
+  photo     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  auditLogs AuditLog[]
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // SUPER_ADMIN, ADMIN, MANAGER, OPERATOR, VIEWER
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  module      String   // Members, Groups, Contributions, etc.
+  action      String   // Create, Read, Update, Delete, Approve, Export, Print
+  description String?
+  
+  roles       RolePermission[]
+
+  @@unique([module, action])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  module      String
+  referenceId String?
+  oldValue    String?
+  newValue    String?
+  ipAddress   String?
+  device      String?
+  browser     String?
+  remarks     String?
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// -----------------------------------------------------------------------------
+// SYSTEM ADMINISTRATION
+// -----------------------------------------------------------------------------
+
+model SystemSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  group     String   // System, Contribution, Loan, Document, Preferences
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+model FoundationProfile {
+  id                 String   @id @default(uuid())
+  name               String
+  logo               String?
+  address            String?
+  phone              String?
+  email              String?
+  website            String?
+  registrationNumber String?
+  description        String?
+  currency           String   @default("USD")
+  timezone           String   @default("UTC")
+  language           String   @default("en")
+  status             String   @default("ACTIVE")
+  updatedAt          DateTime @updatedAt
+  updatedBy          String?
+}
