@@ -11,8 +11,9 @@ import { ArrowLeft, CheckCircle } from "lucide-react"
 import { GrantDisbursementDialog } from "@/features/grants/components/grant-disbursement-dialog"
 import { DocumentList } from "@/features/documents/components/document-list"
 
-export default async function GrantDetailsPage({ params }: { params: { id: string } }) {
-  const grant = await getGrant(params.id)
+export default async function GrantDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const grant = await getGrant(resolvedParams.id)
 
   if (!grant) return notFound()
 

@@ -11,13 +11,14 @@ import { ArrowLeft, User, Briefcase, Phone, AlertCircle, FileText, Activity } fr
 import { MemberLedgerTable } from "@/features/ledger/components/member-ledger-table"
 import { DocumentList } from "@/features/documents/components/document-list"
 
-export default async function MemberProfilePage({ params }: { params: { id: string } }) {
-  const member = await getMember(params.id)
+export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const member = await getMember(resolvedParams.id)
 
   if (!member) return notFound()
 
-  const ledgerData = await getMemberLedger(params.id)
-  const documents = await getDocumentsByEntity("MEMBER", params.id)
+  const ledgerData = await getMemberLedger(resolvedParams.id)
+  const documents = await getDocumentsByEntity("MEMBER", resolvedParams.id)
   const categories = await getDocumentCategories()
 
   return (

@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Users, DollarSign, Activity } from "lucide-react"
 import { DocumentList } from "@/features/documents/components/document-list"
 
-export default async function GroupDetailsPage({ params }: { params: { id: string } }) {
-  const group = await getGroup(params.id)
+export default async function GroupDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const group = await getGroup(resolvedParams.id)
 
   if (!group) return notFound()
 
-  const fundSummary = await getGroupFundSummary(params.id)
-  const documents = await getDocumentsByEntity("GROUP", params.id)
+  const fundSummary = await getGroupFundSummary(resolvedParams.id)
+  const documents = await getDocumentsByEntity("GROUP", resolvedParams.id)
   const categories = await getDocumentCategories()
 
   const activeMembers = group.members.filter(m => m.status === "ACTIVE").length

@@ -12,8 +12,9 @@ import { LoanDisbursementDialog } from "@/features/loans/components/loan-disburs
 import { LoanRepaymentDialog } from "@/features/loans/components/loan-repayment-dialog"
 import { DocumentList } from "@/features/documents/components/document-list"
 
-export default async function LoanDetailsPage({ params }: { params: { id: string } }) {
-  const loan = await getLoan(params.id)
+export default async function LoanDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const loan = await getLoan(resolvedParams.id)
 
   if (!loan) return notFound()
 

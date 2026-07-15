@@ -156,10 +156,10 @@ export function MembersTable({ data, groups }: { data: MemberWithGroup[], groups
         
         {/* Simple Group Filter Dropdown */}
         <Select 
-          value={(table.getColumn("groupName")?.getFilterValue() as string) ?? "ALL"}
+          value={(table.getColumn("group")?.getFilterValue() as string) ?? "ALL"}
           onValueChange={(value) => {
-            if (value === "ALL") table.getColumn("groupName")?.setFilterValue("")
-            else table.getColumn("groupName")?.setFilterValue(value)
+            if (value === "ALL") table.getColumn("group")?.setFilterValue("")
+            else table.getColumn("group")?.setFilterValue(value)
           }}
         >
           <SelectTrigger className="w-[180px]">

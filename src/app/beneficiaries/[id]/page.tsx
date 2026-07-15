@@ -9,9 +9,10 @@ import { ArrowLeft, User, Phone, Briefcase } from "lucide-react"
 import { DocumentList } from "@/features/documents/components/document-list"
 import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
 
-export default async function BeneficiaryDetailsPage({ params }: { params: { id: string } }) {
+export default async function BeneficiaryDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const beneficiary = await prisma.beneficiary.findUnique({
-    where: { id: params.id },
+    where: { id: resolvedParams.id },
     include: { member: true }
   })
 

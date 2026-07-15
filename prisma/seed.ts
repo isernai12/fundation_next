@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -57,6 +58,50 @@ async function main() {
       description: 'Default system currency',
     },
   })
+
+  console.log("Seeding initial Super Admin...")
+
+  // Create Super Admin Role
+  let role = await prisma.role.findUnique({
+    where: { name: "SUPER_ADMIN" }
+  })
+  
+  if (!role) {
+    role = await prisma.role.create({
+      data: {
+        name: "SUPER_ADMIN",
+        description: "Super Administrator with full access",
+      },
+    })
+  }
+
+  // Hash password
+  const hashedPassword = await bcrypt.hash("admin123", 10)
+
+  // Create Super Admin User
+  let user = await prisma.user.findUnique({
+    where: { username: "admin" }
+  })
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        name: "System Administrator",
+        username: "admin",
+        email: "admin@foundation.local",
+        password: hashedPassword,
+        roleId: role.id,
+        status: "ACTIVE",
+      },
+    })
+  } else {
+    await prisma.user.update({
+      where: { username: "admin" },
+      data: { password: hashedPassword, roleId: role.id, status: "ACTIVE" }
+    })
+  }
+
+  console.log(`Created/Updated admin user`)
 
   console.log('Seeding completed successfully.')
 }

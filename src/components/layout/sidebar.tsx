@@ -52,7 +52,21 @@ const sidebarItems: MenuItem[] = [
     ]
   },
   { name: "Beneficiaries", href: "/beneficiaries", icon: Users },
-  { name: "Groups", href: "/groups", icon: Building },
+  { 
+    name: "Groups", 
+    href: "/groups", 
+    icon: Building,
+    submenu: [
+      { name: "Add Group", href: "/groups/new" },
+      { name: "All Groups", href: "/groups" },
+      { name: "Manage Groups", href: "/groups/manage" },
+      { name: "Group Members", href: "/groups/members" },
+      { name: "Group Fund", href: "/groups/fund" },
+      { name: "Group Ledger", href: "/groups/ledger" },
+      { name: "Group Transactions", href: "/groups/transactions" },
+      { name: "Group Reports", href: "/groups/reports" },
+    ]
+  },
   { name: "Contributions", href: "/contributions", icon: CreditCard },
   { name: "Loans", href: "/loans", icon: PiggyBank },
   { name: "Grants", href: "/grants", icon: Gift },
