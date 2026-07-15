@@ -48,7 +48,7 @@ export default async function MemberProfilePage({ params }: { params: { id: stri
             <CardTitle>Organization Information</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
-            <div><span className="text-sm font-semibold">Group</span><p className="text-muted-foreground">{member.group.name} ({member.group.code})</p></div>
+            <div><span className="text-sm font-semibold">Group</span><p className="text-muted-foreground">{member.group?.name || "No Group"} {member.group?.code ? `(${member.group.code})` : ""}</p></div>
             <div><span className="text-sm font-semibold">Join Date</span><p className="text-muted-foreground">{member.joinDate ? new Date(member.joinDate).toLocaleDateString() : 'N/A'}</p></div>
             <div><span className="text-sm font-semibold">Status</span><p className="text-muted-foreground">{member.status}</p></div>
             <div><span className="text-sm font-semibold">Remarks</span><p className="text-muted-foreground">{member.remarks || 'None'}</p></div>

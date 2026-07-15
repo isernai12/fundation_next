@@ -70,7 +70,7 @@ export async function getMemberDirectoryReport() {
   return members.map(m => ({
     memberId: m.memberId,
     name: `${m.firstName} ${m.lastName}`,
-    group: m.group.name,
+    group: m.group?.name || "No Group",
     mobile: m.mobile,
     email: m.email || "N/A",
     status: m.status,

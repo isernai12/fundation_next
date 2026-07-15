@@ -29,7 +29,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface BeneficiaryFormDialogProps {
   beneficiary?: Beneficiary
-  members: { id: string; firstName: string; lastName: string; memberId: string }[]
+  members: { id: string; firstName: string | null; lastName: string | null; memberId: string }[]
   trigger?: React.ReactNode
 }
 

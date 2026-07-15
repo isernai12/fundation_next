@@ -38,7 +38,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-type MemberWithGroup = Member & { group: { name: string, code: string } }
+type MemberWithGroup = Member & {
+  group: { name: string; code: string } | null
+}
 
 export function MembersTable({ data, groups }: { data: MemberWithGroup[], groups: Group[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -59,10 +61,10 @@ export function MembersTable({ data, groups }: { data: MemberWithGroup[], groups
       header: "Mobile",
     },
     {
-      id: "groupName",
-      accessorFn: (row) => row.group.name,
+      accessorFn: (row) => row.group?.name || "No Group",
+      id: "group",
       header: "Group",
-      cell: ({ row }) => `${row.original.group.name} (${row.original.group.code})`
+      cell: ({ row }) => row.original.group ? `${row.original.group.name} (${row.original.group.code})` : "No Group",
     },
     {
       accessorKey: "status",

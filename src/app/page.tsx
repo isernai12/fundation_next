@@ -1,6 +1,6 @@
 import { getDashboardStats } from "@/features/dashboard/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts"
+import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts-dynamic"
 import { Users, Building, DollarSign, PiggyBank, Gift, Wallet, Activity } from "lucide-react"
 
 export default async function DashboardPage() {

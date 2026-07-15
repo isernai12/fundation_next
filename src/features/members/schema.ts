@@ -2,20 +2,20 @@ import { z } from "zod"
 import { MemberStatus } from "@prisma/client"
 
 export const memberSchema = z.object({
-  groupId: z.string().min(1, "Group is required"),
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
+  groupId: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   
   fatherName: z.string().optional(),
   motherName: z.string().optional(),
   gender: z.string().optional(),
   dob: z.string().optional(), // Store as string from form, convert to Date in action
-  nationalId: z.string().min(5, "National ID must be at least 5 characters"),
+  nationalId: z.string().optional(),
   occupation: z.string().optional(),
-  monthlyIncome: z.any(),
+  monthlyIncome: z.string().optional(),
   bloodGroup: z.string().optional(),
   
-  mobile: z.string().min(10, "Valid mobile number is required"),
+  mobile: z.string().optional(),
   altMobile: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   phone: z.string().optional(),
@@ -27,8 +27,23 @@ export const memberSchema = z.object({
   emergencyContactRelation: z.string().optional(),
 
   joinDate: z.string().optional(), // Date string
-  status: z.nativeEnum(MemberStatus),
+  status: z.nativeEnum(MemberStatus).optional(),
   remarks: z.string().optional(),
+  
+  // Extended Information
+  maritalStatus: z.string().optional(),
+  education: z.string().optional(),
+  workplace: z.string().optional(),
+  designation: z.string().optional(),
+  skills: z.array(z.string()).optional(),
+  reference: z.string().optional(),
+  reasonForJoining: z.string().optional(),
+  participation: z.array(z.string()).optional(),
+  declarationAccepted: z.boolean().default(true),
+  memberType: z.string().optional(),
+  
+  // For UI only, we'll split full name into firstName and lastName in the action
+  fullName: z.string().min(2, "Full name is required"),
 })
 
 export type MemberFormValues = z.infer<typeof memberSchema>

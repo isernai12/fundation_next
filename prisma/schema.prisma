@@ -114,9 +114,9 @@ model Group {
 model Member {
   id        String       @id @default(uuid())
   memberId  String       @unique
-  groupId   String
-  firstName String
-  lastName  String
+  groupId   String?
+  firstName String?
+  lastName  String?
   
   // Personal Information
   fatherName String?
@@ -146,12 +146,24 @@ model Member {
   status    MemberStatus @default(ACTIVE)
   remarks   String?
   
+  // Extended Information
+  maritalStatus      String?
+  education          String?
+  workplace          String?
+  designation        String?
+  skills             String?
+  reference          String?
+  reasonForJoining   String?
+  participation      String?
+  declarationAccepted Boolean @default(true)
+  memberType         String? @default("REGULAR")
+  
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   createdBy String?
   updatedBy String?
 
-  group                  Group                   @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  group                  Group?                  @relation(fields: [groupId], references: [id], onDelete: Restrict)
   beneficiaries          Beneficiary[]
   contributions          MonthlyContribution[]
   loans                  Loan[]

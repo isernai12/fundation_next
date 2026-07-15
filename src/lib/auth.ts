@@ -20,22 +20,27 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
-          throw new Error("Invalid credentials")
+          throw new Error("Invalid username or email.")
         }
 
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username },
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { username: credentials.username },
+              { email: credentials.username }
+            ]
+          },
           include: { role: true },
         })
 
         if (!user || user.status !== "ACTIVE") {
-          throw new Error("Invalid credentials or inactive account")
+          throw new Error("Invalid username or email.")
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password)
 
         if (!isValid) {
-          throw new Error("Invalid credentials")
+          throw new Error("Incorrect password.")
         }
 
         // Log the login action

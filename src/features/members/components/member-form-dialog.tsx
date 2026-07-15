@@ -38,7 +38,7 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
   const isEditing = !!member
 
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema),
+    resolver: zodResolver(memberSchema) as any,
     defaultValues: {
       groupId: member?.groupId || "",
       firstName: member?.firstName || "",
@@ -49,7 +49,7 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
       dob: member?.dob ? new Date(member.dob).toISOString().split('T')[0] : "",
       nationalId: member?.nationalId || "",
       occupation: member?.occupation || "",
-      monthlyIncome: member?.monthlyIncome || "",
+      monthlyIncome: member?.monthlyIncome ? String(member.monthlyIncome) : "",
       bloodGroup: member?.bloodGroup || "",
       mobile: member?.mobile || "",
       altMobile: member?.altMobile || "",
@@ -63,6 +63,17 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
       joinDate: member?.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : "",
       status: member?.status || "ACTIVE",
       remarks: member?.remarks || "",
+      fullName: member ? `${member.firstName} ${member.lastName}` : "",
+      maritalStatus: member?.maritalStatus || "",
+      education: member?.education || "",
+      workplace: member?.workplace || "",
+      designation: member?.designation || "",
+      skills: member?.skills ? JSON.parse(member.skills) : [],
+      reference: member?.reference || "",
+      reasonForJoining: member?.reasonForJoining || "",
+      participation: member?.participation ? JSON.parse(member.participation) : [],
+      declarationAccepted: member?.declarationAccepted ?? true,
+      memberType: member?.memberType || "REGULAR",
     },
   })
 

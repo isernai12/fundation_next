@@ -28,7 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 
 interface ContributionFormDialogProps {
-  members: { id: string; firstName: string; lastName: string; memberId: string }[]
+  members: { id: string; firstName: string | null; lastName: string | null; memberId: string }[]
   trigger?: React.ReactNode
 }
 

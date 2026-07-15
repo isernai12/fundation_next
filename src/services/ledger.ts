@@ -59,8 +59,26 @@ export class LedgerEngine {
   /**
    * Automatically fetches or creates a group's fund and the general fund
    */
-  static async getOrCreateFunds(groupId: string, tx?: Omit<Prisma.TransactionClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) {
+  static async getOrCreateFunds(groupId: string | null, tx?: Omit<Prisma.TransactionClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) {
     const db = tx || prisma
+    
+    let generalFund = await db.fund.findFirst({
+      where: { groupId: null }
+    })
+
+    if (!generalFund) {
+      generalFund = await db.fund.create({
+        data: {
+          name: "General Foundation Fund",
+          description: "Main unallocated asset pool"
+        }
+      })
+    }
+
+    if (!groupId) {
+      return { groupFund: generalFund, generalFund }
+    }
+
     let groupFund = await db.fund.findFirst({
       where: { groupId }
     })
@@ -73,19 +91,6 @@ export class LedgerEngine {
           groupId,
           name: `${group.name} Fund`,
           description: `Auto-generated fund for ${group.name}`
-        }
-      })
-    }
-
-    let generalFund = await db.fund.findFirst({
-      where: { groupId: null }
-    })
-
-    if (!generalFund) {
-      generalFund = await db.fund.create({
-        data: {
-          name: "General Foundation Fund",
-          description: "Main unallocated asset pool"
         }
       })
     }
