@@ -1,20 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { GroupForm } from "@/features/groups/components/group-form"
 
-export default function PlaceholderPage() {
+export default function AddGroupPage() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Add Group</h1>
         <p className="text-muted-foreground">Create a new group in the foundation.</p>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">This module is currently under development.</p>
-        </CardContent>
-      </Card>
+      <GroupForm />
     </div>
   )
 }

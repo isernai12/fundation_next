@@ -51,7 +51,21 @@ const sidebarItems: MenuItem[] = [
       { name: "Member Documents", href: "/members/documents" },
     ]
   },
-  { name: "Beneficiaries", href: "/beneficiaries", icon: Users },
+  { 
+    name: "Beneficiaries", 
+    href: "/beneficiaries", 
+    icon: Users,
+    submenu: [
+      { name: "Add Beneficiary", href: "/beneficiaries/new" },
+      { name: "All Beneficiaries", href: "/beneficiaries" },
+      { name: "Manage Beneficiaries", href: "/beneficiaries/manage" },
+      { name: "Beneficiary Ledger", href: "/beneficiaries/ledger" },
+      { name: "Beneficiary Documents", href: "/beneficiaries/documents" },
+      { name: "Beneficiary Assistance History", href: "/beneficiaries/assistance-history" },
+      { name: "Beneficiary Loan History", href: "/beneficiaries/loan-history" },
+      { name: "Beneficiary Reports", href: "/beneficiaries/reports" },
+    ]
+  },
   { 
     name: "Groups", 
     href: "/groups", 
@@ -67,10 +81,60 @@ const sidebarItems: MenuItem[] = [
       { name: "Group Reports", href: "/groups/reports" },
     ]
   },
-  { name: "Contributions", href: "/contributions", icon: CreditCard },
-  { name: "Loans", href: "/loans", icon: PiggyBank },
-  { name: "Grants", href: "/grants", icon: Gift },
-  { name: "Ledger", href: "/ledger", icon: BookOpen },
+  { 
+    name: "Contributions", 
+    href: "/contributions", 
+    icon: CreditCard,
+    submenu: [
+      { name: "Add Contribution", href: "/contributions/new" },
+      { name: "Monthly Contributions", href: "/contributions/monthly" },
+      { name: "All Contributions", href: "/contributions" },
+      { name: "Due Contributions", href: "/contributions/due" },
+      { name: "Contribution Ledger", href: "/contributions/ledger" },
+      { name: "Contribution Reports", href: "/contributions/reports" },
+    ]
+  },
+  { 
+    name: "Loans", 
+    href: "/loans", 
+    icon: PiggyBank,
+    submenu: [
+      { name: "Add Loan", href: "/loans/new" },
+      { name: "All Loans", href: "/loans" },
+      { name: "Manage Loans", href: "/loans/manage" },
+      { name: "Loan Repayments", href: "/loans/repayments" },
+      { name: "Loan Installments", href: "/loans/installments" },
+      { name: "Loan Ledger", href: "/loans/ledger" },
+      { name: "Loan Reports", href: "/loans/reports" },
+    ]
+  },
+  { 
+    name: "Grants", 
+    href: "/grants", 
+    icon: Gift,
+    submenu: [
+      { name: "Add Grant", href: "/grants/new" },
+      { name: "All Grants", href: "/grants" },
+      { name: "Manage Grants", href: "/grants/manage" },
+      { name: "Grant Ledger", href: "/grants/ledger" },
+      { name: "Grant Documents", href: "/grants/documents" },
+      { name: "Grant Reports", href: "/grants/reports" },
+    ]
+  },
+  { 
+    name: "Ledger", 
+    href: "/ledger", 
+    icon: BookOpen,
+    submenu: [
+      { name: "General Ledger", href: "/ledger" },
+      { name: "Group Ledger", href: "/ledger/group" },
+      { name: "Member Ledger", href: "/ledger/member" },
+      { name: "Beneficiary Ledger", href: "/ledger/beneficiary" },
+      { name: "Transaction Register", href: "/ledger/transactions" },
+      { name: "Fund Allocation Ledger", href: "/ledger/allocations" },
+      { name: "Ledger Reports", href: "/ledger/reports" },
+    ]
+  },
   { name: "Documents", href: "/documents", icon: FolderOpen },
   { name: "Reports", href: "/reports", icon: PieChart },
   { name: "Settings", href: "/settings", icon: Settings },

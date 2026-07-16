@@ -50,7 +50,7 @@ export function BeneficiaryFormDialog({ beneficiary, members, trigger }: Benefic
       nationalId: beneficiary?.nationalId || "",
       occupation: beneficiary?.occupation || "",
       remarks: beneficiary?.remarks || "",
-      status: (beneficiary?.status as any) || "ACTIVE",
+      status: beneficiary?.status || "ACTIVE",
     },
   })
 

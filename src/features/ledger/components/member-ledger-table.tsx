@@ -19,14 +19,23 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 
-export function MemberLedgerTable({ data }: { data: any[] }) {
+export type MemberLedgerData = {
+  id: string
+  date: string | Date
+  type: string
+  details: string
+  amount: number
+  reference: string
+}
+
+export function MemberLedgerTable({ data }: { data: MemberLedgerData[] }) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<MemberLedgerData>[] = [
     {
       accessorKey: "date",
       header: "Date",

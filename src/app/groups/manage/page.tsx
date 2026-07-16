@@ -1,20 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getGroups } from "@/features/groups/actions"
+import { GroupsTable } from "@/features/groups/components/groups-table"
 
-export default function PlaceholderPage() {
+export default async function ManageGroupsPage() {
+  const groups = await getGroups()
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Manage Groups</h1>
-        <p className="text-muted-foreground">Manage existing groups, edit details, and control status.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Manage Groups</h1>
+          <p className="text-muted-foreground">Manage existing groups, edit details, and control status.</p>
+        </div>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">This module is currently under development.</p>
-        </CardContent>
-      </Card>
+      <GroupsTable data={groups} manageMode={true} />
     </div>
   )
 }

@@ -1,20 +1,34 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getGroupTransactions } from "@/features/groups/actions"
+import { GroupSelector } from "@/features/groups/components/group-selector"
+import { GroupTransactionsTable } from "@/features/groups/components/group-transactions-table"
+import { Card, CardContent } from "@/components/ui/card"
+import { ArrowLeftRight } from "lucide-react"
 
-export default function PlaceholderPage() {
+export default async function GroupTransactionsPage({ searchParams }: { searchParams: { groupId?: string } }) {
+  const groupId = searchParams.groupId
+  const transactions = groupId ? await getGroupTransactions(groupId) : []
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Group Transactions</h1>
-        <p className="text-muted-foreground">Detailed view of all group financial activities.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Group Transactions</h1>
+          <p className="text-muted-foreground">View all transactions related to this group.</p>
+        </div>
+        <GroupSelector />
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">This module is currently under development.</p>
-        </CardContent>
-      </Card>
+
+      {!groupId ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
+            <ArrowLeftRight className="h-12 w-12 text-muted-foreground" />
+            <div className="text-xl font-semibold">No Group Selected</div>
+            <p className="text-muted-foreground">Please select a group from the dropdown above to view its transactions.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <GroupTransactionsTable data={transactions} />
+      )}
     </div>
   )
 }

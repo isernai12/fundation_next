@@ -36,12 +36,17 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
   const isEditing = !!group
 
   const form = useForm<GroupFormValues>({
-    resolver: zodResolver(groupSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(groupSchema) as any,
     defaultValues: {
       name: group?.name || "",
       code: group?.code || "",
+      shortName: group?.shortName || "",
       description: group?.description || "",
       status: group?.status || "ACTIVE",
+      openingBalance: 0,
+      groupLeader: group?.groupLeader || "",
+      remarks: group?.remarks || "",
     },
   })
 

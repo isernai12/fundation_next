@@ -7,6 +7,8 @@ import {
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
   getFilteredRowModel,
   ColumnFiltersState,
 } from "@tanstack/react-table"
@@ -22,7 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { BeneficiaryFormDialog } from "./beneficiary-form-dialog"
-import { Eye, Edit, MoreHorizontal } from "lucide-react"
+import { Eye, Edit, Trash, MoreHorizontal, ArrowUpDown } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,18 +32,43 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
+import { deleteBeneficiary, updateBeneficiary } from "../actions"
+import { toast } from "sonner"
+import { Beneficiary, Member } from "@prisma/client"
 
-export function BeneficiariesTable({ data, members }: { data: any[], members: any[] }) {
+type BeneficiaryWithMember = Beneficiary & { 
+  member?: { 
+    memberId: string
+    firstName: string | null
+    lastName: string | null
+  } | null 
+}
+
+export function BeneficiariesTable({ data, members, manageMode = false }: { data: BeneficiaryWithMember[], members: { id: string; firstName: string | null; lastName: string | null; memberId: string }[], manageMode?: boolean }) {
+  const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<BeneficiaryWithMember>[] = [
     {
       accessorKey: "beneficiaryId",
-      header: "Beneficiary ID",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
+            Beneficiary ID <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
     },
     {
       accessorKey: "firstName",
-      header: "Name",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
+            Name <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
       cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`
     },
     {
@@ -76,15 +103,85 @@ export function BeneficiariesTable({ data, members }: { data: any[], members: an
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <BeneficiaryFormDialog
-                beneficiary={beneficiary}
-                members={members}
-                trigger={
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
+              <DropdownMenuItem asChild>
+                <Link href={`/beneficiaries/${beneficiary.id}`}>
+                  <Eye className="mr-2 h-4 w-4" /> View Details
+                </Link>
+              </DropdownMenuItem>
+              {manageMode && (
+                <>
+                  <BeneficiaryFormDialog
+                    beneficiary={beneficiary}
+                    members={members}
+                    trigger={
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
+                      </DropdownMenuItem>
+                    }
+                  />
+                  {beneficiary.status === "INACTIVE" ? (
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        const payload = {
+                          firstName: beneficiary.firstName,
+                          lastName: beneficiary.lastName,
+                          memberId: beneficiary.memberId || "",
+                          relationToMember: beneficiary.relationToMember || "",
+                          email: beneficiary.email || "",
+                          phone: beneficiary.phone || "",
+                          mobile: beneficiary.mobile || "",
+                          address: beneficiary.address || "",
+                          nationalId: beneficiary.nationalId || "",
+                          occupation: beneficiary.occupation || "",
+                          remarks: beneficiary.remarks || "",
+                          status: "ACTIVE" as const,
+                        }
+                        const res = await updateBeneficiary(beneficiary.id, payload)
+                        if (res.success) toast.success("Beneficiary activated")
+                        else toast.error(res.error)
+                      }}
+                    >
+                      <Eye className="mr-2 h-4 w-4" /> Activate
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        const payload = {
+                          firstName: beneficiary.firstName,
+                          lastName: beneficiary.lastName,
+                          memberId: beneficiary.memberId || "",
+                          relationToMember: beneficiary.relationToMember || "",
+                          email: beneficiary.email || "",
+                          phone: beneficiary.phone || "",
+                          mobile: beneficiary.mobile || "",
+                          address: beneficiary.address || "",
+                          nationalId: beneficiary.nationalId || "",
+                          occupation: beneficiary.occupation || "",
+                          remarks: beneficiary.remarks || "",
+                          status: "INACTIVE" as const,
+                        }
+                        const res = await updateBeneficiary(beneficiary.id, payload)
+                        if (res.success) toast.success("Beneficiary deactivated")
+                        else toast.error(res.error)
+                      }}
+                    >
+                      <Eye className="mr-2 h-4 w-4" /> Deactivate
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to delete this beneficiary?")) {
+                        const res = await deleteBeneficiary(beneficiary.id)
+                        if (res.success) toast.success("Beneficiary deleted")
+                        else toast.error(res.error)
+                      }
+                    }}
+                  >
+                    <Trash className="mr-2 h-4 w-4" /> Delete
                   </DropdownMenuItem>
-                }
-              />
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -97,9 +194,12 @@ export function BeneficiariesTable({ data, members }: { data: any[], members: an
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
+      sorting,
       columnFilters,
     },
   })
@@ -147,7 +247,7 @@ export function BeneficiariesTable({ data, members }: { data: any[], members: an
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No beneficiaries found.
                 </TableCell>
               </TableRow>

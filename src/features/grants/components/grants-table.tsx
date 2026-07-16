@@ -7,6 +7,8 @@ import {
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
   getFilteredRowModel,
   ColumnFiltersState,
 } from "@tanstack/react-table"
@@ -19,9 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Eye, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, Edit, Eye, Trash, MoreHorizontal, Printer, Archive } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,46 +30,78 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Grant, FundAllocation, Fund } from "@prisma/client"
+import { deleteGrant } from "../actions"
+import { toast } from "sonner"
 import Link from "next/link"
 
-export function GrantsTable({ data }: { data: any[] }) {
+type GrantWithDetails = Grant & {
+  beneficiary: {
+    firstName: string | null
+    lastName: string | null
+    beneficiaryId: string
+  }
+  allocations: (FundAllocation & {
+    fund: Fund & {
+      group: { name: string; code: string } | null
+    }
+  })[]
+}
+
+export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetails[], manageMode?: boolean }) {
+  const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<GrantWithDetails>[] = [
     {
       accessorKey: "grantNumber",
-      header: "Grant #",
-    },
-    {
-      id: "beneficiary",
-      header: "Beneficiary",
-      cell: ({ row }) => row.original.beneficiary ? `${row.original.beneficiary.firstName} ${row.original.beneficiary.lastName}` : "Unknown"
-    },
-    {
-      accessorKey: "amount",
-      header: "Amount",
-      cell: ({ row }) => `$${(row.getValue("amount") as number) / 100}`,
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const s = row.getValue("status") as string
+      header: ({ column }) => {
         return (
-          <Badge variant={s === "PAID" ? "default" : s === "PENDING" ? "outline" : "destructive"}>
-            {s}
-          </Badge>
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
+            Grant No <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
         )
       },
     },
     {
-      accessorKey: "createdAt",
-      header: "Created Date",
-      cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
+      id: "beneficiary",
+      header: "Beneficiary",
+      cell: ({ row }) => `${row.original.beneficiary.firstName} ${row.original.beneficiary.lastName} (${row.original.beneficiary.beneficiaryId})`
+    },
+    {
+      accessorKey: "purpose",
+      header: "Category",
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => `$${row.original.amount.toFixed(2)}`
+    },
+    {
+      id: "fundingGroups",
+      header: "Funding Groups",
+      cell: ({ row }) => {
+        return row.original.allocations.map(a => a.fund.group?.code).filter(Boolean).join(", ") || "General Fund"
+      }
+    },
+    {
+      accessorKey: "dateApproved",
+      header: "Date",
+      cell: ({ row }) => row.original.dateApproved ? new Date(row.original.dateApproved).toLocaleDateString() : "N/A"
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.original.status === "PAID" ? "default" : "secondary"}>
+          {row.original.status}
+        </Badge>
+      )
     },
     {
       id: "actions",
       cell: ({ row }) => {
+        const grant = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -80,10 +113,35 @@ export function GrantsTable({ data }: { data: any[] }) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href={`/grants/${row.original.id}`}>
+                <Link href={`/grants/${grant.id}`}>
                   <Eye className="mr-2 h-4 w-4" /> View Details
                 </Link>
               </DropdownMenuItem>
+              {manageMode && (
+                <>
+                  <DropdownMenuItem>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Printer className="mr-2 h-4 w-4" /> Print
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Archive className="mr-2 h-4 w-4" /> Archive
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to delete this grant?")) {
+                        const res = await deleteGrant(grant.id)
+                        if (res.success) toast.success("Grant deleted")
+                        else toast.error(res.error || "Failed to delete grant")
+                      }
+                    }}
+                  >
+                    <Trash className="mr-2 h-4 w-4" /> Delete
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -96,33 +154,31 @@ export function GrantsTable({ data }: { data: any[] }) {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
+      sorting,
       columnFilters,
     },
   })
 
   return (
     <div>
-      <div className="flex items-center space-x-2 py-4">
-        <Input
-          placeholder="Filter by Grant Number..."
-          value={(table.getColumn("grantNumber")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("grantNumber")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-      </div>
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border bg-card mt-4">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -131,7 +187,7 @@ export function GrantsTable({ data }: { data: any[] }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -141,7 +197,7 @@ export function GrantsTable({ data }: { data: any[] }) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No grants found.
                 </TableCell>
               </TableRow>

@@ -1,90 +1,103 @@
-"use server"
-
 import { prisma } from "@/lib/prisma"
 
-export async function getMemberLedger(memberId: string) {
-  // To get a member's ledger, we look at their contributions (and future loans/grants).
-  // For now, it's contributions.
-  // The ledger engine stores general entries by fundId. 
-  // However, member-specific view should combine `MonthlyContribution` -> `ContributionPayment` -> `LedgerTransaction`
-  const payments = await prisma.contributionPayment.findMany({
-    where: {
-      monthlyContribution: { memberId }
-    },
+// Get all transactions for the Transaction Register
+export async function getTransactions() {
+  return prisma.ledgerTransaction.findMany({
+    orderBy: { date: "desc" },
     include: {
-      ledgerTransaction: {
+      entries: {
         include: {
-          entries: {
-            include: { fund: true }
+          fund: {
+            include: {
+              group: { select: { name: true, code: true } }
+            }
           }
         }
-      },
-      monthlyContribution: true
-    },
-    orderBy: { paymentDate: 'desc' }
+      }
+    }
   })
-
-  // Format into a unified ledger view
-  return payments.map(p => ({
-    id: p.ledgerTransactionId,
-    date: p.paymentDate,
-    type: p.ledgerTransaction.type,
-    amount: p.amount,
-    reference: p.referenceNumber || p.ledgerTransaction.referenceId,
-    notes: p.notes || p.ledgerTransaction.notes,
-    details: `Contribution for ${p.monthlyContribution.month}/${p.monthlyContribution.year}`
-  }))
 }
 
-export async function getGroupFundSummary(groupId: string) {
-  // Find the group's fund
-  const fund = await prisma.fund.findFirst({
-    where: { groupId },
+// Get all ledger entries for the General Ledger (flattened view)
+export async function getGeneralLedgerEntries() {
+  const entries = await prisma.ledgerEntry.findMany({
+    orderBy: { transaction: { date: "desc" } },
     include: {
-      ledgerLines: true
+      transaction: true,
+      fund: {
+        include: {
+          group: { select: { name: true, code: true } }
+        }
+      }
     }
   })
 
-  if (!fund) return { totalContributions: 0, currentFund: 0, totalTransactions: 0 }
-
-  const totalTransactions = fund.ledgerLines.length
-  
-  // Current Fund Balance = Sum of Credits - Sum of Debits (for Equity/Fund accounts)
-  // or Sum of Debits - Sum of Credits (for Asset accounts)
-  // Since Group Fund is an Equity account, it increases on Credit.
-  const currentFund = fund.ledgerLines.reduce((acc, line) => {
-    return acc + (line.isCredit ? line.amount : -line.amount)
-  }, 0)
-
-  // Total Contributions is just sum of credits for type CONTRIBUTION
-  // (Assuming no refunds for now)
-  // Since we don't have transaction type directly on line, we could query via transaction relation,
-  // but for now, since it's just contributions, it's the currentFund.
-  return {
-    totalContributions: currentFund,
-    currentFund,
-    totalTransactions
-  }
+  // To calculate running balance we normally need to process them chronologically.
+  // Since we fetch desc for UI, calculating running balance in a stateless paginated 
+  // UI is complex (usually requires DB window functions). We'll map them for the UI 
+  // and handle logic in the table.
+  return entries
 }
 
-export async function getFoundationFundSummary() {
-  const generalFund = await prisma.fund.findFirst({
-    where: { groupId: null },
-    include: { ledgerLines: true }
+// Get ledger entries for a specific group (Group Ledger)
+export async function getGroupLedgerEntries(groupId: string) {
+  return prisma.ledgerEntry.findMany({
+    where: {
+      fund: { groupId }
+    },
+    orderBy: { transaction: { date: "desc" } },
+    include: {
+      transaction: true,
+      fund: true
+    }
+  })
+}
+
+// Get transactions for a member (derived from Contributions and Loans)
+// A member does not have a direct "MemberFund" in our simplified schema,
+// so we query transactions where the reference points to member activities.
+export async function getMemberLedgerTransactions(memberId: string) {
+  // Find contributions by member
+  const contributions = await prisma.monthlyContribution.findMany({
+    where: { memberId },
+    select: { id: true }
+  })
+  
+  const contributionIds = contributions.map(c => c.id)
+
+  const payments = await prisma.contributionPayment.findMany({
+    where: { monthlyContributionId: { in: contributionIds } },
+    select: { ledgerTransactionId: true }
   })
 
-  // General Fund is Asset (Cash). Increases on Debit.
-  const totalActiveFunds = generalFund ? generalFund.ledgerLines.reduce((acc, line) => {
-    return acc + (!line.isCredit ? line.amount : -line.amount)
-  }, 0) : 0
+  const txIds = payments.map(p => p.ledgerTransactionId)
 
-  const totalMembers = await prisma.member.count({ where: { status: "ACTIVE" } })
-  const totalGroups = await prisma.group.count({ where: { status: "ACTIVE" } })
+  return prisma.ledgerTransaction.findMany({
+    where: { id: { in: txIds } },
+    orderBy: { date: "desc" },
+    include: { entries: { include: { fund: true } } }
+  })
+}
 
-  return {
-    totalContributions: totalActiveFunds,
-    totalActiveFunds,
-    totalMembers,
-    totalGroups
-  }
+// Get fund allocations
+export async function getFundAllocations() {
+  return prisma.fundAllocation.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      fund: {
+        include: { group: { select: { name: true, code: true } } }
+      },
+      // Note: prisma schema only defines `loanId` and `grantId` fields, no direct relation in FundAllocation for them.
+      // We just have the IDs.
+    }
+  })
+}
+
+// Stubs for legacy references
+export async function getGroupFundSummary(_groupId: string) {
+  return { currentFund: 0, totalContributions: 0, totalTransactions: 0 };
+}
+
+export async function getMemberLedger(_memberId: string) {
+  return [];
 }

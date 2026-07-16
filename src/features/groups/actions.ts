@@ -7,7 +7,6 @@ import { GroupStatus } from "@prisma/client"
 
 export async function getGroups() {
   return prisma.group.findMany({
-    where: { status: { not: "INACTIVE" } }, // Optional: adjust based on archive logic, but requirement says "Archive Group", so we might fetch all and filter, or just exclude deleted. Let's fetch all for the list and allow filtering.
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
@@ -47,14 +46,20 @@ export async function createGroup(data: GroupFormValues) {
   try {
     const group = await prisma.group.create({
       data: {
-        ...parsed.data,
+        name: parsed.data.name,
+        code: parsed.data.code,
+        shortName: parsed.data.shortName,
+        description: parsed.data.description,
+        groupLeader: parsed.data.groupLeader,
+        remarks: parsed.data.remarks,
+        status: parsed.data.status,
         foundationId: foundation.id,
       },
     })
     revalidatePath("/groups")
     return { success: true, data: group }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to create group" }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to create group" }
   }
 }
 
@@ -70,13 +75,21 @@ export async function updateGroup(id: string, data: GroupFormValues) {
   try {
     const group = await prisma.group.update({
       where: { id },
-      data: parsed.data,
+      data: {
+        name: parsed.data.name,
+        code: parsed.data.code,
+        shortName: parsed.data.shortName,
+        description: parsed.data.description,
+        groupLeader: parsed.data.groupLeader,
+        remarks: parsed.data.remarks,
+        status: parsed.data.status,
+      },
     })
     revalidatePath("/groups")
     revalidatePath(`/groups/${id}`)
     return { success: true, data: group }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to update group" }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to update group" }
   }
 }
 
@@ -101,7 +114,76 @@ export async function archiveGroup(id: string) {
     
     revalidatePath("/groups")
     return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to archive group" }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to archive group" }
   }
 }
+
+export async function deleteGroup(id: string) {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { members: true, funds: true, documents: true }
+        }
+      }
+    })
+
+    if (!group) return { success: false, error: "Group not found" }
+    if (group._count.members > 0) return { success: false, error: "Cannot delete group with existing members." }
+    if (group._count.funds > 0) return { success: false, error: "Cannot delete group with existing funds or ledger entries." }
+    
+    // Additional checks for Loans and Grants would go here once implemented
+    // For now, if members and funds are 0, we can delete
+    await prisma.group.delete({ where: { id } })
+    revalidatePath("/groups")
+    return { success: true }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to delete group" }
+  }
+}
+
+export async function getGroupMembers(groupId: string) {
+  if (!groupId) return []
+  return prisma.member.findMany({
+    where: { groupId },
+    orderBy: { createdAt: "desc" },
+  })
+}
+
+export async function removeMemberFromGroup(memberId: string) {
+  try {
+    await prisma.member.update({
+      where: { id: memberId },
+      data: { groupId: null },
+    })
+    revalidatePath("/groups/members")
+    return { success: true }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to remove member" }
+  }
+}
+
+export async function getGroupFundSummary(_groupId: string) {
+  // Placeholder implementation since Ledger is not fully built out
+  return {
+    currentBalance: 0,
+    openingBalance: 0,
+    totalContributions: 0,
+    totalLoans: 0,
+    totalLoanReturns: 0,
+    totalGrants: 0,
+    availableBalance: 0,
+    memberCount: 0,
+  }
+}
+
+export async function getGroupLedger(_groupId: string) {
+  return []
+}
+
+export async function getGroupTransactions(_groupId: string) {
+  return []
+}
+

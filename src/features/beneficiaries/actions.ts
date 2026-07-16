@@ -64,8 +64,8 @@ export async function createBeneficiary(data: BeneficiaryFormValues) {
     })
     revalidatePath("/beneficiaries")
     return { success: true, data: beneficiary }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to create beneficiary" }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to create beneficiary" }
   }
 }
 
@@ -101,7 +101,35 @@ export async function updateBeneficiary(id: string, data: BeneficiaryFormValues)
     revalidatePath("/beneficiaries")
     revalidatePath(`/beneficiaries/${id}`)
     return { success: true, data: beneficiary }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to update beneficiary" }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to update beneficiary" }
+  }
+}
+
+export async function deleteBeneficiary(id: string) {
+  try {
+    const beneficiary = await prisma.beneficiary.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            loans: true,
+            grants: true,
+          }
+        }
+      }
+    })
+    
+    if (!beneficiary) return { success: false, error: "Beneficiary not found" }
+    
+    // Check constraints before deleting
+    if (beneficiary._count.loans > 0) return { success: false, error: "Cannot delete beneficiary with existing loans" }
+    if (beneficiary._count.grants > 0) return { success: false, error: "Cannot delete beneficiary with existing grants" }
+
+    await prisma.beneficiary.delete({ where: { id } })
+    revalidatePath("/beneficiaries")
+    return { success: true }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to delete beneficiary" }
   }
 }

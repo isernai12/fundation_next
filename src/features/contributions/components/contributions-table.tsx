@@ -20,17 +20,28 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { MonthlyContribution, ContributionPayment } from "@prisma/client"
 
-export function ContributionsTable({ data }: { data: any[] }) {
+type ContributionWithDetails = MonthlyContribution & {
+  member: {
+    memberId: string
+    firstName: string | null
+    lastName: string | null
+    group: { name: string; code: string } | null
+  }
+  payments: ContributionPayment[]
+}
+
+export function ContributionsTable({ data }: { data: ContributionWithDetails[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<ContributionWithDetails>[] = [
     {
       accessorFn: (row) => `${row.member.firstName} ${row.member.lastName}`,
       header: "Member",
     },
     {
-      accessorFn: (row) => row.member.group.name,
+      accessorFn: (row) => row.member.group?.name || "N/A",
       header: "Group",
     },
     {

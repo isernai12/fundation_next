@@ -63,6 +63,49 @@ const PARTICIPATION_OPTIONS = [
   "Other",
 ];
 
+
+const SectionCard = ({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) => (
+  <Collapsible
+    open={isOpen}
+    onOpenChange={onToggle}
+  >
+    <Card className="mb-6 shadow-sm border-muted">
+      <CardHeader className="py-4 border-b bg-muted/10">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-9 p-0 hover:bg-transparent"
+            >
+              {isOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+              <span className="sr-only">Toggle</span>
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+      </CardHeader>
+      <CollapsibleContent>
+        <CardContent className="pt-6">{children}</CardContent>
+      </CollapsibleContent>
+    </Card>
+  </Collapsible>
+);
+
 export function AddMemberForm({ groups }: { groups: any[] }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,45 +189,6 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
     }
   }
 
-  const SectionCard = ({
-    title,
-    section,
-    children,
-  }: {
-    title: string;
-    section: string;
-    children: React.ReactNode;
-  }) => (
-    <Collapsible
-      open={openSections[section]}
-      onOpenChange={() => toggleSection(section)}
-    >
-      <Card className="mb-6 shadow-sm border-muted">
-        <CardHeader className="py-4 border-b bg-muted/10">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-9 p-0 hover:bg-transparent"
-              >
-                {openSections[section] ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-                <span className="sr-only">Toggle</span>
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent className="pt-6">{children}</CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
-  );
 
   return (
     <Form {...form}>
@@ -193,7 +197,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         className="pb-24 max-w-5xl mx-auto"
       >
         {/* SECTION 01: PERSONAL INFORMATION */}
-        <SectionCard title="01. Personal Information" section="personal">
+        <SectionCard title="01. Personal Information" isOpen={openSections.personal} onToggle={() => toggleSection("personal")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -375,7 +379,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 02: CONTACT INFORMATION */}
-        <SectionCard title="02. Contact Information" section="contact">
+        <SectionCard title="02. Contact Information" isOpen={openSections.contact} onToggle={() => toggleSection("contact")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
@@ -424,7 +428,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 03: EDUCATION & PROFESSION */}
-        <SectionCard title="03. Education & Profession" section="education">
+        <SectionCard title="03. Education & Profession" isOpen={openSections.education} onToggle={() => toggleSection("education")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -520,7 +524,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 04: SKILLS */}
-        <SectionCard title="04. Skills" section="skills">
+        <SectionCard title="04. Skills" isOpen={openSections.skills} onToggle={() => toggleSection("skills")}>
           <FormField
             control={form.control}
             name="skills"
@@ -574,7 +578,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 05: FOUNDATION INFORMATION */}
-        <SectionCard title="05. Foundation Information" section="foundation">
+        <SectionCard title="05. Foundation Information" isOpen={openSections.foundation} onToggle={() => toggleSection("foundation")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -638,7 +642,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 06: PARTICIPATION */}
-        <SectionCard title="06. Participation" section="participation">
+        <SectionCard title="06. Participation" isOpen={openSections.participation} onToggle={() => toggleSection("participation")}>
           <FormField
             control={form.control}
             name="participation"
@@ -694,7 +698,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 07: EMERGENCY CONTACT */}
-        <SectionCard title="07. Emergency Contact" section="emergency">
+        <SectionCard title="07. Emergency Contact" isOpen={openSections.emergency} onToggle={() => toggleSection("emergency")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
@@ -739,7 +743,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 08: MEMBER DECLARATION */}
-        <SectionCard title="08. Member Declaration" section="declaration">
+        <SectionCard title="08. Member Declaration" isOpen={openSections.declaration} onToggle={() => toggleSection("declaration")}>
           <div className="p-4 bg-muted/20 rounded-md border text-sm text-muted-foreground mb-4 leading-relaxed">
             I hereby declare that the information provided above is true and
             accurate to the best of my knowledge. I agree to abide by the rules
@@ -766,7 +770,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 09: DOCUMENTS */}
-        <SectionCard title="09. Documents" section="documents">
+        <SectionCard title="09. Documents" isOpen={openSections.documents} onToggle={() => toggleSection("documents")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               "Member Photo",
@@ -797,7 +801,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* SECTION 10: ADMIN INFORMATION */}
-        <SectionCard title="10. Admin Information" section="admin">
+        <SectionCard title="10. Admin Information" isOpen={openSections.admin} onToggle={() => toggleSection("admin")}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FormField
               control={form.control}
@@ -909,10 +913,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
         </SectionCard>
 
         {/* PENDING FEATURES */}
-        <SectionCard
-          title="11. Pending Features (Coming Soon)"
-          section="pending"
-        >
+        <SectionCard title="11. Pending Features (Coming Soon)" isOpen={openSections.pending} onToggle={() => toggleSection("pending")}>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 opacity-60">
             {[
               "Membership Card",

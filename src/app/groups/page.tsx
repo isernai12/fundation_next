@@ -1,6 +1,5 @@
 import { getGroups } from "@/features/groups/actions"
 import { GroupsTable } from "@/features/groups/components/groups-table"
-import { GroupFormDialog } from "@/features/groups/components/group-form-dialog"
 
 export default async function GroupsPage() {
   const groups = await getGroups()
@@ -12,7 +11,6 @@ export default async function GroupsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Groups</h1>
           <p className="text-muted-foreground">Manage organization groups and divisions.</p>
         </div>
-        <GroupFormDialog />
       </div>
       <GroupsTable data={groups} />
     </div>

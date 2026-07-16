@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Briefcase, Phone, AlertCircle, FileText, Activity } from "lucide-react"
+import { ArrowLeft, User, Briefcase, Phone, AlertCircle } from "lucide-react"
 import { MemberLedgerTable } from "@/features/ledger/components/member-ledger-table"
 import { DocumentList } from "@/features/documents/components/document-list"
 
@@ -63,8 +63,8 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
-            <div><span className="text-sm font-semibold">Father's Name</span><p className="text-muted-foreground">{member.fatherName || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Mother's Name</span><p className="text-muted-foreground">{member.motherName || 'N/A'}</p></div>
+            <div><span className="text-sm font-semibold">Father&apos;s Name</span><p className="text-muted-foreground">{member.fatherName || 'N/A'}</p></div>
+            <div><span className="text-sm font-semibold">Mother&apos;s Name</span><p className="text-muted-foreground">{member.motherName || 'N/A'}</p></div>
             <div><span className="text-sm font-semibold">Gender</span><p className="text-muted-foreground">{member.gender || 'N/A'}</p></div>
             <div><span className="text-sm font-semibold">Date of Birth</span><p className="text-muted-foreground">{member.dob ? new Date(member.dob).toLocaleDateString() : 'N/A'}</p></div>
             <div><span className="text-sm font-semibold">National ID</span><p className="text-muted-foreground">{member.nationalId || 'N/A'}</p></div>
@@ -108,7 +108,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
 
       <div>
         <h2 className="text-xl font-bold tracking-tight mb-4">Member Ledger</h2>
-        <MemberLedgerTable data={ledgerData} />
+        <MemberLedgerTable data={ledgerData as unknown as React.ComponentProps<typeof MemberLedgerTable>['data']} />
       </div>
 
       <Separator />

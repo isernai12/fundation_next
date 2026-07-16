@@ -80,8 +80,8 @@ export async function createContribution(data: ContributionFormValues) {
       revalidatePath("/")
       return { success: true, error: undefined }
     })
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to process contribution" }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to process contribution" }
   }
 }
 

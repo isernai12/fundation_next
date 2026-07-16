@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Phone, Briefcase } from "lucide-react"
+import { ArrowLeft, User, Phone, Briefcase, ChevronRight } from "lucide-react"
 import { DocumentList } from "@/features/documents/components/document-list"
 import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
 
@@ -23,6 +23,13 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+        <Link href="/beneficiaries" className="hover:text-primary transition-colors">
+          Beneficiaries
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-foreground">{beneficiary.firstName} {beneficiary.lastName}</span>
+      </div>
       <div className="flex items-center space-x-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/beneficiaries">

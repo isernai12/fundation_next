@@ -1,20 +1,39 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getGroupMembers } from "@/features/groups/actions"
+import { GroupMembersTable } from "@/features/groups/components/group-members-table"
+import { GroupSelector } from "@/features/groups/components/group-selector"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users } from "lucide-react"
 
-export default function PlaceholderPage() {
+export default async function GroupMembersPage({ searchParams }: { searchParams: { groupId?: string } }) {
+  const groupId = searchParams.groupId
+  const members = groupId ? await getGroupMembers(groupId) : []
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Group Members</h1>
-        <p className="text-muted-foreground">View and manage members by group.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Group Members</h1>
+          <p className="text-muted-foreground">View and manage members by group.</p>
+        </div>
+        <GroupSelector />
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">This module is currently under development.</p>
-        </CardContent>
-      </Card>
+
+      {!groupId ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
+            <Users className="h-12 w-12 text-muted-foreground" />
+            <div className="text-xl font-semibold">No Group Selected</div>
+            <p className="text-muted-foreground">Please select a group from the dropdown above to view its members.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Total Members: {members.length}</h2>
+          </div>
+          <GroupMembersTable data={members} />
+        </div>
+      )}
     </div>
   )
 }
