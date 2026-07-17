@@ -54,9 +54,9 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
                 <CardDescription>Current financial health</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Available Balance:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Assets:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Liabilities:</span> <span>$0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Available Balance:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Assets:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Liabilities:</span> <span>৳0.00</span></div>
               </CardContent>
             </Card>
 
@@ -66,9 +66,9 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
                 <CardDescription>Member savings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expected This Month:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Collected This Month:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Arrears:</span> <span>$0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expected This Month:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Collected This Month:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Arrears:</span> <span>৳0.00</span></div>
               </CardContent>
             </Card>
           </div>

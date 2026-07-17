@@ -24,7 +24,7 @@ export default function FoundationSummaryReportPage() {
       cell: ({ row }: any) => {
         const val = row.getValue("balance") as number
         const formatted = (val / 100).toFixed(2)
-        return <span className={val < 0 ? "text-red-500 font-bold" : "font-semibold"}>${formatted}</span>
+        return <span className={val < 0 ? "text-red-500 font-bold" : "font-semibold"}>৳{formatted}</span>
       }
     }
   ]

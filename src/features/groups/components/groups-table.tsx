@@ -78,7 +78,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
     {
       id: "currentFund",
       header: "Current Fund",
-      cell: () => "$0.00", // Will be implemented when Ledger is fully integrated
+      cell: () => "৳0.00", // Will be implemented when Ledger is fully integrated
     },
     {
       accessorKey: "status",

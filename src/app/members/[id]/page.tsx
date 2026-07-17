@@ -70,7 +70,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             <div><span className="text-sm font-semibold">National ID</span><p className="text-muted-foreground">{member.nationalId || 'N/A'}</p></div>
             <div><span className="text-sm font-semibold">Blood Group</span><p className="text-muted-foreground">{member.bloodGroup || 'N/A'}</p></div>
             <div><span className="text-sm font-semibold">Occupation</span><p className="text-muted-foreground">{member.occupation || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Monthly Income</span><p className="text-muted-foreground">{member.monthlyIncome ? `$${member.monthlyIncome / 100}` : 'N/A'}</p></div>
+            <div><span className="text-sm font-semibold">Monthly Income</span><p className="text-muted-foreground">{member.monthlyIncome ? `৳${member.monthlyIncome / 100}` : 'N/A'}</p></div>
           </CardContent>
         </Card>
 

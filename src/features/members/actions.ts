@@ -60,7 +60,7 @@ export async function createMember(data: MemberFormValues) {
     const member = await prisma.member.create({
       data: {
         memberId,
-        groupId: pd.groupId || null,
+        groupId: pd.groupId as string,
         firstName: pd.firstName || pd.fullName.split(" ")[0] || "Unknown",
         lastName: pd.lastName || pd.fullName.substring(pd.fullName.indexOf(" ") + 1) || "Unknown",
         fatherName: pd.fatherName || null,
@@ -126,7 +126,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
     const member = await prisma.member.update({
       where: { id },
       data: {
-        groupId: pd.groupId || null,
+        groupId: pd.groupId as string,
         firstName: pd.firstName || pd.fullName.split(" ")[0] || "Unknown",
         lastName: pd.lastName || pd.fullName.substring(pd.fullName.indexOf(" ") + 1) || "Unknown",
         fatherName: pd.fatherName || null,

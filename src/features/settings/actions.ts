@@ -10,7 +10,7 @@ export async function getFoundationProfile() {
     phone: "",
     address: "",
     website: "",
-    currency: "USD",
+    currency: "BDT",
   }
 }
 

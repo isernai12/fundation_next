@@ -162,7 +162,7 @@ export function RepaymentsTable({ repayments, activeLoans }: { repayments: any[]
                 <>
                   <div className="bg-muted p-4 rounded-md flex justify-between items-center">
                     <span className="text-sm font-semibold">Outstanding Balance</span>
-                    <span className="text-xl font-bold">${(outstandingBalance / 100).toFixed(2)}</span>
+                    <span className="text-xl font-bold">৳{Number((outstandingBalance / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                   </div>
 
                   <div className="space-y-2">

@@ -115,22 +115,22 @@ model Group {
 }
 
 model Member {
-  id        String       @id @default(uuid())
-  memberId  String       @unique
-  groupId   String?
+  id        String  @id @default(uuid())
+  memberId  String  @unique
+  groupId   String
   firstName String?
   lastName  String?
-  
+
   // Personal Information
-  fatherName String?
-  motherName String?
-  gender     String?
-  dob        DateTime?
-  nationalId String?     @unique
-  occupation String?
+  fatherName    String?
+  motherName    String?
+  gender        String?
+  dob           DateTime?
+  nationalId    String?   @unique
+  occupation    String?
   monthlyIncome Int?
-  bloodGroup String?
-  
+  bloodGroup    String?
+
   // Contact Information
   mobile           String? @unique
   altMobile        String?
@@ -138,39 +138,39 @@ model Member {
   phone            String?
   presentAddress   String?
   permanentAddress String?
-  
+
   // Emergency Contact
   emergencyContactName     String?
   emergencyContactMobile   String?
   emergencyContactRelation String?
 
   // Organization Information
-  joinDate  DateTime?
-  status    MemberStatus @default(ACTIVE)
-  remarks   String?
-  
+  joinDate DateTime?
+  status   MemberStatus @default(ACTIVE)
+  remarks  String?
+
   // Extended Information
-  maritalStatus      String?
-  education          String?
-  workplace          String?
-  designation        String?
-  skills             String?
-  reference          String?
-  reasonForJoining   String?
-  participation      String?
+  maritalStatus       String?
+  education           String?
+  workplace           String?
+  designation         String?
+  skills              String?
+  reference           String?
+  reasonForJoining    String?
+  participation       String?
   declarationAccepted Boolean @default(true)
-  memberType         String? @default("REGULAR")
-  
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  memberType          String? @default("REGULAR")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   createdBy String?
   updatedBy String?
 
-  group                  Group?                  @relation(fields: [groupId], references: [id], onDelete: Restrict)
-  beneficiaries          Beneficiary[]
-  contributions          MonthlyContribution[]
-  loans                  Loan[]
-  documents              Document[]
+  group         Group                 @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  beneficiaries Beneficiary[]
+  contributions MonthlyContribution[]
+  loans         Loan[]
+  documents     Document[]
 }
 
 model Beneficiary {
@@ -205,7 +205,7 @@ model Beneficiary {
 
 model Fund {
   id          String   @id @default(uuid())
-  groupId     String?  // If null, represents the Foundation's general fund
+  groupId     String? // If null, represents the Foundation's general fund
   name        String
   description String?
   createdAt   DateTime @default(now())
@@ -263,7 +263,7 @@ model LedgerTransaction {
   id          String     @id @default(uuid())
   date        DateTime
   type        LedgerType
-  referenceId String?    // Polymorphic link, handled in app logic (no explicit FK to keep generic)
+  referenceId String? // Polymorphic link, handled in app logic (no explicit FK to keep generic)
   status      String     @default("COMPLETED")
   notes       String?
   createdAt   DateTime   @default(now())
@@ -280,7 +280,7 @@ model LedgerEntry {
   id            String   @id @default(uuid())
   transactionId String
   fundId        String
-  isCredit      Boolean  // True = Credit (+), False = Debit (-)
+  isCredit      Boolean // True = Credit (+), False = Debit (-)
   amount        Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -317,12 +317,12 @@ model Loan {
   createdBy         String?
   updatedBy         String?
 
-  member        Member?          @relation(fields: [memberId], references: [id], onDelete: Restrict)
-  beneficiary   Beneficiary?     @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
-  allocations   FundAllocation[]
-  installments  LoanInstallment[]
-  repayments    LoanRepayment[]
-  documents     Document[]
+  member       Member?           @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  beneficiary  Beneficiary?      @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  allocations  FundAllocation[]
+  installments LoanInstallment[]
+  repayments   LoanRepayment[]
+  documents    Document[]
 
   @@index([memberId])
   @@index([beneficiaryId])
@@ -413,22 +413,23 @@ model DocumentCategory {
 }
 
 model Document {
-  id                String           @id @default(uuid())
-  documentNumber    String           @unique
-  title             String
-  categoryId        String?
-  type              DocumentType
-  url               String
-  originalFilename  String
-  generatedFilename String
-  mimeType          String
-  sizeBytes         Int
-  targetType        TargetType
-  entityId          String?          // Virtual ID for polymorphic relations if needed
-  
-  description       String?
-  remarks           String?
-  status            String           @default("ACTIVE")
+  id                 String       @id @default(uuid())
+  documentNumber     String       @unique
+  title              String
+  categoryId         String?
+  type               DocumentType
+  cloudinaryPublicId String
+  secureUrl          String
+  originalFilename   String
+  mimeType           String
+  sizeBytes          Int
+  resourceType       String       @default("auto")
+  targetType         TargetType
+  entityId           String? // Virtual ID for polymorphic relations if needed
+
+  description String?
+  remarks     String?
+  status      String  @default("ACTIVE")
 
   foundationId  String?
   groupId       String?
@@ -436,11 +437,11 @@ model Document {
   beneficiaryId String?
   loanId        String?
   grantId       String?
-  
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  createdBy     String?
-  updatedBy     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
 
   category    DocumentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   foundation  Foundation?       @relation(fields: [foundationId], references: [id], onDelete: Cascade)
@@ -459,7 +460,6 @@ model Document {
   @@index([targetType])
 }
 
-
 model Settings {
   id          String   @id @default(uuid())
   key         String   @unique
@@ -476,20 +476,20 @@ model Settings {
 // -----------------------------------------------------------------------------
 
 model User {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  username  String   @unique
-  email     String?  @unique
-  mobile    String?  @unique
+  username  String    @unique
+  email     String?   @unique
+  mobile    String?   @unique
   password  String
   roleId    String
-  status    String   @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  status    String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
   lastLogin DateTime?
   photo     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  role      Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
   auditLogs AuditLog[]
 }
 
@@ -499,18 +499,18 @@ model Role {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   users       User[]
   permissions RolePermission[]
 }
 
 model Permission {
-  id          String   @id @default(uuid())
-  module      String   // Members, Groups, Contributions, etc.
-  action      String   // Create, Read, Update, Delete, Approve, Export, Print
+  id          String  @id @default(uuid())
+  module      String // Members, Groups, Contributions, etc.
+  action      String // Create, Read, Update, Delete, Approve, Export, Print
   description String?
-  
-  roles       RolePermission[]
+
+  roles RolePermission[]
 
   @@unique([module, action])
 }
@@ -543,7 +543,7 @@ model AuditLog {
   remarks     String?
   createdAt   DateTime @default(now())
 
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 // -----------------------------------------------------------------------------
@@ -554,7 +554,7 @@ model SystemSettings {
   id        String   @id @default(uuid())
   key       String   @unique
   value     String
-  group     String   // System, Contribution, Loan, Document, Preferences
+  group     String // System, Contribution, Loan, Document, Preferences
   updatedAt DateTime @updatedAt
   updatedBy String?
 }

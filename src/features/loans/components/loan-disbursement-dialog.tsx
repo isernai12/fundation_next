@@ -72,7 +72,7 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
 
   const handleSubmit = async () => {
     if (totalAllocated !== loanAmount) {
-      toast.error(`Total allocated must be exactly $${(loanAmount / 100).toFixed(2)}. Remaining: $${(remaining / 100).toFixed(2)}`)
+      toast.error(`Total allocated must be exactly ৳${Number((loanAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}. Remaining: ৳${Number((remaining / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`)
       return
     }
     if (allocations.some(a => !a.fundId || a.amount <= 0)) {
@@ -107,7 +107,7 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
           <div className="flex justify-between items-center bg-muted p-4 rounded-md">
             <div>
               <p className="text-sm text-muted-foreground">Loan Amount</p>
-              <p className="text-2xl font-bold">${(loanAmount / 100).toFixed(2)}</p>
+              <p className="text-2xl font-bold">৳{Number((loanAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Remaining to Allocate</p>
@@ -139,7 +139,7 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
                   </SelectContent>
                 </Select>
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                  <span className="absolute left-3 top-2.5 text-muted-foreground">৳</span>
                   <Input 
                     type="number" 
                     className="pl-7" 

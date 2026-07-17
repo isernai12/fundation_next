@@ -29,7 +29,7 @@ export default function GeneralLedgerReportPage() {
       header: "Debit (Dr)",
       cell: ({ row }: any) => {
         const val = row.getValue("debit") as number
-        return val > 0 ? <span className="font-semibold text-red-500">${(val / 100).toFixed(2)}</span> : "-"
+        return val > 0 ? <span className="font-semibold text-red-500">৳{Number((val / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
       }
     },
     {
@@ -37,7 +37,7 @@ export default function GeneralLedgerReportPage() {
       header: "Credit (Cr)",
       cell: ({ row }: any) => {
         const val = row.getValue("credit") as number
-        return val > 0 ? <span className="font-semibold text-green-600">${(val / 100).toFixed(2)}</span> : "-"
+        return val > 0 ? <span className="font-semibold text-green-600">৳{Number((val / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
       }
     },
     { accessorKey: "notes", header: "Notes" }

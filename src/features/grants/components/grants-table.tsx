@@ -75,7 +75,7 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `$${row.original.amount.toFixed(2)}`
+      cell: ({ row }) => `৳${Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
     },
     {
       id: "fundingGroups",

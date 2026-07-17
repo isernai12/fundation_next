@@ -64,14 +64,14 @@ export function GeneralLedgerTable({ data }: { data: LedgerEntryWithDetails[] })
       accessorKey: "debit",
       header: "Debit",
       cell: ({ row }) => {
-        return !row.original.isCredit ? <span className="font-medium">${row.original.amount.toFixed(2)}</span> : "-"
+        return !row.original.isCredit ? <span className="font-medium">৳{Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
       }
     },
     {
       accessorKey: "credit",
       header: "Credit",
       cell: ({ row }) => {
-        return row.original.isCredit ? <span className="font-medium">${row.original.amount.toFixed(2)}</span> : "-"
+        return row.original.isCredit ? <span className="font-medium">৳{Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
       }
     }
   ]

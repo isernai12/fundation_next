@@ -63,9 +63,9 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
                 <CardDescription>Loan disbursement vs recovery</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Loans:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Repaid:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Outstanding:</span> <span>$0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Loans:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Repaid:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Outstanding:</span> <span>৳0.00</span></div>
               </CardContent>
             </Card>
 
@@ -75,9 +75,9 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
                 <CardDescription>Assistance overview</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Grants:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Utilized:</span> <span>$0.00</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Remaining:</span> <span>$0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Grants:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Utilized:</span> <span>৳0.00</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Remaining:</span> <span>৳0.00</span></div>
               </CardContent>
             </Card>
           </div>

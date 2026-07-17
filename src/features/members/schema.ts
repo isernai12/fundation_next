@@ -2,7 +2,7 @@ import { z } from "zod"
 import { MemberStatus } from "@prisma/client"
 
 export const memberSchema = z.object({
-  groupId: z.string().optional(),
+  groupId: z.string().min(1, "Every member must belong to a group."),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   

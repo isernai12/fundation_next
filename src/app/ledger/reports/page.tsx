@@ -37,7 +37,7 @@ export default function LedgerReportsPage() {
               <CardDescription>All group funds combined</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$0.00</div>
+              <div className="text-2xl font-bold">৳0.00</div>
               <p className="text-xs text-muted-foreground mt-1">Pending Ledger aggregation</p>
             </CardContent>
           </Card>
@@ -48,7 +48,7 @@ export default function LedgerReportsPage() {
               <CardDescription>Unallocated cash position</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$0.00</div>
+              <div className="text-2xl font-bold">৳0.00</div>
               <p className="text-xs text-muted-foreground mt-1">Available for use</p>
             </CardContent>
           </Card>
@@ -70,7 +70,7 @@ export default function LedgerReportsPage() {
               <CardDescription>Monthly expense outflow</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">$0.00</div>
+              <div className="text-2xl font-bold text-destructive">৳0.00</div>
               <p className="text-xs text-muted-foreground mt-1">Loans + Grants</p>
             </CardContent>
           </Card>

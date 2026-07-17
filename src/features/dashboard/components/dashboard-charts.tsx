@@ -54,7 +54,7 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: any) => `$${Number(value || 0).toFixed(2)}`} />
+              <Tooltip formatter={(value: any) => `৳${Number(Number(value || 0)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

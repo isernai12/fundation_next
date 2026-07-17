@@ -42,7 +42,7 @@ type MemberWithGroup = Member & {
   group: { name: string; code: string } | null
 }
 
-export function MembersTable({ data, groups }: { data: MemberWithGroup[], groups: Group[] }) {
+export function MembersTable({ data, groups, isManage = false }: { data: MemberWithGroup[], groups: Group[], isManage?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
@@ -57,28 +57,30 @@ export function MembersTable({ data, groups }: { data: MemberWithGroup[], groups
       cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`
     },
     {
+      accessorKey: "groupId",
+      header: "Group",
+      cell: ({ row }) => row.original.group ? `${row.original.group.name} (${row.original.group.code})` : "None",
+    },
+    {
       accessorKey: "mobile",
       header: "Mobile",
     },
     {
-      accessorFn: (row) => row.group?.name || "No Group",
-      id: "group",
-      header: "Group",
-      cell: ({ row }) => row.original.group ? `${row.original.group.name} (${row.original.group.code})` : "No Group",
-    },
-    {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge variant={row.getValue("status") === "ACTIVE" ? "default" : "secondary"}>
-          {row.getValue("status")}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const status = row.original.status
+        let variant: "default" | "secondary" | "destructive" | "outline" = "default"
+        if (status === "ACTIVE") variant = "default"
+        if (status === "INACTIVE") variant = "secondary"
+        if (status === "SUSPENDED") variant = "destructive"
+        return <Badge variant={variant}>{status}</Badge>
+      },
     },
     {
       accessorKey: "joinDate",
       header: "Joined",
-      cell: ({ row }) => row.getValue("joinDate") ? new Date(row.getValue("joinDate")).toLocaleDateString() : 'N/A',
+      cell: ({ row }) => row.original.joinDate ? new Date(row.original.joinDate).toLocaleDateString() : 'N/A',
     },
     {
       id: "actions",
@@ -99,27 +101,27 @@ export function MembersTable({ data, groups }: { data: MemberWithGroup[], groups
                   <Eye className="mr-2 h-4 w-4" /> View Details
                 </Link>
               </DropdownMenuItem>
-              <MemberFormDialog
-                member={member}
-                groups={groups}
-                trigger={
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit Member
+              {isManage && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/members/edit/${member.id}`}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit Member
+                    </Link>
                   </DropdownMenuItem>
-                }
-              />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={async () => {
-                  if (confirm("Are you sure you want to archive this member?")) {
-                    const res = await archiveMember(member.id)
-                    if (res.success) toast.success("Member archived")
-                    else toast.error(res.error)
-                  }
-                }}
-              >
-                <Trash className="mr-2 h-4 w-4" /> Archive
-              </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to archive this member?")) {
+                        const res = await archiveMember(member.id)
+                        if (res.success) toast.success("Member archived")
+                        else toast.error(res.error)
+                      }
+                    }}
+                  >
+                    <Trash className="mr-2 h-4 w-4" /> Archive
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )

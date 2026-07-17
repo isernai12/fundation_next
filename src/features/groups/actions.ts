@@ -153,16 +153,7 @@ export async function getGroupMembers(groupId: string) {
 }
 
 export async function removeMemberFromGroup(memberId: string) {
-  try {
-    await prisma.member.update({
-      where: { id: memberId },
-      data: { groupId: null },
-    })
-    revalidatePath("/groups/members")
-    return { success: true }
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed to remove member" }
-  }
+  return { success: false, error: "Members must belong to a group. Please reassign the member instead of removing them." }
 }
 
 export async function getGroupFundSummary(_groupId: string) {

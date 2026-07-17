@@ -76,7 +76,7 @@ export function TransactionRegisterTable({ data }: { data: TransactionWithDetail
       header: "Total Amount",
       cell: ({ row }) => {
         const totalDebit = row.original.entries.filter(e => !e.isCredit).reduce((acc, curr) => acc + curr.amount, 0)
-        return <span className="font-medium">${totalDebit.toFixed(2)}</span>
+        return <span className="font-medium">৳{Number(totalDebit).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
       }
     }
   ]

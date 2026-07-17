@@ -73,7 +73,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <CardTitle className="text-sm font-medium">Principal Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(loan.amount / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((loan.amount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </CardContent>
         </Card>
         <Card>
@@ -81,7 +81,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <CardTitle className="text-sm font-medium">Repaid Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">${(totalRepaid / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">৳{Number((totalRepaid / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </CardContent>
         </Card>
         <Card>
@@ -89,7 +89,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-500">${(outstanding / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-500">৳{Number((outstanding / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </CardContent>
         </Card>
       </div>
@@ -104,7 +104,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
               <div><span className="text-sm font-semibold">Purpose</span><p className="text-muted-foreground">{loan.purpose}</p></div>
               <div><span className="text-sm font-semibold">Interest Rate</span><p className="text-muted-foreground">0% (Zero Interest)</p></div>
               <div><span className="text-sm font-semibold">Installments</span><p className="text-muted-foreground">{loan.installmentCount} months</p></div>
-              <div><span className="text-sm font-semibold">Installment Amt</span><p className="text-muted-foreground">${(loan.installmentAmount / 100).toFixed(2)}</p></div>
+              <div><span className="text-sm font-semibold">Installment Amt</span><p className="text-muted-foreground">৳{Number((loan.installmentAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p></div>
               <div><span className="text-sm font-semibold">Requested On</span><p className="text-muted-foreground">{new Date(loan.requestedDate).toLocaleDateString()}</p></div>
               <div><span className="text-sm font-semibold">Approved On</span><p className="text-muted-foreground">{loan.dateApproved ? new Date(loan.dateApproved).toLocaleDateString() : 'N/A'}</p></div>
               <div><span className="text-sm font-semibold">Disbursed On</span><p className="text-muted-foreground">{loan.disbursedDate ? new Date(loan.disbursedDate).toLocaleDateString() : 'N/A'}</p></div>
@@ -128,7 +128,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
                       <p className="font-medium">{a.fund.name}</p>
                       <p className="text-xs text-muted-foreground">{a.fund.group?.name || "Foundation Fund"}</p>
                     </div>
-                    <div className="font-bold">${(a.amount / 100).toFixed(2)}</div>
+                    <div className="font-bold">৳{Number((a.amount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                   </div>
                 ))}
               </div>

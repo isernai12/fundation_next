@@ -58,17 +58,17 @@ export function GroupLedgerTable({ data }: { data: LedgerEntryPlaceholder[] }) {
     {
       accessorKey: "debit",
       header: "Debit",
-      cell: ({ row }) => row.original.debit > 0 ? `$${row.original.debit.toFixed(2)}` : "-",
+      cell: ({ row }) => row.original.debit > 0 ? `৳${Number(row.original.debit).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : "-",
     },
     {
       accessorKey: "credit",
       header: "Credit",
-      cell: ({ row }) => row.original.credit > 0 ? `$${row.original.credit.toFixed(2)}` : "-",
+      cell: ({ row }) => row.original.credit > 0 ? `৳${Number(row.original.credit).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : "-",
     },
     {
       accessorKey: "runningBalance",
       header: "Running Balance",
-      cell: ({ row }) => `$${row.original.runningBalance.toFixed(2)}`,
+      cell: ({ row }) => `৳${Number(row.original.runningBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
     },
     {
       accessorKey: "remarks",

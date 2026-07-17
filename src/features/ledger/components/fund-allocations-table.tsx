@@ -67,7 +67,7 @@ export function FundAllocationsTable({ data }: { data: AllocationWithDetails[] }
     {
       accessorKey: "amount",
       header: "Allocated Amount",
-      cell: ({ row }) => <span className="font-medium">${row.original.amount.toFixed(2)}</span>
+      cell: ({ row }) => <span className="font-medium">৳{Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
     }
   ]
 

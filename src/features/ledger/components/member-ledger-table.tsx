@@ -53,7 +53,7 @@ export function MemberLedgerTable({ data }: { data: MemberLedgerData[] }) {
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `$${(row.getValue("amount") as number) / 100}`,
+      cell: ({ row }) => `৳${(row.getValue("amount") as number) / 100}`,
     },
     {
       accessorKey: "reference",

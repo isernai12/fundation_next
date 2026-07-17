@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
     "petite-actors-sin.loca.lt",
     "rotten-tires-laugh.loca.lt",
     "bitter-actors-begin.loca.lt",
-    "med-thee-partnership-too.trycloudflare.com",
+    "pleasant-maintained-circuit-johnny.trycloudflare.com",
     "icy-otters-kneel.loca.lt",
     "rather-dennis-amount-recommended.trycloudflare.com",
     "legislation-formed-thickness-lbs.trycloudflare.com",

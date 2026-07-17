@@ -59,7 +59,7 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `$${row.original.amount.toFixed(2)}`,
+      cell: ({ row }) => `৳${Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
     },
     {
       accessorKey: "status",

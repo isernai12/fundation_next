@@ -52,7 +52,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(fundSummary.currentFund / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((fundSummary.currentFund / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Ledger Balance</p>
           </CardContent>
         </Card>
@@ -63,7 +63,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(fundSummary.totalContributions / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((fundSummary.totalContributions / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Lifetime</p>
           </CardContent>
         </Card>

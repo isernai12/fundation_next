@@ -37,7 +37,7 @@ export default function GrantReportsPage() {
               <CardDescription>All time</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$0.00</div>
+              <div className="text-2xl font-bold">৳0.00</div>
               <p className="text-xs text-muted-foreground mt-1">Across 0 grants</p>
             </CardContent>
           </Card>

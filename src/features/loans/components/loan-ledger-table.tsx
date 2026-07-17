@@ -71,8 +71,8 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
               {row.original.entries.map((e: any) => (
                 <div key={e.id} className="grid grid-cols-3">
                   <div>{e.fund?.group ? `${e.fund.group.name} (${e.fund.name})` : e.fund?.name}</div>
-                  <div className="text-right">{!e.isCredit ? `$${e.amount / 100}` : "-"}</div>
-                  <div className="text-right">{e.isCredit ? `$${e.amount / 100}` : "-"}</div>
+                  <div className="text-right">{!e.isCredit ? `৳${e.amount / 100}` : "-"}</div>
+                  <div className="text-right">{e.isCredit ? `৳${e.amount / 100}` : "-"}</div>
                 </div>
               ))}
             </CollapsibleContent>

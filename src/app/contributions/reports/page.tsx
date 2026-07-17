@@ -37,7 +37,7 @@ export default function ContributionReportsPage() {
               <CardDescription>Total for current month</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$0.00</div>
+              <div className="text-2xl font-bold">৳0.00</div>
               <p className="text-xs text-muted-foreground mt-1">0% from last month</p>
             </CardContent>
           </Card>
@@ -70,7 +70,7 @@ export default function ContributionReportsPage() {
               <CardDescription>Unpaid contributions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">$0.00</div>
+              <div className="text-2xl font-bold text-destructive">৳0.00</div>
               <p className="text-xs text-muted-foreground mt-1">0 members due</p>
             </CardContent>
           </Card>

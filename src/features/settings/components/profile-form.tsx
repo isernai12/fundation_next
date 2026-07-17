@@ -63,7 +63,7 @@ export function ProfileForm({ initialData }: { initialData: any }) {
             </div>
             <div className="space-y-2">
               <Label>Currency</Label>
-              <Input value={data.currency || "USD"} onChange={e => setData({...data, currency: e.target.value})} />
+              <Input value={data.currency || "BDT"} onChange={e => setData({...data, currency: e.target.value})} />
             </div>
           </div>
           <div className="flex justify-end pt-4">

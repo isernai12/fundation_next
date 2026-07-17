@@ -33,7 +33,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
               <Landmark className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${summary.currentBalance.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{Number(summary.currentBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Available liquidity</p>
             </CardContent>
           </Card>
@@ -44,7 +44,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
               <PiggyBank className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${summary.totalContributions.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{Number(summary.totalContributions).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Lifetime contributions</p>
             </CardContent>
           </Card>
@@ -55,7 +55,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
               <HandCoins className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${summary.totalLoans.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{Number(summary.totalLoans).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Active and completed loans</p>
             </CardContent>
           </Card>
@@ -66,7 +66,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
               <ArrowDownToLine className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${summary.totalLoanReturns.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{Number(summary.totalLoanReturns).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Principal & interest collected</p>
             </CardContent>
           </Card>
@@ -77,7 +77,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
               <Landmark className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${summary.totalGrants.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{Number(summary.totalGrants).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Non-refundable grants</p>
             </CardContent>
           </Card>
@@ -88,7 +88,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${summary.openingBalance.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{Number(summary.openingBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Initial fund allocation</p>
             </CardContent>
           </Card>

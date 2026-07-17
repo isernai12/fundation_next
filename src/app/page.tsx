@@ -18,7 +18,7 @@ export default async function DashboardPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(stats.currentCashBalance / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((stats.currentCashBalance / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Across all ledgers</p>
           </CardContent>
         </Card>
@@ -30,7 +30,7 @@ export default async function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(stats.foundationTotalFund / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((stats.foundationTotalFund / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">General Fund Equity</p>
           </CardContent>
         </Card>
@@ -42,7 +42,7 @@ export default async function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(stats.totalGroupFunds / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((stats.totalGroupFunds / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Combined equity across all groups</p>
           </CardContent>
         </Card>
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(stats.totalContributions / 100).toFixed(2)}</div>
+            <div className="text-2xl font-bold">৳{Number((stats.totalContributions / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Lifetime collected</p>
           </CardContent>
         </Card>
@@ -90,7 +90,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalActiveLoans}</div>
-            <p className="text-xs text-muted-foreground">${(stats.outstandingLoanAmount / 100).toFixed(2)} Outstanding</p>
+            <p className="text-xs text-muted-foreground">৳{Number((stats.outstandingLoanAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})} Outstanding</p>
           </CardContent>
         </Card>
 

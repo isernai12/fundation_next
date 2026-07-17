@@ -51,7 +51,7 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
     {
       accessorKey: "expectedAmount",
       header: "Amount",
-      cell: ({ row }) => `$${(row.getValue("expectedAmount") as number) / 100}`,
+      cell: ({ row }) => `৳${(row.getValue("expectedAmount") as number) / 100}`,
     },
     {
       accessorKey: "status",

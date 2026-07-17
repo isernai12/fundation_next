@@ -69,7 +69,7 @@ export default async function DueContributionsPage() {
                       <AlertCircle className="h-3 w-3" /> Due
                     </Badge>
                   </TableCell>
-                  <TableCell>$50.00</TableCell>
+                  <TableCell>৳50.00</TableCell>
                   <TableCell>
                     <Link href={`/contributions/new?memberId=${member.id}`} className="text-primary hover:underline text-sm font-medium">
                       Collect Now

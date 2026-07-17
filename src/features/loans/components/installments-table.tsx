@@ -44,7 +44,7 @@ export function InstallmentsTable({ installments }: { installments: any[] }) {
     {
       accessorKey: "amount",
       header: "Installment Amount",
-      cell: ({ row }) => `$${(row.getValue("amount") as number) / 100}`,
+      cell: ({ row }) => `৳${(row.getValue("amount") as number) / 100}`,
     },
     {
       accessorKey: "status",
