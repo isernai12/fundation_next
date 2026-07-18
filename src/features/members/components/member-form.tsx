@@ -146,7 +146,8 @@ export function MemberForm({
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema) as any,
     defaultValues: initialData || {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       fatherName: "",
       motherName: "",
       gender: "",
@@ -293,12 +294,25 @@ export function MemberForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="fullName"
+              name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name *</FormLabel>
+                  <FormLabel>First Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Full Name" {...field} />
+                    <Input placeholder="First Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Last Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -868,7 +882,7 @@ export function MemberForm({
               "Member Photo",
               "National ID Front",
               "National ID Back",
-              "Birth Certificate",
+              ...(!form.watch("nationalId") ? ["Birth Certificate"] : []),
               "Signature Image",
             ].map((doc) => {
               const file = files[doc];

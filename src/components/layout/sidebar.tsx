@@ -16,7 +16,10 @@ import {
   Settings,
   FolderOpen,
   ChevronDown,
+  X,
 } from "lucide-react"
+
+import { useSidebar } from "@/components/layout/sidebar-provider"
 
 import {
   Collapsible,
@@ -44,11 +47,9 @@ const sidebarItems: MenuItem[] = [
     icon: Users,
     submenu: [
       { name: "Add Member", href: "/members/new" },
-      { name: "All Members", href: "/members" },
       { name: "Manage Members", href: "/members/manage" },
       { name: "Member Ledger", href: "/members/ledger" },
       { name: "Member Due List", href: "/members/dues" },
-      { name: "Member Documents", href: "/members/documents" },
     ]
   },
   { 
@@ -142,6 +143,7 @@ const sidebarItems: MenuItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { isOpen, setIsOpen } = useSidebar()
 
   const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {}
@@ -177,10 +179,30 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 border-r bg-card flex flex-col h-full">
-      <div className="h-14 border-b flex items-center px-6">
-        <h2 className="font-semibold text-lg tracking-tight">Foundation ERP</h2>
-      </div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-40 md:hidden transition-opacity"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      <aside 
+        className={cn(
+          "fixed md:static inset-y-0 left-0 z-50 flex flex-col h-full bg-card border-r transition-transform duration-300 ease-in-out w-[80%] max-w-[320px] md:w-64 md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="h-14 border-b flex items-center justify-between px-6">
+          <h2 className="font-semibold text-lg tracking-tight">Foundation ERP</h2>
+          <button 
+            className="md:hidden flex items-center justify-center h-11 w-11 -mr-3 text-muted-foreground hover:text-foreground rounded-md"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       <div className="flex-1 overflow-auto py-4">
         <nav className="space-y-1 px-3">
           {sidebarItems.map((item) => {
@@ -198,7 +220,7 @@ export function Sidebar() {
                 >
                   <CollapsibleTrigger
                     className={cn(
-                      "flex w-full items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                      "flex w-full items-center justify-between px-3 py-3 text-sm font-medium rounded-md transition-colors",
                       isChildActive || isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -223,8 +245,9 @@ export function Sidebar() {
                           <Link
                             key={sub.name}
                             href={sub.href}
+                            onClick={() => setIsOpen(false)}
                             className={cn(
-                              "flex items-center pl-11 pr-3 py-2 text-sm font-medium rounded-md transition-colors",
+                              "flex items-center pl-11 pr-3 py-3 text-sm font-medium rounded-md transition-colors",
                               isSubActive
                                 ? "bg-primary text-primary-foreground"
                                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -244,8 +267,9 @@ export function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setIsOpen(false)}
                 className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -258,6 +282,7 @@ export function Sidebar() {
           })}
         </nav>
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }

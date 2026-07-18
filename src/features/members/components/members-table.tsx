@@ -158,10 +158,10 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
         
         {/* Simple Group Filter Dropdown */}
         <Select 
-          value={(table.getColumn("group")?.getFilterValue() as string) ?? "ALL"}
+          value={(table.getColumn("groupId")?.getFilterValue() as string) ?? "ALL"}
           onValueChange={(value) => {
-            if (value === "ALL") table.getColumn("group")?.setFilterValue("")
-            else table.getColumn("group")?.setFilterValue(value)
+            if (value === "ALL") table.getColumn("groupId")?.setFilterValue("")
+            else table.getColumn("groupId")?.setFilterValue(value)
           }}
         >
           <SelectTrigger className="w-[180px]">
@@ -170,7 +170,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           <SelectContent>
             <SelectItem value="ALL">All Groups</SelectItem>
             {groups.map(g => (
-              <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
+              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

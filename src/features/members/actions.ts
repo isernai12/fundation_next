@@ -35,7 +35,8 @@ async function generateMemberId() {
 export async function createMember(data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
   if (!parsed.success) {
-    return { success: false, error: "Invalid data" }
+    console.error("Zod Validation Error:", parsed.error);
+    return { success: false, error: "Invalid data", details: parsed.error.format() }
   }
 
   const pd = parsed.data
@@ -61,8 +62,8 @@ export async function createMember(data: MemberFormValues) {
       data: {
         memberId,
         groupId: pd.groupId as string,
-        firstName: pd.firstName || pd.fullName.split(" ")[0] || "Unknown",
-        lastName: pd.lastName || pd.fullName.substring(pd.fullName.indexOf(" ") + 1) || "Unknown",
+        firstName: pd.firstName || "Unknown",
+        lastName: pd.lastName || null,
         fatherName: pd.fatherName || null,
         motherName: pd.motherName || null,
         gender: pd.gender || null,
@@ -97,7 +98,7 @@ export async function createMember(data: MemberFormValues) {
         memberType: pd.memberType || null,
       },
     })
-    revalidatePath("/members")
+    revalidatePath("/members/manage")
     return { success: true, data: member }
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to create member" }
@@ -127,8 +128,8 @@ export async function updateMember(id: string, data: MemberFormValues) {
       where: { id },
       data: {
         groupId: pd.groupId as string,
-        firstName: pd.firstName || pd.fullName.split(" ")[0] || "Unknown",
-        lastName: pd.lastName || pd.fullName.substring(pd.fullName.indexOf(" ") + 1) || "Unknown",
+        firstName: pd.firstName || "Unknown",
+        lastName: pd.lastName || null,
         fatherName: pd.fatherName || null,
         motherName: pd.motherName || null,
         gender: pd.gender || null,
@@ -162,7 +163,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
         memberType: pd.memberType || null,
       },
     })
-    revalidatePath("/members")
+    revalidatePath("/members/manage")
     revalidatePath(`/members/${id}`)
     return { success: true, data: member }
   } catch (error: any) {
@@ -176,7 +177,7 @@ export async function archiveMember(id: string) {
       where: { id },
       data: { status: MemberStatus.INACTIVE },
     })
-    revalidatePath("/members")
+    revalidatePath("/members/manage")
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to archive member" }

@@ -3,7 +3,7 @@ import { MemberStatus } from "@prisma/client"
 
 export const memberSchema = z.object({
   groupId: z.string().min(1, "Every member must belong to a group."),
-  firstName: z.string().optional(),
+  firstName: z.string().min(1, "Name is required"),
   lastName: z.string().optional(),
   
   fatherName: z.string().optional(),
@@ -11,6 +11,7 @@ export const memberSchema = z.object({
   gender: z.string().optional(),
   dob: z.string().optional(), // Store as string from form, convert to Date in action
   nationalId: z.string().optional(),
+  birthCertificate: z.string().optional(),
   occupation: z.string().optional(),
   monthlyIncome: z.string().optional(),
   bloodGroup: z.string().optional(),
@@ -41,9 +42,6 @@ export const memberSchema = z.object({
   participation: z.array(z.string()).optional(),
   declarationAccepted: z.boolean().default(true),
   memberType: z.string().optional(),
-  
-  // For UI only, we'll split full name into firstName and lastName in the action
-  fullName: z.string().min(2, "Full name is required"),
 })
 
 export type MemberFormValues = z.infer<typeof memberSchema>

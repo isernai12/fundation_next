@@ -130,7 +130,8 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema) as any,
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       fatherName: "",
       motherName: "",
       gender: "",
@@ -201,12 +202,25 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="fullName"
+              name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name *</FormLabel>
+                  <FormLabel>First Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Full Name" {...field} />
+                    <Input placeholder="First Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Last Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -776,10 +790,8 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               "Member Photo",
               "National ID Front",
               "National ID Back",
-              "Birth Certificate",
-              "Passport (Optional)",
+              ...(!form.watch("nationalId") ? ["Birth Certificate"] : []),
               "Signature Image",
-              "Other Documents",
             ].map((doc) => (
               <div
                 key={doc}

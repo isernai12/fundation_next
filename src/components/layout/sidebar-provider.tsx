@@ -19,6 +19,18 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setIsOpen(false)
   }, [pathname])
 
+  // Prevent body scrolling when the sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [isOpen])
+
   return (
     <SidebarContext.Provider value={{ isOpen, setIsOpen }}>
       {children}

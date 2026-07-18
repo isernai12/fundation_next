@@ -1,8 +1,9 @@
 "use client"
 
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Bell, User, LogOut, Settings } from "lucide-react"
+import { Bell, User, LogOut, Settings, Menu } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
+import { useSidebar } from "@/components/layout/sidebar-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +16,18 @@ import Link from "next/link"
 
 export function Header() {
   const { data: session } = useSession()
+  const { setIsOpen } = useSidebar()
 
   return (
     <header className="h-14 border-b bg-background flex items-center justify-between px-6">
-      <div>
+      <div className="flex items-center">
+        <button 
+          className="md:hidden mr-4 flex items-center justify-center h-11 w-11 -ml-3 text-muted-foreground hover:text-foreground rounded-md" 
+          onClick={() => setIsOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
         {/* Breadcrumbs or page title could go here */}
       </div>
       <div className="flex items-center space-x-4">

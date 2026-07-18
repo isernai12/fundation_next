@@ -63,7 +63,6 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
       joinDate: member?.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : "",
       status: member?.status || "ACTIVE",
       remarks: member?.remarks || "",
-      fullName: member ? `${member.firstName} ${member.lastName}` : "",
       maritalStatus: member?.maritalStatus || "",
       education: member?.education || "",
       workplace: member?.workplace || "",

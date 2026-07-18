@@ -25,7 +25,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/members">
+          <Link href="/members/manage">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
