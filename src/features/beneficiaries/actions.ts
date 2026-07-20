@@ -9,7 +9,7 @@ export async function getBeneficiaries() {
   return prisma.beneficiary.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      member: { select: { firstName: true, lastName: true, memberId: true } }
+      member: { select: { fullName: true, memberId: true } }
     }
   })
 }
@@ -43,25 +43,33 @@ export async function createBeneficiary(data: BeneficiaryFormValues) {
   }
 
   const beneficiaryId = await generateBeneficiaryId()
-
+  
   try {
+
     const beneficiary = await prisma.beneficiary.create({
       data: {
         beneficiaryId,
-        firstName: pd.firstName,
-        lastName: pd.lastName,
-        memberId: pd.memberId || null,
-        relationToMember: pd.relationToMember,
-        email: pd.email || null,
-        phone: pd.phone,
+        fullName: pd.fullName,
+        fatherOrHusbandName: pd.fatherOrHusbandName,
+        email: null,
         mobile: pd.mobile,
-        address: pd.address,
+        address: pd.address || pd.presentAddress,
+        presentAddress: pd.presentAddress,
+        permanentAddress: pd.permanentAddress,
         nationalId: pd.nationalId || null,
-        occupation: pd.occupation,
-        remarks: pd.remarks,
-        status: pd.status as BeneficiaryStatus,
+        beneficiaryPhoto: pd.beneficiaryPhoto,
+        nidOrBirthCertificate: pd.nidOrBirthCertificate,
+
+        emergencyContactName: pd.emergencyContactName,
+        emergencyContactRelation: pd.emergencyContactRelation,
+        emergencyContactMobile: pd.emergencyContactMobile,
+        
+        status: (pd.status as BeneficiaryStatus) || BeneficiaryStatus.ACTIVE,
       }
-    })
+    });
+    
+
+
     revalidatePath("/beneficiaries")
     return { success: true, data: beneficiary }
   } catch (error: unknown) {
@@ -84,18 +92,22 @@ export async function updateBeneficiary(id: string, data: BeneficiaryFormValues)
     const beneficiary = await prisma.beneficiary.update({
       where: { id },
       data: {
-        firstName: pd.firstName,
-        lastName: pd.lastName,
-        memberId: pd.memberId || null,
-        relationToMember: pd.relationToMember,
-        email: pd.email || null,
-        phone: pd.phone,
+        fullName: pd.fullName,
+        fatherOrHusbandName: pd.fatherOrHusbandName,
+        email: null,
         mobile: pd.mobile,
-        address: pd.address,
+        address: pd.address || pd.presentAddress,
+        presentAddress: pd.presentAddress,
+        permanentAddress: pd.permanentAddress,
         nationalId: pd.nationalId || null,
-        occupation: pd.occupation,
-        remarks: pd.remarks,
-        status: pd.status as BeneficiaryStatus,
+        beneficiaryPhoto: pd.beneficiaryPhoto,
+        nidOrBirthCertificate: pd.nidOrBirthCertificate,
+
+        emergencyContactName: pd.emergencyContactName,
+        emergencyContactRelation: pd.emergencyContactRelation,
+        emergencyContactMobile: pd.emergencyContactMobile,
+        
+        status: (pd.status as BeneficiaryStatus) || BeneficiaryStatus.ACTIVE,
       }
     })
     revalidatePath("/beneficiaries")

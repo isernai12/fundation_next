@@ -1,3 +1,4 @@
+import { formatMonth } from "@/lib/format"
 import { getMembers } from "@/features/members/actions"
 import { getContributions } from "@/features/contributions/actions"
 import Link from "next/link"
@@ -42,7 +43,7 @@ export default async function DueContributionsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Due Contributions</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Members who have not paid their contribution for {new Date().toLocaleString('default', { month: 'long' })} {currentYear}.
+            Members who have not paid their contribution for {formatMonth(new Date().getUTCMonth())} {currentYear}.
           </p>
         </div>
       </div>
@@ -62,7 +63,7 @@ export default async function DueContributionsPage() {
             {dueMembers.length ? (
               dueMembers.map((member) => (
                 <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.firstName} {member.lastName} ({member.memberId})</TableCell>
+                  <TableCell className="font-medium">{member.fullName || 'নাম পাওয়া যায়নি'} ({member.memberId})</TableCell>
                   <TableCell>{member.group?.name || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="destructive" className="flex w-fit items-center gap-1">

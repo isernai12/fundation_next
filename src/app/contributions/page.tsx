@@ -13,12 +13,12 @@ export default async function ContributionsPage() {
           Contributions
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">All Contributions</span>
+        <span className="font-medium text-foreground">Manage Contributions</span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Contributions</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Manage Contributions</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Complete history of all member contributions.
           </p>

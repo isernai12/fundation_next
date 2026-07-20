@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -43,7 +44,7 @@ export function GeneralLedgerTable({ data }: { data: LedgerEntryWithDetails[] })
           </Button>
         )
       },
-      cell: ({ row }) => new Date(row.original.transaction.date).toLocaleDateString()
+      cell: ({ row }) => formatDate(row.original.transaction.date)
     },
     {
       accessorFn: (row) => row.transaction.type,
@@ -64,14 +65,14 @@ export function GeneralLedgerTable({ data }: { data: LedgerEntryWithDetails[] })
       accessorKey: "debit",
       header: "Debit",
       cell: ({ row }) => {
-        return !row.original.isCredit ? <span className="font-medium">৳{Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
+        return !row.original.isCredit ? <span className="font-medium">৳{formatCurrency(row.original.amount)}</span> : "-"
       }
     },
     {
       accessorKey: "credit",
       header: "Credit",
       cell: ({ row }) => {
-        return row.original.isCredit ? <span className="font-medium">৳{Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
+        return row.original.isCredit ? <span className="font-medium">৳{formatCurrency(row.original.amount)}</span> : "-"
       }
     }
   ]

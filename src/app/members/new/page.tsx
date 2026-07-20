@@ -7,7 +7,7 @@ export default async function AddMemberPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Add New Member</h1>
+        <h1 className="text-3xl font-bold tracking-tight">নতুন সদস্য যুক্ত করুন</h1>
       </div>
       <AddMemberForm groups={groups} />
     </div>

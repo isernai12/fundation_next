@@ -1,4 +1,5 @@
 "use client"
+import { formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -24,11 +25,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Member, Group } from "@prisma/client"
 import { MemberFormDialog } from "./member-form-dialog"
-import { archiveMember } from "../actions"
+import { toggleMemberStatus, deleteMember } from "../actions"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Eye, Edit, Trash, MoreHorizontal } from "lucide-react"
+import { Eye, Edit, Trash, MoreHorizontal, Power, PowerOff } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,9 +53,9 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
       header: "Member ID",
     },
     {
-      accessorKey: "firstName",
+      accessorKey: "fullName",
       header: "Name",
-      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`
+      cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`
     },
     {
       accessorKey: "groupId",
@@ -80,7 +81,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     {
       accessorKey: "joinDate",
       header: "Joined",
-      cell: ({ row }) => row.original.joinDate ? new Date(row.original.joinDate).toLocaleDateString() : 'N/A',
+      cell: ({ row }) => row.original.joinDate ? formatDate(row.original.joinDate) : 'N/A',
     },
     {
       id: "actions",
@@ -104,21 +105,48 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
               {isManage && (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href={`/members/edit/${member.id}`}>
+                    <Link href={`/members/${member.id}/edit`}>
                       <Edit className="mr-2 h-4 w-4" /> Edit Member
                     </Link>
                   </DropdownMenuItem>
+                  
+                  {member.status === "ACTIVE" ? (
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to deactivate this member?")) {
+                          const res = await toggleMemberStatus(member.id, "INACTIVE")
+                          if (res.success) toast.success("Member deactivated")
+                          else toast.error(res.error)
+                        }
+                      }}
+                    >
+                      <PowerOff className="mr-2 h-4 w-4" /> Deactivate
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to activate this member?")) {
+                          const res = await toggleMemberStatus(member.id, "ACTIVE")
+                          if (res.success) toast.success("Member activated")
+                          else toast.error(res.error)
+                        }
+                      }}
+                    >
+                      <Power className="mr-2 h-4 w-4" /> Activate
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={async () => {
-                      if (confirm("Are you sure you want to archive this member?")) {
-                        const res = await archiveMember(member.id)
-                        if (res.success) toast.success("Member archived")
+                      if (confirm("Are you sure you want to permanently delete this member? This action cannot be undone.")) {
+                        const res = await deleteMember(member.id)
+                        if (res.success) toast.success("Member deleted successfully")
                         else toast.error(res.error)
                       }
                     }}
                   >
-                    <Trash className="mr-2 h-4 w-4" /> Archive
+                    <Trash className="mr-2 h-4 w-4" /> Delete
                   </DropdownMenuItem>
                 </>
               )}
@@ -149,9 +177,9 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
       <div className="flex items-center space-x-2 py-4">
         <Input
           placeholder="Search by first name..."
-          value={(table.getColumn("firstName")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("firstName")?.setFilterValue(event.target.value)
+            table.getColumn("fullName")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

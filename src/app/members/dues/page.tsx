@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/format"
 import { getMemberDuesList } from "@/features/members/due-actions"
 import { MemberDuesTable } from "@/features/members/components/member-dues-table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -56,7 +57,7 @@ export default async function MemberDuesPage() {
             <TrendingUp className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">৳{Number(totalOutstanding).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold text-destructive">৳{formatCurrency(totalOutstanding)}</div>
           </CardContent>
         </Card>
         
@@ -66,7 +67,7 @@ export default async function MemberDuesPage() {
             <Wallet className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">৳{Number(totalAdvanceBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold text-green-600">৳{formatCurrency(totalAdvanceBalance)}</div>
           </CardContent>
         </Card>
 
@@ -76,7 +77,7 @@ export default async function MemberDuesPage() {
             <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number(collectedThisMonth).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(collectedThisMonth)}</div>
           </CardContent>
         </Card>
       </div>

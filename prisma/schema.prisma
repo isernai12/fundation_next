@@ -118,8 +118,8 @@ model Member {
   id        String  @id @default(uuid())
   memberId  String  @unique
   groupId   String
-  firstName String?
-  lastName  String?
+  fullName String?
+  
 
   // Personal Information
   fatherName    String?
@@ -177,16 +177,32 @@ model Beneficiary {
   id               String            @id @default(uuid())
   beneficiaryId    String            @unique
   memberId         String?
-  firstName        String
-  lastName         String
+  fullName String
+  
   email            String?
   phone            String?
   mobile           String?
   address          String?
+  presentAddress   String?
+  permanentAddress String?
   nationalId       String?           @unique
+  fatherOrHusbandName String?
+  beneficiaryPhoto String?
+  nidOrBirthCertificate String?
   occupation       String?
   remarks          String?
   relationToMember String?
+
+  assistanceType   String?
+  assistanceReason String?
+  loanReason       String?
+  businessType     String?
+  loanPurpose      String?
+  loanAmount       Int?
+
+  emergencyContactName     String?
+  emergencyContactRelation String?
+  emergencyContactMobile   String?
   status           BeneficiaryStatus @default(ACTIVE)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

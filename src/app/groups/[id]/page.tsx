@@ -1,5 +1,5 @@
-import { getGroup } from "@/features/groups/actions"
-import { getGroupFundSummary } from "@/features/ledger/actions"
+import { formatCurrency, formatDate } from "@/lib/format"
+import { getGroup, getGroupFundSummary } from "@/features/groups/actions"
 import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,7 +16,12 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
 
   if (!group) return notFound()
 
-  const fundSummary = await getGroupFundSummary(resolvedParams.id)
+  const rawFundSummary = await getGroupFundSummary(resolvedParams.id)
+  const fundSummary = rawFundSummary || {
+    currentBalance: 0,
+    totalContributions: 0,
+    totalTransactions: 0
+  }
   const documents = await getDocumentsByEntity("GROUP", resolvedParams.id)
   const categories = await getDocumentCategories()
 
@@ -52,7 +57,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((fundSummary.currentFund / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(fundSummary?.currentBalance || 0)}</div>
             <p className="text-xs text-muted-foreground">Ledger Balance</p>
           </CardContent>
         </Card>
@@ -63,7 +68,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((fundSummary.totalContributions / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(fundSummary.totalContributions)}</div>
             <p className="text-xs text-muted-foreground">Lifetime</p>
           </CardContent>
         </Card>
@@ -120,7 +125,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
           <Separator />
           <div>
             <span className="font-semibold text-sm">Created Date</span>
-            <p className="text-muted-foreground">{new Date(group.createdAt).toLocaleDateString()}</p>
+            <p className="text-muted-foreground">{formatDate(group.createdAt)}</p>
           </div>
         </CardContent>
       </Card>

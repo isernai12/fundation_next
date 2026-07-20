@@ -1,4 +1,5 @@
 "use client"
+import { formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -48,7 +49,7 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
     {
       id: "name",
       header: "Name",
-      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
+      cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`,
     },
     {
       accessorKey: "status",
@@ -67,7 +68,7 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
     {
       accessorKey: "joinDate",
       header: "Join Date",
-      cell: ({ row }) => row.original.joinDate ? new Date(row.original.joinDate).toLocaleDateString() : "N/A",
+      cell: ({ row }) => row.original.joinDate ? formatDate(row.original.joinDate) : "N/A",
     },
     {
       id: "actions",

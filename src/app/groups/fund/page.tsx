@@ -1,20 +1,25 @@
+import { formatCurrency } from "@/lib/format"
 import { getGroupFundSummary } from "@/features/groups/actions"
 import { GroupSelector } from "@/features/groups/components/group-selector"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wallet, PiggyBank, HandCoins, Landmark, ArrowDownToLine, Users } from "lucide-react"
+import { Wallet, PiggyBank, HandCoins, Landmark, ArrowDownToLine, Receipt, Calendar, Filter } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-export default async function GroupFundPage({ searchParams }: { searchParams: { groupId?: string } }) {
-  const groupId = searchParams.groupId
+export default async function GroupFundPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+  const resolvedParams = await searchParams
+  const groupId = resolvedParams.groupId
   const summary = groupId ? await getGroupFundSummary(groupId) : null
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Group Fund</h1>
-          <p className="text-muted-foreground">View financial summaries and balances for each group.</p>
+          <p className="text-muted-foreground">Show the financial position of a specific group.</p>
         </div>
-        <GroupSelector />
+        <div className="flex items-center space-x-2">
+          <GroupSelector />
+        </div>
       </div>
 
       {!groupId || !summary ? (
@@ -26,83 +31,83 @@ export default async function GroupFundPage({ searchParams }: { searchParams: { 
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
-              <Landmark className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">৳{Number(summary.currentBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Available liquidity</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Contributions</CardTitle>
-              <PiggyBank className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">৳{Number(summary.totalContributions).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Lifetime contributions</p>
+        <div className="space-y-6">
+          <Card className="bg-muted/30">
+            <CardContent className="p-4 flex flex-wrap items-center gap-4">
+              <div className="font-medium flex items-center mr-4"><Filter className="h-4 w-4 mr-2"/> Filters:</div>
+              <Button variant="outline" size="sm"><Calendar className="h-4 w-4 mr-2" /> Date</Button>
+              <Button variant="outline" size="sm"><Calendar className="h-4 w-4 mr-2" /> Month</Button>
+              <Button variant="outline" size="sm"><Calendar className="h-4 w-4 mr-2" /> Year</Button>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Loans Disbursed</CardTitle>
-              <HandCoins className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">৳{Number(summary.totalLoans).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Active and completed loans</p>
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Fund</CardTitle>
+                <Landmark className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">৳{formatCurrency((summary as any).totalFund || summary.currentBalance || 0)}</div>
+                <p className="text-xs text-muted-foreground">Overall fund size</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Loan Returns</CardTitle>
-              <ArrowDownToLine className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">৳{Number(summary.totalLoanReturns).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Principal & interest collected</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Grants</CardTitle>
-              <Landmark className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">৳{Number(summary.totalGrants).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Non-refundable grants</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Opening Balance</CardTitle>
-              <Wallet className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">৳{Number(summary.openingBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Initial fund allocation</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">৳{formatCurrency(summary.currentBalance)}</div>
+                <p className="text-xs text-muted-foreground">Available liquid cash</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Contributions</CardTitle>
+                <PiggyBank className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">৳{formatCurrency(summary.totalContributions)}</div>
+                <p className="text-xs text-muted-foreground">Member contributions received</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Members</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{summary.memberCount}</div>
-              <p className="text-xs text-muted-foreground">Contributing members</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Donations</CardTitle>
+                <HandCoins className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">৳{formatCurrency((summary as any).totalDonations || 0)}</div>
+                <p className="text-xs text-muted-foreground">External donations received</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Grants</CardTitle>
+                <Landmark className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">৳{formatCurrency(summary.totalGrants)}</div>
+                <p className="text-xs text-muted-foreground">Grants disbursed</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                <Receipt className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-500">৳{formatCurrency((summary as any).totalExpenses || 0)}</div>
+                <p className="text-xs text-muted-foreground">Operational expenses</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
     </div>

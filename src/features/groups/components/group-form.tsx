@@ -26,7 +26,7 @@ export function GroupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<GroupFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     resolver: zodResolver(groupSchema) as any,
     defaultValues: {
       name: "",
@@ -52,7 +52,7 @@ export function GroupForm() {
 
     if (res.success) {
       toast.success("Group created successfully")
-      router.push("/groups")
+      router.push("/groups/manage")
     } else {
       toast.error(res.error)
     }
@@ -199,7 +199,7 @@ export function GroupForm() {
             </div>
 
             <div className="flex justify-end space-x-4 pt-6">
-              <Button variant="outline" type="button" onClick={() => router.push("/groups")}>
+              <Button variant="outline" type="button" onClick={() => router.push("/groups/manage")}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

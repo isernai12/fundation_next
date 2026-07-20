@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/format"
 import { getDashboardStats } from "@/features/dashboard/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts-dynamic"
@@ -18,7 +19,7 @@ export default async function DashboardPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((stats.currentCashBalance / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(stats.currentCashBalance)}</div>
             <p className="text-xs text-muted-foreground">Across all ledgers</p>
           </CardContent>
         </Card>
@@ -30,7 +31,7 @@ export default async function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((stats.foundationTotalFund / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(stats.foundationTotalFund)}</div>
             <p className="text-xs text-muted-foreground">General Fund Equity</p>
           </CardContent>
         </Card>
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((stats.totalGroupFunds / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(stats.totalGroupFunds)}</div>
             <p className="text-xs text-muted-foreground">Combined equity across all groups</p>
           </CardContent>
         </Card>
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((stats.totalContributions / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(stats.totalContributions)}</div>
             <p className="text-xs text-muted-foreground">Lifetime collected</p>
           </CardContent>
         </Card>
@@ -90,7 +91,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalActiveLoans}</div>
-            <p className="text-xs text-muted-foreground">৳{Number((stats.outstandingLoanAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})} Outstanding</p>
+            <p className="text-xs text-muted-foreground">৳{formatCurrency(stats.outstandingLoanAmount)} Outstanding</p>
           </CardContent>
         </Card>
 

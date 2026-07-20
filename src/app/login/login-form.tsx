@@ -76,7 +76,6 @@ export function LoginForm() {
         <CardContent>
           <Form {...form}>
             <form 
-              method="POST"
               onSubmit={form.handleSubmit(onSubmit)} 
               className="space-y-4"
             >

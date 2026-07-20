@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/format"
 
 import { useEffect, useState } from "react"
 import { getGeneralLedgerReport } from "@/features/reports/actions"
@@ -18,7 +19,7 @@ export default function GeneralLedgerReportPage() {
     {
       accessorKey: "date",
       header: "Date",
-      cell: ({ row }: any) => new Date(row.getValue("date")).toLocaleDateString()
+      cell: ({ row }: any) => formatDate(row.getValue("date"))
     },
     { accessorKey: "type", header: "Transaction Type" },
     { accessorKey: "referenceId", header: "Ref ID" },
@@ -29,7 +30,7 @@ export default function GeneralLedgerReportPage() {
       header: "Debit (Dr)",
       cell: ({ row }: any) => {
         const val = row.getValue("debit") as number
-        return val > 0 ? <span className="font-semibold text-red-500">৳{Number((val / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
+        return val > 0 ? <span className="font-semibold text-red-500">৳{formatCurrency(val)}</span> : "-"
       }
     },
     {
@@ -37,7 +38,7 @@ export default function GeneralLedgerReportPage() {
       header: "Credit (Cr)",
       cell: ({ row }: any) => {
         const val = row.getValue("credit") as number
-        return val > 0 ? <span className="font-semibold text-green-600">৳{Number((val / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "-"
+        return val > 0 ? <span className="font-semibold text-green-600">৳{formatCurrency(val)}</span> : "-"
       }
     },
     { accessorKey: "notes", header: "Notes" }
@@ -58,7 +59,7 @@ export default function GeneralLedgerReportPage() {
       </div>
       <div className="hidden print:block text-center mb-8">
         <h1 className="text-2xl font-bold">General Ledger Report</h1>
-        <p className="text-sm text-gray-500">Generated on: {new Date().toLocaleString()}</p>
+        <p className="text-sm text-gray-500">Generated on: {formatDateTime(new Date())}</p>
       </div>
 
       <ReportViewer title="General_Ledger_Report" columns={columns} data={data} />

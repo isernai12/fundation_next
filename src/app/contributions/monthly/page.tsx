@@ -1,3 +1,4 @@
+import { formatMonth } from "@/lib/format"
 import { getContributions } from "@/features/contributions/actions"
 import { ContributionsTable } from "@/features/contributions/components/contributions-table"
 import Link from "next/link"
@@ -26,7 +27,7 @@ export default async function MonthlyContributionsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Monthly Contributions</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Displaying contributions for {new Date().toLocaleString('default', { month: 'long' })} {currentYear}.
+            Displaying contributions for {formatMonth(new Date().getUTCMonth())} {currentYear}.
           </p>
         </div>
       </div>

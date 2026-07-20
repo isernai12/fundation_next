@@ -1,3 +1,4 @@
+import { formatCurrency, formatDate } from "@/lib/format"
 import { getLoan, approveLoan } from "@/features/loans/actions"
 import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
 import { prisma } from "@/lib/prisma"
@@ -37,7 +38,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Loan {loan.loanNumber}</h1>
             <div className="flex items-center space-x-2 text-muted-foreground mt-1">
-              <span>Beneficiary: {loan.beneficiary?.firstName} {loan.beneficiary?.lastName}</span>
+              <span>Beneficiary: {loan.beneficiary?.fullName || 'নাম পাওয়া যায়নি'} </span>
               <span>&bull;</span>
               <Badge variant={
                 loan.status === "ACTIVE" ? "default" :
@@ -73,7 +74,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <CardTitle className="text-sm font-medium">Principal Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{Number((loan.amount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">৳{formatCurrency(loan.amount)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -81,7 +82,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <CardTitle className="text-sm font-medium">Repaid Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">৳{Number((totalRepaid / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold text-green-600">৳{formatCurrency(totalRepaid)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -89,7 +90,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-500">৳{Number((outstanding / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold text-red-500">৳{formatCurrency(outstanding)}</div>
           </CardContent>
         </Card>
       </div>
@@ -104,10 +105,10 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
               <div><span className="text-sm font-semibold">Purpose</span><p className="text-muted-foreground">{loan.purpose}</p></div>
               <div><span className="text-sm font-semibold">Interest Rate</span><p className="text-muted-foreground">0% (Zero Interest)</p></div>
               <div><span className="text-sm font-semibold">Installments</span><p className="text-muted-foreground">{loan.installmentCount} months</p></div>
-              <div><span className="text-sm font-semibold">Installment Amt</span><p className="text-muted-foreground">৳{Number((loan.installmentAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p></div>
-              <div><span className="text-sm font-semibold">Requested On</span><p className="text-muted-foreground">{new Date(loan.requestedDate).toLocaleDateString()}</p></div>
-              <div><span className="text-sm font-semibold">Approved On</span><p className="text-muted-foreground">{loan.dateApproved ? new Date(loan.dateApproved).toLocaleDateString() : 'N/A'}</p></div>
-              <div><span className="text-sm font-semibold">Disbursed On</span><p className="text-muted-foreground">{loan.disbursedDate ? new Date(loan.disbursedDate).toLocaleDateString() : 'N/A'}</p></div>
+              <div><span className="text-sm font-semibold">Installment Amt</span><p className="text-muted-foreground">৳{formatCurrency(loan.installmentAmount)}</p></div>
+              <div><span className="text-sm font-semibold">Requested On</span><p className="text-muted-foreground">{formatDate(loan.requestedDate)}</p></div>
+              <div><span className="text-sm font-semibold">Approved On</span><p className="text-muted-foreground">{loan.dateApproved ? formatDate(loan.dateApproved) : 'N/A'}</p></div>
+              <div><span className="text-sm font-semibold">Disbursed On</span><p className="text-muted-foreground">{loan.disbursedDate ? formatDate(loan.disbursedDate) : 'N/A'}</p></div>
               <div><span className="text-sm font-semibold">Notes</span><p className="text-muted-foreground">{loan.notes || 'None'}</p></div>
             </div>
           </CardContent>
@@ -128,7 +129,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
                       <p className="font-medium">{a.fund.name}</p>
                       <p className="text-xs text-muted-foreground">{a.fund.group?.name || "Foundation Fund"}</p>
                     </div>
-                    <div className="font-bold">৳{Number((a.amount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    <div className="font-bold">৳{formatCurrency(a.amount)}</div>
                   </div>
                 ))}
               </div>
@@ -149,10 +150,10 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
               {loan.repayments.map(r => (
                 <div key={r.id} className="flex justify-between items-center border-b pb-2">
                   <div>
-                    <p className="font-medium">{new Date(r.date).toLocaleDateString()}</p>
+                    <p className="font-medium">{formatDate(r.date)}</p>
                     <p className="text-xs text-muted-foreground">Ledger Ref: {r.ledgerTransaction.id}</p>
                   </div>
-                  <div className="font-bold text-green-600">+${(r.amount / 100).toFixed(2)}</div>
+                  <div className="font-bold text-green-600">+${(r.amount).toFixed(2)}</div>
                 </div>
               ))}
             </div>

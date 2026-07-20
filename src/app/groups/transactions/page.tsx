@@ -4,8 +4,9 @@ import { GroupTransactionsTable } from "@/features/groups/components/group-trans
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeftRight } from "lucide-react"
 
-export default async function GroupTransactionsPage({ searchParams }: { searchParams: { groupId?: string } }) {
-  const groupId = searchParams.groupId
+export default async function GroupTransactionsPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+  const resolvedParams = await searchParams
+  const groupId = resolvedParams.groupId
   const transactions = groupId ? await getGroupTransactions(groupId) : []
 
   return (

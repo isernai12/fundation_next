@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -37,8 +38,8 @@ import Link from "next/link"
 
 type GrantWithDetails = Grant & {
   beneficiary: {
-    firstName: string | null
-    lastName: string | null
+    fullName: string | null
+    
     beneficiaryId: string
   }
   allocations: (FundAllocation & {
@@ -66,7 +67,7 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
     {
       id: "beneficiary",
       header: "Beneficiary",
-      cell: ({ row }) => `${row.original.beneficiary.firstName} ${row.original.beneficiary.lastName} (${row.original.beneficiary.beneficiaryId})`
+      cell: ({ row }) => `${row.original.beneficiary.fullName || 'নাম পাওয়া যায়নি'} (${row.original.beneficiary.beneficiaryId})`
     },
     {
       accessorKey: "purpose",
@@ -75,7 +76,7 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `৳${Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+      cell: ({ row }) => `৳${formatCurrency(row.original.amount)}`
     },
     {
       id: "fundingGroups",
@@ -87,7 +88,7 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
     {
       accessorKey: "dateApproved",
       header: "Date",
-      cell: ({ row }) => row.original.dateApproved ? new Date(row.original.dateApproved).toLocaleDateString() : "N/A"
+      cell: ({ row }) => row.original.dateApproved ? formatDate(row.original.dateApproved) : "N/A"
     },
     {
       accessorKey: "status",

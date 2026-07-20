@@ -1,4 +1,5 @@
 "use client"
+import { formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -39,7 +40,7 @@ export function MemberLedgerTable({ data }: { data: MemberLedgerData[] }) {
     {
       accessorKey: "date",
       header: "Date",
-      cell: ({ row }) => new Date(row.getValue("date")).toLocaleDateString(),
+      cell: ({ row }) => formatDate(row.getValue("date")),
     },
     {
       accessorKey: "type",
@@ -53,7 +54,7 @@ export function MemberLedgerTable({ data }: { data: MemberLedgerData[] }) {
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `৳${(row.getValue("amount") as number) / 100}`,
+      cell: ({ row }) => `৳${(row.getValue("amount") as number)}`,
     },
     {
       accessorKey: "reference",

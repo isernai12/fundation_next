@@ -66,11 +66,11 @@ export function ManageLoanView({ loan }: { loan: any }) {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Amount</span>
-              <span className="font-medium">৳{loan.amount / 100}</span>
+              <span className="font-medium">৳{loan.amount}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Installments</span>
-              <span className="font-medium">{loan.installmentCount} @ ${loan.installmentAmount / 100}/mo</span>
+              <span className="font-medium">{loan.installmentCount} @ ${loan.installmentAmount}/mo</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Purpose</span>
@@ -86,7 +86,7 @@ export function ManageLoanView({ loan }: { loan: any }) {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Name</span>
-              <span className="font-medium">{`${loan.beneficiary?.firstName} ${loan.beneficiary?.lastName}`}</span>
+              <span className="font-medium">{`${loan.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}`}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Phone</span>
@@ -107,7 +107,7 @@ export function ManageLoanView({ loan }: { loan: any }) {
             {loan.allocations.map((a: any) => (
               <div key={a.id} className="flex justify-between border-b py-2 last:border-0">
                 <span>{a.fund?.group ? `${a.fund.group.name} (${a.fund.name})` : a.fund?.name}</span>
-                <span className="font-medium">৳{a.amount / 100}</span>
+                <span className="font-medium">৳{a.amount}</span>
               </div>
             ))}
           </CardContent>

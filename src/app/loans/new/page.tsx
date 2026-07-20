@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 export default async function NewLoanPage() {
   const beneficiaries = await prisma.beneficiary.findMany({
     where: { status: "ACTIVE" },
-    orderBy: { firstName: "asc" }
+    orderBy: { fullName: "asc" }
   })
   
   const funds = await prisma.fund.findMany({

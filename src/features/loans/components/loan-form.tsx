@@ -109,7 +109,7 @@ export function LoanForm({ beneficiaries, funds }: LoanFormProps) {
                     </FormControl>
                     <SelectContent>
                       {beneficiaries.map(b => (
-                        <SelectItem key={b.id} value={b.id}>{b.firstName} {b.lastName}</SelectItem>
+                        <SelectItem key={b.id} value={b.id}>{b.fullName || 'নাম পাওয়া যায়নি'} </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

@@ -1,4 +1,5 @@
 "use client"
+import { formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -64,7 +65,7 @@ export function DocumentsTable({ data }: { data: any[] }) {
     {
       accessorKey: "createdAt",
       header: "Uploaded",
-      cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
+      cell: ({ row }) => formatDate(row.getValue("createdAt")),
     },
     {
       id: "actions",

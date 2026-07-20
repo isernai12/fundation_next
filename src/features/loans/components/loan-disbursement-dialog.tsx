@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency } from "@/lib/format"
 
 import { useState } from "react"
 import { disburseLoan } from "../actions"
@@ -72,7 +73,7 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
 
   const handleSubmit = async () => {
     if (totalAllocated !== loanAmount) {
-      toast.error(`Total allocated must be exactly ৳${Number((loanAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}. Remaining: ৳${Number((remaining / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`)
+      toast.error(`Total allocated must be exactly ৳${formatCurrency(loanAmount)}. Remaining: ৳${formatCurrency(remaining)}`)
       return
     }
     if (allocations.some(a => !a.fundId || a.amount <= 0)) {
@@ -107,12 +108,12 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
           <div className="flex justify-between items-center bg-muted p-4 rounded-md">
             <div>
               <p className="text-sm text-muted-foreground">Loan Amount</p>
-              <p className="text-2xl font-bold">৳{Number((loanAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+              <p className="text-2xl font-bold">৳{formatCurrency(loanAmount)}</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Remaining to Allocate</p>
               <p className={`text-2xl font-bold ${remaining === 0 ? "text-green-500" : remaining < 0 ? "text-red-500" : ""}`}>
-                ${(remaining / 100).toFixed(2)}
+                ${(remaining).toFixed(2)}
               </p>
             </div>
           </div>
@@ -143,8 +144,8 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
                   <Input 
                     type="number" 
                     className="pl-7" 
-                    value={alloc.amount ? alloc.amount / 100 : ""} 
-                    onChange={(e) => handleUpdateAllocation(idx, "amount", Number(e.target.value) * 100)} 
+                    value={alloc.amount ? alloc.amount : ""} 
+                    onChange={(e) => handleUpdateAllocation(idx, "amount", Number(e.target.value))} 
                   />
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => handleRemoveAllocation(idx)}>

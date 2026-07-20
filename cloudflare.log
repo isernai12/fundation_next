@@ -43,3 +43,6 @@
 2026-07-18T17:08:18Z INF precheck complete hard_fail=false run_id=c7990985-2af4-4cb9-a110-b95d0f8b9005 suggested_protocol=quic
 2026-07-18T17:09:13Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:3000
 2026-07-18T17:09:13Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://automation-bicycle-granted-seal.trycloudflare.com/login?callbackUrl=%2F event=0 ip=198.41.192.57 type=http
+2026-07-18T17:10:44Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:3000
+2026-07-18T17:10:44Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://automation-bicycle-granted-seal.trycloudflare.com/login?callbackUrl=%2F event=0 ip=198.41.192.57 type=http
+https://doctor-charming-sections-silicon.trycloudflare.com

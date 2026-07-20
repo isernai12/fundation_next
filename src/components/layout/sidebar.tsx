@@ -58,10 +58,8 @@ const sidebarItems: MenuItem[] = [
     icon: Users,
     submenu: [
       { name: "Add Beneficiary", href: "/beneficiaries/new" },
-      { name: "All Beneficiaries", href: "/beneficiaries" },
       { name: "Manage Beneficiaries", href: "/beneficiaries/manage" },
       { name: "Beneficiary Ledger", href: "/beneficiaries/ledger" },
-      { name: "Beneficiary Documents", href: "/beneficiaries/documents" },
       { name: "Beneficiary Assistance History", href: "/beneficiaries/assistance-history" },
       { name: "Beneficiary Loan History", href: "/beneficiaries/loan-history" },
       { name: "Beneficiary Reports", href: "/beneficiaries/reports" },
@@ -73,7 +71,6 @@ const sidebarItems: MenuItem[] = [
     icon: Building,
     submenu: [
       { name: "Add Group", href: "/groups/new" },
-      { name: "All Groups", href: "/groups" },
       { name: "Manage Groups", href: "/groups/manage" },
       { name: "Group Members", href: "/groups/members" },
       { name: "Group Fund", href: "/groups/fund" },
@@ -89,7 +86,7 @@ const sidebarItems: MenuItem[] = [
     submenu: [
       { name: "Add Contribution", href: "/contributions/new" },
       { name: "Monthly Contributions", href: "/contributions/monthly" },
-      { name: "All Contributions", href: "/contributions" },
+      { name: "Manage Contributions", href: "/contributions" },
       { name: "Due Contributions", href: "/contributions/due" },
       { name: "Contribution Ledger", href: "/contributions/ledger" },
       { name: "Contribution Reports", href: "/contributions/reports" },

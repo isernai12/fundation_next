@@ -1,4 +1,5 @@
 "use client"
+import { formatDateTime } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -29,7 +30,7 @@ export function AuditTable({ data }: { data: any[] }) {
     {
       accessorKey: "createdAt",
       header: "Timestamp",
-      cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleString(),
+      cell: ({ row }) => formatDateTime(row.getValue("createdAt")),
     },
     {
       accessorKey: "user.name",

@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -74,15 +75,15 @@ export default async function LoanReportsPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total Disbursed</span>
-                  <span className="text-lg font-semibold">৳{Number((totalAmount / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <span className="text-lg font-semibold">৳{formatCurrency(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total Repaid</span>
-                  <span className="text-lg font-semibold text-green-600">৳{Number((totalRepaid / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <span className="text-lg font-semibold text-green-600">৳{formatCurrency(totalRepaid)}</span>
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">
                   <span className="font-semibold">Outstanding Balance</span>
-                  <span className="text-lg font-bold text-destructive">৳{Number((totalOutstanding / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <span className="text-lg font-bold text-destructive">৳{formatCurrency(totalOutstanding)}</span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">

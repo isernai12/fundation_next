@@ -1,4 +1,5 @@
 "use client"
+import { formatMonth } from "@/lib/format"
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -15,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { createContribution } from "../actions"
 import { contributionSchema, type ContributionFormValues } from "../schema"
 
-export function ContributionForm({ members }: { members: { id: string; memberId: string; firstName: string | null; lastName: string | null; group: { code: string } | null }[] }) {
+export function ContributionForm({ members }: { members: { id: string; memberId: string; fullName: string | null; group: { code: string } | null }[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -74,7 +75,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                       <SelectContent>
                         {members.map(m => (
                           <SelectItem key={m.id} value={m.id}>
-                            {m.memberId} - {m.firstName} {m.lastName} ({m.group?.code})
+                            {m.memberId} - {m.fullName || 'নাম পাওয়া যায়নি'} ({m.group?.code})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -103,7 +104,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                         <SelectContent>
                           {Array.from({length: 12}, (_, i) => i + 1).map(m => (
                             <SelectItem key={m} value={m.toString()}>
-                              {new Date(2000, m - 1).toLocaleString('default', { month: 'long' })}
+                              {formatMonth(m - 1)}
                             </SelectItem>
                           ))}
                         </SelectContent>

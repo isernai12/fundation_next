@@ -1,4 +1,5 @@
 "use server"
+import { formatShortMonth } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
 
@@ -56,7 +57,7 @@ export async function getDashboardStats() {
         else equityBalance -= entry.amount
       }
       totalGroupFunds += equityBalance
-      groupFundDistribution.push({ name: fund.group?.name || "Unknown", value: equityBalance / 100 })
+      groupFundDistribution.push({ name: fund.group?.name || "Unknown", value: equityBalance })
     }
   }
 
@@ -96,21 +97,21 @@ export async function getDashboardStats() {
   for (let i = 5; i >= 0; i--) {
     const d = new Date()
     d.setMonth(d.getMonth() - i)
-    const monthStr = d.toLocaleString('default', { month: 'short' })
+    const monthStr = formatShortMonth(new Date(d).getUTCMonth())
     monthMap.set(monthStr, { month: monthStr, contributions: 0, loans: 0, grants: 0 })
   }
 
   for (const c of recentContributions) {
-    const m = c.createdAt.toLocaleString('default', { month: 'short' })
-    if (monthMap.has(m)) monthMap.get(m)!.contributions += (c.expectedAmount / 100)
+    const m = formatShortMonth(new Date(c.createdAt).getUTCMonth())
+    if (monthMap.has(m)) monthMap.get(m)!.contributions += (c.expectedAmount)
   }
   for (const l of recentLoans) {
-    const m = l.createdAt.toLocaleString('default', { month: 'short' })
-    if (monthMap.has(m)) monthMap.get(m)!.loans += (l.amount / 100)
+    const m = formatShortMonth(new Date(l.createdAt).getUTCMonth())
+    if (monthMap.has(m)) monthMap.get(m)!.loans += (l.amount)
   }
   for (const g of recentGrants) {
-    const m = g.createdAt.toLocaleString('default', { month: 'short' })
-    if (monthMap.has(m)) monthMap.get(m)!.grants += (g.amount / 100)
+    const m = formatShortMonth(new Date(g.createdAt).getUTCMonth())
+    if (monthMap.has(m)) monthMap.get(m)!.grants += (g.amount)
   }
 
   return {

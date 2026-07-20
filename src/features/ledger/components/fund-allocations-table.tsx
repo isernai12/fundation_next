@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -43,7 +44,7 @@ export function FundAllocationsTable({ data }: { data: AllocationWithDetails[] }
           </Button>
         )
       },
-      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString()
+      cell: ({ row }) => formatDate(row.original.createdAt)
     },
     {
       accessorKey: "targetType",
@@ -67,7 +68,7 @@ export function FundAllocationsTable({ data }: { data: AllocationWithDetails[] }
     {
       accessorKey: "amount",
       header: "Allocated Amount",
-      cell: ({ row }) => <span className="font-medium">৳{Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+      cell: ({ row }) => <span className="font-medium">৳{formatCurrency(row.original.amount)}</span>
     }
   ]
 

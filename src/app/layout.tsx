@@ -27,7 +27,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} h-screen overflow-hidden flex`}>
+      <body className={`${inter.className} h-screen overflow-hidden flex`} suppressHydrationWarning>
         <AuthProvider>
           <ThemeProvider
             attribute="class"

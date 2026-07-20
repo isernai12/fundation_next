@@ -1,15 +1,10 @@
+import { formatDate } from "@/lib/format"
 import { getMember } from "@/features/members/actions"
-import { getMemberLedger } from "@/features/ledger/actions"
-import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Briefcase, Phone, AlertCircle } from "lucide-react"
-import { MemberLedgerTable } from "@/features/ledger/components/member-ledger-table"
-import { DocumentList } from "@/features/documents/components/document-list"
+import Image from "next/image"
+import { ArrowLeft } from "lucide-react"
+import { MemberProfileActions } from "@/features/members/components/member-profile-actions"
 
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -17,108 +12,155 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
 
   if (!member) return notFound()
 
-  const ledgerData = await getMemberLedger(resolvedParams.id)
-  const documents = await getDocumentsByEntity("MEMBER", resolvedParams.id)
-  const categories = await getDocumentCategories()
+  let reference = { name: "", mobile: "", relation: "" };
+  try {
+    if (member.reference) reference = JSON.parse(member.reference);
+  } catch(e) {}
+
+  const photoDoc = member.documents?.find(d => d.title === "Member Photo")
+  const idDoc = member.documents?.find(d => d.title === "National ID" || d.title === "Birth Certificate")
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/members/manage">
-            <ArrowLeft className="h-4 w-4" />
+    <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
+      {/* Top Navigation & Actions */}
+      <div className="flex items-center justify-between pb-4 border-b print:hidden">
+        <div className="flex items-center gap-4">
+          <Link href="/members/manage" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
           </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{member.firstName} {member.lastName}</h1>
-          <div className="flex items-center space-x-2 text-muted-foreground mt-1">
-            <span>ID: {member.memberId}</span>
-            <span>&bull;</span>
-            <Badge variant={member.status === "ACTIVE" ? "default" : "secondary"}>
-              {member.status}
-            </Badge>
+          <h1 className="text-xl font-bold">সদস্য প্রোফাইল</h1>
+        </div>
+        <MemberProfileActions memberId={member.id} />
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* LEFT COLUMN */}
+        <div className="flex-1 space-y-6">
+          
+          {/* SECTION 1 */}
+          <section>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3">১. ব্যক্তিগত তথ্য</h2>
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">পূর্ণ নাম</td><td className="py-2 font-medium">{member.fullName || 'নাম পাওয়া যায়নি'} </td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পিতার নাম</td><td className="py-2">{member.fatherName || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মাতার নাম</td><td className="py-2">{member.motherName || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">জন্ম তারিখ</td><td className="py-2">{member.dob ? formatDate(member.dob) : '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন</td><td className="py-2">{member.nationalId || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পেশা</td><td className="py-2">{member.occupation || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">শিক্ষাগত যোগ্যতা</td><td className="py-2">{member.education || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">রক্তের গ্রুপ</td><td className="py-2">{member.bloodGroup || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বর্তমান ঠিকানা</td><td className="py-2">{member.presentAddress || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">স্থায়ী ঠিকানা</td><td className="py-2">{member.permanentAddress || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{member.mobile || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ইমেইল</td><td className="py-2">{member.email || '-'}</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          {/* SECTION 2 */}
+          <section>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">২. জরুরি যোগাযোগ</h2>
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">নাম</td><td className="py-2">{member.emergencyContactName || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সম্পর্ক</td><td className="py-2">{member.emergencyContactRelation || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{member.emergencyContactMobile || '-'}</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          {/* SECTION 3 */}
+          <section>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৩. রেফারেন্সদাতা</h2>
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">নাম</td><td className="py-2">{reference.name || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সম্পর্ক</td><td className="py-2">{reference.relation || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{reference.mobile || '-'}</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          {/* SECTION 4 */}
+          <section>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৪. গ্রুপের তথ্য</h2>
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">গ্রুপের নাম</td><td className="py-2">{member.group?.name || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">গ্রুপ কোড</td><td className="py-2">{member.group?.code || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">যোগদানের তারিখ</td><td className="py-2">{member.joinDate ? formatDate(member.joinDate) : '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">স্ট্যাটাস</td><td className="py-2">{member.status === "ACTIVE" ? "সক্রিয়" : "নিষ্ক্রিয়"}</td></tr>
+              </tbody>
+            </table>
+          </section>
+          
+          {/* SECTION 5 */}
+          <section className="print:break-before-page">
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৫. ডকুমেন্টসমূহ</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="border rounded-md p-3">
+                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">সদস্যের ছবি</p>
+                {photoDoc ? (
+                  <a href={photoDoc.secureUrl} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+                    <Image src={photoDoc.secureUrl} alt="Member Photo" fill className="object-contain" />
+                  </a>
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+                    ডকুমেন্ট আপলোড করা হয়নি
+                  </div>
+                )}
+              </div>
+              <div className="border rounded-md p-3">
+                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{idDoc ? (idDoc.title === "National ID" ? "জাতীয় পরিচয়পত্র" : "জন্ম নিবন্ধন") : "জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন"}</p>
+                {idDoc ? (
+                  <a href={idDoc.secureUrl} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+                    <Image src={idDoc.secureUrl} alt="ID Document" fill className="object-contain bg-muted/10" />
+                  </a>
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+                    ডকুমেন্ট আপলোড করা হয়নি
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="w-full md:w-64 shrink-0 flex flex-col items-center pt-2 print:pt-10">
+          <div className="border border-border p-2 bg-muted/10 w-full max-w-[200px]">
+            <div className="relative w-full aspect-[4/5] bg-muted flex flex-col items-center justify-center border border-dashed border-muted-foreground/30">
+              {photoDoc ? (
+                <Image src={photoDoc.secureUrl} alt="Photo" fill className="object-cover" />
+              ) : (
+                <span className="text-sm text-muted-foreground">সদস্যের ছবি</span>
+              )}
+            </div>
+          </div>
+          
+          <div className="mt-6 w-full max-w-[200px] text-center border p-4 bg-muted/5 space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">সদস্য আইডি</p>
+              <p className="font-bold text-lg">{member.memberId}</p>
+            </div>
+            <div className="border-t pt-2">
+              <p className="text-xs text-muted-foreground">গ্রুপ</p>
+              <p className="font-semibold">{member.group?.code || '-'}</p>
+            </div>
+            <div className="border-t pt-2">
+              <p className="text-xs text-muted-foreground">যোগদানের তারিখ</p>
+              <p className="font-semibold">{member.joinDate ? formatDate(member.joinDate) : '-'}</p>
+            </div>
+            <div className="border-t pt-2">
+              <p className="text-xs text-muted-foreground">স্ট্যাটাস</p>
+              <p className={`font-semibold ${member.status === "ACTIVE" ? "text-green-600" : "text-red-600"}`}>
+                {member.status === "ACTIVE" ? "সক্রিয়" : "নিষ্ক্রিয়"}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Organization Information */}
-        <Card>
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <Briefcase className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Organization Information</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div><span className="text-sm font-semibold">Group</span><p className="text-muted-foreground">{member.group?.name || "No Group"} {member.group?.code ? `(${member.group.code})` : ""}</p></div>
-            <div><span className="text-sm font-semibold">Join Date</span><p className="text-muted-foreground">{member.joinDate ? new Date(member.joinDate).toLocaleDateString() : 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Status</span><p className="text-muted-foreground">{member.status}</p></div>
-            <div><span className="text-sm font-semibold">Remarks</span><p className="text-muted-foreground">{member.remarks || 'None'}</p></div>
-          </CardContent>
-        </Card>
-
-        {/* Personal Information */}
-        <Card>
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <User className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div><span className="text-sm font-semibold">Father&apos;s Name</span><p className="text-muted-foreground">{member.fatherName || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Mother&apos;s Name</span><p className="text-muted-foreground">{member.motherName || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Gender</span><p className="text-muted-foreground">{member.gender || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Date of Birth</span><p className="text-muted-foreground">{member.dob ? new Date(member.dob).toLocaleDateString() : 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">National ID</span><p className="text-muted-foreground">{member.nationalId || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Blood Group</span><p className="text-muted-foreground">{member.bloodGroup || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Occupation</span><p className="text-muted-foreground">{member.occupation || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Monthly Income</span><p className="text-muted-foreground">{member.monthlyIncome ? `৳${member.monthlyIncome / 100}` : 'N/A'}</p></div>
-          </CardContent>
-        </Card>
-
-        {/* Contact Information */}
-        <Card>
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <Phone className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div><span className="text-sm font-semibold">Mobile</span><p className="text-muted-foreground">{member.mobile || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Alt Mobile</span><p className="text-muted-foreground">{member.altMobile || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Email</span><p className="text-muted-foreground">{member.email || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Phone</span><p className="text-muted-foreground">{member.phone || 'N/A'}</p></div>
-            <div className="col-span-2"><span className="text-sm font-semibold">Present Address</span><p className="text-muted-foreground">{member.presentAddress || 'N/A'}</p></div>
-            <div className="col-span-2"><span className="text-sm font-semibold">Permanent Address</span><p className="text-muted-foreground">{member.permanentAddress || 'N/A'}</p></div>
-          </CardContent>
-        </Card>
-
-        {/* Emergency Contact */}
-        <Card>
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <AlertCircle className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>Emergency Contact</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4">
-            <div><span className="text-sm font-semibold">Name</span><p className="text-muted-foreground">{member.emergencyContactName || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Mobile</span><p className="text-muted-foreground">{member.emergencyContactMobile || 'N/A'}</p></div>
-            <div><span className="text-sm font-semibold">Relation</span><p className="text-muted-foreground">{member.emergencyContactRelation || 'N/A'}</p></div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Separator />
-
-      <div>
-        <h2 className="text-xl font-bold tracking-tight mb-4">Member Ledger</h2>
-        <MemberLedgerTable data={ledgerData as unknown as React.ComponentProps<typeof MemberLedgerTable>['data']} />
-      </div>
-
-      <Separator />
-
-      <DocumentList targetType="MEMBER" entityId={member.id} documents={documents} categories={categories} />
-
-      <Separator />
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* Placeholders for Future Modules */}
       </div>
     </div>
   )

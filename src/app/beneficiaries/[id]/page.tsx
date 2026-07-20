@@ -1,13 +1,9 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Phone, Briefcase, ChevronRight } from "lucide-react"
-import { DocumentList } from "@/features/documents/components/document-list"
-import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
+import Image from "next/image"
+import { ArrowLeft } from "lucide-react"
+import { BeneficiaryProfileActions } from "@/features/beneficiaries/components/beneficiary-profile-actions"
 
 export default async function BeneficiaryDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -18,97 +14,113 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
 
   if (!beneficiary) return notFound()
 
-  const documents = await getDocumentsByEntity("BENEFICIARY", beneficiary.id)
-  const categories = await getDocumentCategories()
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <Link href="/beneficiaries" className="hover:text-primary transition-colors">
-          Beneficiaries
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">{beneficiary.firstName} {beneficiary.lastName}</span>
-      </div>
-      <div className="flex items-center space-x-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/beneficiaries">
-            <ArrowLeft className="h-4 w-4" />
+    <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
+      {/* Top Navigation & Actions */}
+      <div className="flex items-center justify-between pb-4 border-b print:hidden">
+        <div className="flex items-center gap-4">
+          <Link href="/beneficiaries/manage" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
           </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {beneficiary.firstName} {beneficiary.lastName}
-          </h1>
-          <div className="flex items-center space-x-2 text-muted-foreground mt-1">
-            <span>{beneficiary.beneficiaryId}</span>
-            <span>&bull;</span>
-            <Badge variant={beneficiary.status === "ACTIVE" ? "default" : "secondary"}>
-              {beneficiary.status}
-            </Badge>
+          <h1 className="text-xl font-bold">সুবিধাভোগী প্রোফাইল</h1>
+        </div>
+        <BeneficiaryProfileActions id={beneficiary.id} />
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* LEFT COLUMN */}
+        <div className="flex-1 space-y-6">
+          
+          {/* SECTION 1 */}
+          <section>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3">১. ব্যক্তিগত তথ্য</h2>
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">পূর্ণ নাম</td><td className="py-2 font-medium">{beneficiary.fullName || 'নাম পাওয়া যায়নি'} </td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পিতা / স্বামীর নাম</td><td className="py-2">{beneficiary.fatherOrHusbandName || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন নম্বর</td><td className="py-2">{beneficiary.nationalId || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{beneficiary.mobile || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বর্তমান ঠিকানা</td><td className="py-2">{beneficiary.presentAddress || beneficiary.address || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">স্থায়ী ঠিকানা</td><td className="py-2">{beneficiary.permanentAddress || '-'}</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          {/* SECTION 2 */}
+          <section>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">২. জরুরি যোগাযোগ</h2>
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">নাম</td><td className="py-2">{beneficiary.emergencyContactName || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সম্পর্ক</td><td className="py-2">{beneficiary.emergencyContactRelation || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{beneficiary.emergencyContactMobile || '-'}</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          {/* SECTION 3 */}
+          <section className="print:break-before-page">
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৩. ডকুমেন্টসমূহ</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="border rounded-md p-3">
+                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">সুবিধাভোগীর ছবি</p>
+                {beneficiary.beneficiaryPhoto ? (
+                  <a href={beneficiary.beneficiaryPhoto} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+                    <Image src={beneficiary.beneficiaryPhoto} alt="Beneficiary Photo" fill className="object-contain" />
+                  </a>
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+                    ডকুমেন্ট আপলোড করা হয়নি
+                  </div>
+                )}
+              </div>
+              <div className="border rounded-md p-3">
+                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">জাতীয় পরিচয়পত্র অথবা জন্ম নিবন্ধন</p>
+                {beneficiary.nidOrBirthCertificate ? (
+                  <a href={beneficiary.nidOrBirthCertificate} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+                    {beneficiary.nidOrBirthCertificate.endsWith('.pdf') ? (
+                      <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline">PDF দেখুন</div>
+                    ) : (
+                      <Image src={beneficiary.nidOrBirthCertificate} alt="ID Document" fill className="object-contain bg-muted/10" />
+                    )}
+                  </a>
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+                    ডকুমেন্ট আপলোড করা হয়নি
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="w-full md:w-64 shrink-0 flex flex-col items-center pt-2 print:pt-10">
+          <div className="border border-border p-2 bg-muted/10 w-full max-w-[200px]">
+            <div className="relative w-full aspect-[4/5] bg-muted flex flex-col items-center justify-center border border-dashed border-muted-foreground/30">
+              {beneficiary.beneficiaryPhoto ? (
+                <Image src={beneficiary.beneficiaryPhoto} alt="Photo" fill className="object-cover" />
+              ) : (
+                <span className="text-sm text-muted-foreground">ছবি</span>
+              )}
+            </div>
+          </div>
+          
+          <div className="mt-6 w-full max-w-[200px] text-center border p-4 bg-muted/5 space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">সুবিধাভোগী আইডি</p>
+              <p className="font-bold text-lg">{beneficiary.beneficiaryId}</p>
+            </div>
+            <div className="border-t pt-2">
+              <p className="text-xs text-muted-foreground">স্ট্যাটাস</p>
+              <p className={`font-semibold ${beneficiary.status === "ACTIVE" ? "text-green-600" : "text-red-600"}`}>
+                {beneficiary.status === "ACTIVE" ? "সক্রিয়" : "নিষ্ক্রিয়"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center space-x-2">
-              <User className="h-5 w-5" /> <span>Personal Info</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4 border-t">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm font-semibold text-muted-foreground">National ID</span>
-                <p>{beneficiary.nationalId || 'N/A'}</p>
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-muted-foreground">Occupation</span>
-                <p>{beneficiary.occupation || 'N/A'}</p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-sm font-semibold text-muted-foreground">Address</span>
-                <p>{beneficiary.address || 'N/A'}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center space-x-2">
-              <Phone className="h-5 w-5" /> <span>Contact & Link</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4 border-t">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm font-semibold text-muted-foreground">Mobile</span>
-                <p>{beneficiary.mobile}</p>
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-muted-foreground">Email</span>
-                <p>{beneficiary.email || 'N/A'}</p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-sm font-semibold text-muted-foreground">Linked Member</span>
-                <p>{beneficiary.member ? `${beneficiary.member.firstName} ${beneficiary.member.lastName} (${beneficiary.member.memberId})` : 'None'}</p>
-              </div>
-              {beneficiary.member && (
-                <div className="col-span-2">
-                  <span className="text-sm font-semibold text-muted-foreground">Relation to Member</span>
-                  <p>{beneficiary.relationToMember || 'N/A'}</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Separator />
-
-      <DocumentList targetType="BENEFICIARY" entityId={beneficiary.id} documents={documents} categories={categories} />
     </div>
   )
 }

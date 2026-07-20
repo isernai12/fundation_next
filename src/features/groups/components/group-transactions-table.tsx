@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -59,7 +60,7 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `৳${Number(row.original.amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      cell: ({ row }) => `৳${formatCurrency(row.original.amount)}`,
     },
     {
       accessorKey: "status",
@@ -162,7 +163,7 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  The Transaction module is currently not implemented. No entries to display.
+                  No transactions found for this group.
                 </TableCell>
               </TableRow>
             )}

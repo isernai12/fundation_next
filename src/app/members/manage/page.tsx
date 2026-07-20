@@ -2,10 +2,17 @@ import { getMembers } from "@/features/members/actions"
 import { getGroups } from "@/features/groups/actions"
 import { MembersTable } from "@/features/members/components/members-table"
 import { MemberFormDialog } from "@/features/members/components/member-form-dialog"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 export default async function ManageMembersPage() {
   const members = await getMembers()
   const groups = await getGroups()
+  const session = await getServerSession(authOptions)
+  
+  // @ts-ignore
+  const userRole = session?.user?.role;
+  const isManage = userRole === "ADMIN" || userRole === "MANAGER" || userRole === "SUPER_ADMIN";
 
   return (
     <div className="space-y-6">
@@ -14,9 +21,9 @@ export default async function ManageMembersPage() {
           <h1 className="text-3xl font-bold tracking-tight">Manage Members</h1>
           <p className="text-muted-foreground">Manage organization members.</p>
         </div>
-        <MemberFormDialog groups={groups} />
+        {isManage && <MemberFormDialog groups={groups} />}
       </div>
-      <MembersTable data={members} groups={groups} />
+      <MembersTable data={members} groups={groups} isManage={isManage} />
     </div>
   )
 }

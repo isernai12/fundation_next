@@ -25,7 +25,7 @@ export function BeneficiarySelector() {
       setBeneficiaries(
         data.map(b => ({
           id: b.id,
-          name: `${b.firstName} ${b.lastName}`,
+          name: `${b.fullName || 'নাম পাওয়া যায়নি'}`,
           beneficiaryId: b.beneficiaryId
         }))
       )

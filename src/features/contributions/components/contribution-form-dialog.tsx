@@ -1,4 +1,5 @@
 "use client"
+import { formatMonth } from "@/lib/format"
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -28,7 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 
 interface ContributionFormDialogProps {
-  members: { id: string; firstName: string | null; lastName: string | null; memberId: string }[]
+  members: { id: string; fullName: string | null; memberId: string }[]
   trigger?: React.ReactNode
 }
 
@@ -57,7 +58,7 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
   async function onSubmit(data: ContributionFormValues) {
     // Standardize amount to smallest currency unit (e.g., cents if applicable, but we assume input is already base unit or we multiply by 100)
     // The prompt says "Money stored using integer smallest currency unit." Let's assume the user enters standard unit (e.g., 100 dollars) and we multiply by 100.
-    const submitData = { ...data, amount: data.amount * 100 }
+    const submitData = { ...data, amount: data.amount }
     
     const res = await createContribution(submitData)
 
@@ -93,7 +94,7 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
                     </FormControl>
                     <SelectContent>
                       {members.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.firstName} {m.lastName} ({m.memberId})</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>{m.fullName || 'নাম পাওয়া যায়নি'} ({m.memberId})</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -110,7 +111,7 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                        <SelectItem key={m} value={m.toString()}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</SelectItem>
+                        <SelectItem key={m} value={m.toString()}>{formatMonth(m - 1)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

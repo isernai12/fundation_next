@@ -69,7 +69,7 @@ export async function getMemberDirectoryReport() {
 
   return members.map(m => ({
     memberId: m.memberId,
-    name: `${m.firstName} ${m.lastName}`,
+    name: `${m.fullName || 'নাম পাওয়া যায়নি'}`,
     group: m.group?.name || "No Group",
     mobile: m.mobile,
     email: m.email || "N/A",

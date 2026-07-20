@@ -26,7 +26,7 @@ import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface LoanFormDialogProps {
-  beneficiaries: { id: string; firstName: string; lastName: string; beneficiaryId: string }[]
+  beneficiaries: { id: string; fullName: string; beneficiaryId: string }[]
   trigger?: React.ReactNode
 }
 
@@ -45,7 +45,7 @@ export function LoanFormDialog({ beneficiaries, trigger }: LoanFormDialogProps) 
   })
 
   async function onSubmit(data: LoanFormValues) {
-    const submitData = { ...data, amount: data.amount * 100 }
+    const submitData = { ...data, amount: data.amount }
     
     const res = await createLoanRequest(submitData)
 
@@ -81,7 +81,7 @@ export function LoanFormDialog({ beneficiaries, trigger }: LoanFormDialogProps) 
                     </FormControl>
                     <SelectContent>
                       {beneficiaries.map(b => (
-                        <SelectItem key={b.id} value={b.id}>{b.firstName} {b.lastName} ({b.beneficiaryId})</SelectItem>
+                        <SelectItem key={b.id} value={b.id}>{b.fullName || 'নাম পাওয়া যায়নি'} ({b.beneficiaryId})</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

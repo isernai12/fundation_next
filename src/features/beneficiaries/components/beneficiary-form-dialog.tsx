@@ -29,7 +29,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface BeneficiaryFormDialogProps {
   beneficiary?: Beneficiary
-  members: { id: string; firstName: string | null; lastName: string | null; memberId: string }[]
+  members: { id: string; fullName: string | null; memberId: string }[]
   trigger?: React.ReactNode
 }
 
@@ -39,8 +39,7 @@ export function BeneficiaryFormDialog({ beneficiary, members, trigger }: Benefic
   const form = useForm<BeneficiaryFormValues>({
     resolver: zodResolver(beneficiarySchema),
     defaultValues: {
-      firstName: beneficiary?.firstName || "",
-      lastName: beneficiary?.lastName || "",
+      fullName: beneficiary?.fullName || "",
       memberId: beneficiary?.memberId || "",
       relationToMember: beneficiary?.relationToMember || "",
       email: beneficiary?.email || "",
@@ -81,12 +80,9 @@ export function BeneficiaryFormDialog({ beneficiary, members, trigger }: Benefic
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               
-              <div className="grid grid-cols-2 gap-4">
-                <FormField control={form.control} name="firstName" render={({ field }) => (
-                  <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="lastName" render={({ field }) => (
-                  <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              <div className="grid grid-cols-1 gap-4">
+                <FormField control={form.control} name="fullName" render={({ field }) => (
+                  <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
               </div>
 
@@ -123,7 +119,7 @@ export function BeneficiaryFormDialog({ beneficiary, members, trigger }: Benefic
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
                         {members.map(m => (
-                          <SelectItem key={m.id} value={m.id}>{m.firstName} {m.lastName} ({m.memberId})</SelectItem>
+                          <SelectItem key={m.id} value={m.id}>{m.fullName || 'নাম পাওয়া যায়নি'} ({m.memberId})</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { BarChart3, Download, Printer, FileSpreadsheet, FileText, PieChart } from "lucide-react"
 
-export default async function GroupReportsPage({ searchParams }: { searchParams: { groupId?: string } }) {
-  const groupId = searchParams.groupId
+export default async function GroupReportsPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+  const resolvedParams = await searchParams
+  const groupId = resolvedParams.groupId
 
   return (
     <div className="space-y-6">
@@ -28,11 +29,25 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
         </Card>
       ) : (
         <div className="space-y-6">
-          <div className="flex justify-end items-center space-x-2">
-            <Button variant="outline" size="sm"><Printer className="mr-2 h-4 w-4" /> Print</Button>
-            <Button variant="outline" size="sm"><FileText className="mr-2 h-4 w-4" /> PDF</Button>
-            <Button variant="outline" size="sm"><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
-            <Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4" /> CSV</Button>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-muted/30 p-4 rounded-lg border">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium">Select Report Type:</span>
+              <select className="h-9 w-[200px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                <option value="member">Member Report</option>
+                <option value="contribution">Contribution Report</option>
+                <option value="income">Income Report</option>
+                <option value="expense">Expense Report</option>
+                <option value="fund">Fund Summary</option>
+                <option value="ledger">Ledger Report</option>
+                <option value="monthly">Monthly Report</option>
+                <option value="yearly">Yearly Report</option>
+              </select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm"><Printer className="mr-2 h-4 w-4" /> Print</Button>
+              <Button variant="outline" size="sm"><FileText className="mr-2 h-4 w-4" /> Export PDF</Button>
+              <Button variant="outline" size="sm"><FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel</Button>
+            </div>
           </div>
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

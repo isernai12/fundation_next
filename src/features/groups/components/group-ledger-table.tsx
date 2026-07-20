@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -58,17 +59,17 @@ export function GroupLedgerTable({ data }: { data: LedgerEntryPlaceholder[] }) {
     {
       accessorKey: "debit",
       header: "Debit",
-      cell: ({ row }) => row.original.debit > 0 ? `৳${Number(row.original.debit).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : "-",
+      cell: ({ row }) => row.original.debit > 0 ? `৳${formatCurrency(row.original.debit)}` : "-",
     },
     {
       accessorKey: "credit",
       header: "Credit",
-      cell: ({ row }) => row.original.credit > 0 ? `৳${Number(row.original.credit).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : "-",
+      cell: ({ row }) => row.original.credit > 0 ? `৳${formatCurrency(row.original.credit)}` : "-",
     },
     {
       accessorKey: "runningBalance",
       header: "Running Balance",
-      cell: ({ row }) => `৳${Number(row.original.runningBalance).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      cell: ({ row }) => `৳${formatCurrency(row.original.runningBalance)}`,
     },
     {
       accessorKey: "remarks",
@@ -147,7 +148,7 @@ export function GroupLedgerTable({ data }: { data: LedgerEntryPlaceholder[] }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  The Ledger module is currently not implemented. No entries to display.
+                  No ledger entries found for this group.
                 </TableCell>
               </TableRow>
             )}

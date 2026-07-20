@@ -1,4 +1,5 @@
 "use client"
+import { formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -34,17 +35,17 @@ export function InstallmentsTable({ installments }: { installments: any[] }) {
     {
       id: "beneficiary",
       header: "Beneficiary",
-      accessorFn: row => `${row.loan.beneficiary.firstName} ${row.loan.beneficiary.lastName}`,
+      accessorFn: row => `${row.loan.beneficiary.fullName || 'নাম পাওয়া যায়নি'}`,
     },
     {
       accessorKey: "dueDate",
       header: "Due Date",
-      cell: ({ row }) => new Date(row.getValue("dueDate")).toLocaleDateString(),
+      cell: ({ row }) => formatDate(row.getValue("dueDate")),
     },
     {
       accessorKey: "amount",
       header: "Installment Amount",
-      cell: ({ row }) => `৳${(row.getValue("amount") as number) / 100}`,
+      cell: ({ row }) => `৳${(row.getValue("amount") as number)}`,
     },
     {
       accessorKey: "status",

@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -47,7 +48,7 @@ export function TransactionRegisterTable({ data }: { data: TransactionWithDetail
           </Button>
         )
       },
-      cell: ({ row }) => new Date(row.original.date).toLocaleDateString()
+      cell: ({ row }) => formatDate(row.original.date)
     },
     {
       accessorKey: "type",
@@ -76,7 +77,7 @@ export function TransactionRegisterTable({ data }: { data: TransactionWithDetail
       header: "Total Amount",
       cell: ({ row }) => {
         const totalDebit = row.original.entries.filter(e => !e.isCredit).reduce((acc, curr) => acc + curr.amount, 0)
-        return <span className="font-medium">৳{Number(totalDebit).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        return <span className="font-medium">৳{formatCurrency(totalDebit)}</span>
       }
     }
   ]

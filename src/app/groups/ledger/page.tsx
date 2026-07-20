@@ -4,8 +4,9 @@ import { GroupLedgerTable } from "@/features/groups/components/group-ledger-tabl
 import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen } from "lucide-react"
 
-export default async function GroupLedgerPage({ searchParams }: { searchParams: { groupId?: string } }) {
-  const groupId = searchParams.groupId
+export default async function GroupLedgerPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+  const resolvedParams = await searchParams
+  const groupId = resolvedParams.groupId
   const ledgerEntries = groupId ? await getGroupLedger(groupId) : []
 
   return (

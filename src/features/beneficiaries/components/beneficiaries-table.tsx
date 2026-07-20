@@ -40,12 +40,12 @@ import { Beneficiary, Member } from "@prisma/client"
 type BeneficiaryWithMember = Beneficiary & { 
   member?: { 
     memberId: string
-    firstName: string | null
-    lastName: string | null
+    fullName: string | null
+    
   } | null 
 }
 
-export function BeneficiariesTable({ data, members, manageMode = false }: { data: BeneficiaryWithMember[], members: { id: string; firstName: string | null; lastName: string | null; memberId: string }[], manageMode?: boolean }) {
+export function BeneficiariesTable({ data, members, manageMode = false }: { data: BeneficiaryWithMember[], members: { id: string; fullName: string | null; memberId: string }[], manageMode?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
@@ -61,7 +61,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       },
     },
     {
-      accessorKey: "firstName",
+      accessorKey: "fullName",
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
@@ -69,7 +69,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
           </Button>
         )
       },
-      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`
+      cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`
     },
     {
       accessorKey: "mobile",
@@ -78,7 +78,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
     {
       id: "linkedMember",
       header: "Linked Member",
-      cell: ({ row }) => row.original.member ? `${row.original.member.firstName} ${row.original.member.lastName} (${row.original.member.memberId})` : "None"
+      cell: ({ row }) => row.original.member ? `${row.original.member.fullName || 'নাম পাওয়া যায়নি'} (${row.original.member.memberId})` : "None"
     },
     {
       accessorKey: "status",
@@ -123,8 +123,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
                     <DropdownMenuItem
                       onClick={async () => {
                         const payload = {
-                          firstName: beneficiary.firstName,
-                          lastName: beneficiary.lastName,
+                          fullName: beneficiary.fullName,
                           memberId: beneficiary.memberId || "",
                           relationToMember: beneficiary.relationToMember || "",
                           email: beneficiary.email || "",
@@ -147,8 +146,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
                     <DropdownMenuItem
                       onClick={async () => {
                         const payload = {
-                          firstName: beneficiary.firstName,
-                          lastName: beneficiary.lastName,
+                          fullName: beneficiary.fullName,
                           memberId: beneficiary.memberId || "",
                           relationToMember: beneficiary.relationToMember || "",
                           email: beneficiary.email || "",
@@ -209,9 +207,9 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       <div className="flex items-center space-x-2 py-4">
         <Input
           placeholder="Search by first name..."
-          value={(table.getColumn("firstName")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("firstName")?.setFilterValue(event.target.value)
+            table.getColumn("fullName")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

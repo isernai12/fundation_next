@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency } from "@/lib/format"
 
 import { useState } from "react"
 import { repayLoan } from "../actions"
@@ -64,7 +65,7 @@ export function LoanRepaymentDialog({ loanId, outstandingBalance, trigger }: Loa
         <div className="space-y-4 pt-4">
           <div className="bg-muted p-4 rounded-md flex justify-between items-center">
             <span className="text-sm font-semibold">Outstanding Balance</span>
-            <span className="text-xl font-bold">৳{Number((outstandingBalance / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            <span className="text-xl font-bold">৳{formatCurrency(outstandingBalance)}</span>
           </div>
 
           <div className="space-y-2">
@@ -72,8 +73,8 @@ export function LoanRepaymentDialog({ loanId, outstandingBalance, trigger }: Loa
             <Input 
               type="number" 
               step="0.01" 
-              value={amount ? amount / 100 : ""} 
-              onChange={e => setAmount(Number(e.target.value) * 100)} 
+              value={amount ? amount : ""} 
+              onChange={e => setAmount(Number(e.target.value))} 
             />
           </div>
 

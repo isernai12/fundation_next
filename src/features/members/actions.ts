@@ -7,7 +7,6 @@ import { MemberStatus } from "@prisma/client"
 
 export async function getMembers() {
   return prisma.member.findMany({
-    where: { status: { not: "INACTIVE" } },
     orderBy: { createdAt: "desc" },
     include: {
       group: {
@@ -21,7 +20,8 @@ export async function getMember(id: string) {
   return prisma.member.findUnique({
     where: { id },
     include: {
-      group: true
+      group: true,
+      documents: true
     }
   })
 }
@@ -32,154 +32,306 @@ async function generateMemberId() {
   return `MBR-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
 
+import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
+
 export async function createMember(data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
   if (!parsed.success) {
     console.error("Zod Validation Error:", parsed.error);
-    return { success: false, error: "Invalid data", details: parsed.error.format() }
+    return { success: false, error: "ফর্মের তথ্য সঠিক নয়", details: parsed.error.format() }
   }
 
   const pd = parsed.data
 
-  // Check unique constraints
+  // Check unique constraints only if provided
   if (pd.nationalId) {
     const existingNid = await prisma.member.findUnique({ where: { nationalId: pd.nationalId } })
-    if (existingNid) return { success: false, error: "National ID already exists" }
+    if (existingNid) return { success: false, error: "এই জাতীয় পরিচয়পত্র নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
   if (pd.mobile) {
     const existingMobile = await prisma.member.findUnique({ where: { mobile: pd.mobile } })
-    if (existingMobile) return { success: false, error: "Mobile number already exists" }
+    if (existingMobile) return { success: false, error: "এই মোবাইল নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
   if (pd.email) {
     const existingEmail = await prisma.member.findUnique({ where: { email: pd.email } })
-    if (existingEmail) return { success: false, error: "Email already exists" }
+    if (existingEmail) return { success: false, error: "এই ইমেইলটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
 
   const memberId = await generateMemberId()
 
   try {
+    const referenceData = (pd.referenceName || pd.referenceMobile || pd.referenceRelation) 
+      ? JSON.stringify({
+          name: pd.referenceName || "",
+          mobile: pd.referenceMobile || "",
+          relation: pd.referenceRelation || ""
+        }) 
+      : null;
+
     const member = await prisma.member.create({
       data: {
         memberId,
         groupId: pd.groupId as string,
-        firstName: pd.firstName || "Unknown",
-        lastName: pd.lastName || null,
+        fullName: pd.fullName,
         fatherName: pd.fatherName || null,
         motherName: pd.motherName || null,
-        gender: pd.gender || null,
         dob: pd.dob ? new Date(pd.dob) : null,
         nationalId: pd.nationalId || null,
         occupation: pd.occupation || null,
-        monthlyIncome: pd.monthlyIncome ? parseInt(pd.monthlyIncome as string) : null,
-        bloodGroup: pd.bloodGroup || null,
-        mobile: pd.mobile || null,
-        altMobile: pd.altMobile || null,
-        email: pd.email || null,
-        phone: pd.phone || null,
+        education: pd.education || null,
         presentAddress: pd.presentAddress || null,
         permanentAddress: pd.permanentAddress || null,
-        emergencyContactName: pd.emergencyContactName || null,
-        emergencyContactMobile: pd.emergencyContactMobile || null,
-        emergencyContactRelation: pd.emergencyContactRelation || null,
-        joinDate: pd.joinDate ? new Date(pd.joinDate) : null,
-        status: pd.status || "ACTIVE",
-        remarks: pd.remarks || null,
+        mobile: pd.mobile || null,
+        email: pd.email || null,
+        bloodGroup: pd.bloodGroup || null,
         
-        // Extended Information
-        maritalStatus: pd.maritalStatus || null,
-        education: pd.education || null,
-        workplace: pd.workplace || null,
-        designation: pd.designation || null,
-        skills: pd.skills && pd.skills.length > 0 ? JSON.stringify(pd.skills) : null,
-        reference: pd.reference || null,
-        reasonForJoining: pd.reasonForJoining || null,
-        participation: pd.participation && pd.participation.length > 0 ? JSON.stringify(pd.participation) : null,
-        declarationAccepted: pd.declarationAccepted,
-        memberType: pd.memberType || null,
+        emergencyContactName: pd.emergencyContactName || null,
+        emergencyContactRelation: pd.emergencyContactRelation || null,
+        emergencyContactMobile: pd.emergencyContactMobile || null,
+        
+        reference: referenceData,
+        joinDate: new Date(),
+        status: "ACTIVE",
+        declarationAccepted: true,
       },
     })
+
+    // Handle Documents
+    if (pd.photoBase64) {
+      const buffer = Buffer.from(pd.photoBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/photos" })
+      
+      await prisma.document.create({
+        data: {
+          documentNumber: `DOC-${Date.now()}-P`,
+          title: "Member Photo",
+          type: "IMAGE",
+          cloudinaryPublicId: uploaded.public_id,
+          secureUrl: uploaded.secure_url,
+          originalFilename: "photo.jpg",
+          mimeType: "image/jpeg",
+          sizeBytes: uploaded.bytes || 0,
+          targetType: "MEMBER",
+          memberId: member.id,
+        }
+      });
+    }
+
+    if (pd.idDocumentBase64 && pd.idDocumentType) {
+      const buffer = Buffer.from(pd.idDocumentBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/ids" })
+
+      await prisma.document.create({
+        data: {
+          documentNumber: `DOC-${Date.now()}-ID`,
+          title: pd.idDocumentType === "NID" ? "National ID" : "Birth Certificate",
+          type: "IMAGE",
+          cloudinaryPublicId: uploaded.public_id,
+          secureUrl: uploaded.secure_url,
+          originalFilename: "id_document.jpg",
+          mimeType: "image/jpeg",
+          sizeBytes: uploaded.bytes || 0,
+          targetType: "MEMBER",
+          memberId: member.id,
+        }
+      });
+    }
+
     revalidatePath("/members/manage")
     return { success: true, data: member }
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to create member" }
+    return { success: false, error: error.message || "সদস্য তৈরি করতে ব্যর্থ হয়েছে" }
   }
 }
 
 export async function updateMember(id: string, data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
-  if (!parsed.success) return { success: false, error: "Invalid data" }
+  if (!parsed.success) return { success: false, error: "ফর্মের তথ্য সঠিক নয়" }
   const pd = parsed.data
 
   if (pd.nationalId) {
     const existing = await prisma.member.findUnique({ where: { nationalId: pd.nationalId } })
-    if (existing && existing.id !== id) return { success: false, error: "National ID already exists" }
+    if (existing && existing.id !== id) return { success: false, error: "এই জাতীয় পরিচয়পত্র নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
   if (pd.mobile) {
     const existing = await prisma.member.findUnique({ where: { mobile: pd.mobile } })
-    if (existing && existing.id !== id) return { success: false, error: "Mobile number already exists" }
+    if (existing && existing.id !== id) return { success: false, error: "এই মোবাইল নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
   if (pd.email) {
     const existing = await prisma.member.findUnique({ where: { email: pd.email } })
-    if (existing && existing.id !== id) return { success: false, error: "Email already exists" }
+    if (existing && existing.id !== id) return { success: false, error: "এই ইমেইলটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
 
   try {
+    const referenceData = (pd.referenceName || pd.referenceMobile || pd.referenceRelation) 
+      ? JSON.stringify({
+          name: pd.referenceName || "",
+          mobile: pd.referenceMobile || "",
+          relation: pd.referenceRelation || ""
+        }) 
+      : null;
+
     const member = await prisma.member.update({
       where: { id },
       data: {
         groupId: pd.groupId as string,
-        firstName: pd.firstName || "Unknown",
-        lastName: pd.lastName || null,
+        fullName: pd.fullName,
         fatherName: pd.fatherName || null,
         motherName: pd.motherName || null,
-        gender: pd.gender || null,
         dob: pd.dob ? new Date(pd.dob) : null,
         nationalId: pd.nationalId || null,
         occupation: pd.occupation || null,
-        monthlyIncome: pd.monthlyIncome ? parseInt(pd.monthlyIncome as string) : null,
-        bloodGroup: pd.bloodGroup || null,
-        mobile: pd.mobile || null,
-        altMobile: pd.altMobile || null,
-        email: pd.email || null,
-        phone: pd.phone || null,
+        education: pd.education || null,
         presentAddress: pd.presentAddress || null,
         permanentAddress: pd.permanentAddress || null,
-        emergencyContactName: pd.emergencyContactName || null,
-        emergencyContactMobile: pd.emergencyContactMobile || null,
-        emergencyContactRelation: pd.emergencyContactRelation || null,
-        joinDate: pd.joinDate ? new Date(pd.joinDate) : null,
-        status: pd.status || "ACTIVE",
-        remarks: pd.remarks || null,
+        mobile: pd.mobile || null,
+        email: pd.email || null,
+        bloodGroup: pd.bloodGroup || null,
         
-        maritalStatus: pd.maritalStatus || null,
-        education: pd.education || null,
-        workplace: pd.workplace || null,
-        designation: pd.designation || null,
-        skills: pd.skills && pd.skills.length > 0 ? JSON.stringify(pd.skills) : null,
-        reference: pd.reference || null,
-        reasonForJoining: pd.reasonForJoining || null,
-        participation: pd.participation && pd.participation.length > 0 ? JSON.stringify(pd.participation) : null,
-        declarationAccepted: pd.declarationAccepted,
-        memberType: pd.memberType || null,
+        emergencyContactName: pd.emergencyContactName || null,
+        emergencyContactRelation: pd.emergencyContactRelation || null,
+        emergencyContactMobile: pd.emergencyContactMobile || null,
+        
+        reference: referenceData,
       },
     })
+
+    // Document replacements
+    if (pd.photoBase64) {
+      const buffer = Buffer.from(pd.photoBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/photos" })
+      
+      const existingPhotoDoc = await prisma.document.findFirst({
+        where: { memberId: id, title: "Member Photo" }
+      });
+
+      if (existingPhotoDoc) {
+        if (existingPhotoDoc.cloudinaryPublicId) {
+          await deleteFromCloudinary(existingPhotoDoc.cloudinaryPublicId).catch(() => {});
+        }
+        await prisma.document.update({
+          where: { id: existingPhotoDoc.id },
+          data: {
+            cloudinaryPublicId: uploaded.public_id,
+            secureUrl: uploaded.secure_url,
+            sizeBytes: uploaded.bytes || 0,
+          }
+        })
+      } else {
+        await prisma.document.create({
+          data: {
+            documentNumber: `DOC-${Date.now()}-P`,
+            title: "Member Photo",
+            type: "IMAGE",
+            cloudinaryPublicId: uploaded.public_id,
+            secureUrl: uploaded.secure_url,
+            originalFilename: "photo.jpg",
+            mimeType: "image/jpeg",
+            sizeBytes: uploaded.bytes || 0,
+            targetType: "MEMBER",
+            memberId: id,
+          }
+        });
+      }
+    }
+
+    if (pd.idDocumentBase64 && pd.idDocumentType) {
+      const buffer = Buffer.from(pd.idDocumentBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/ids" })
+      
+      const title = pd.idDocumentType === "NID" ? "National ID" : "Birth Certificate";
+      const existingIdDoc = await prisma.document.findFirst({
+        where: { 
+          memberId: id, 
+          OR: [{ title: "National ID" }, { title: "Birth Certificate" }]
+        }
+      });
+
+      if (existingIdDoc) {
+        if (existingIdDoc.cloudinaryPublicId) {
+          await deleteFromCloudinary(existingIdDoc.cloudinaryPublicId).catch(() => {});
+        }
+        await prisma.document.update({
+          where: { id: existingIdDoc.id },
+          data: {
+            title,
+            cloudinaryPublicId: uploaded.public_id,
+            secureUrl: uploaded.secure_url,
+            sizeBytes: uploaded.bytes || 0,
+          }
+        })
+      } else {
+        await prisma.document.create({
+          data: {
+            documentNumber: `DOC-${Date.now()}-ID`,
+            title,
+            type: "IMAGE",
+            cloudinaryPublicId: uploaded.public_id,
+            secureUrl: uploaded.secure_url,
+            originalFilename: "id_document.jpg",
+            mimeType: "image/jpeg",
+            sizeBytes: uploaded.bytes || 0,
+            targetType: "MEMBER",
+            memberId: id,
+          }
+        });
+      }
+    }
+
     revalidatePath("/members/manage")
     revalidatePath(`/members/${id}`)
+    revalidatePath(`/members/${id}/edit`)
     return { success: true, data: member }
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to update member" }
+    return { success: false, error: error.message || "সদস্য আপডেট করতে ব্যর্থ হয়েছে" }
   }
 }
 
-export async function archiveMember(id: string) {
+export async function deleteMemberDocument(documentId: string) {
+  try {
+    const doc = await prisma.document.findUnique({ where: { id: documentId } });
+    if (!doc) return { success: false, error: "Document not found" };
+
+    if (doc.cloudinaryPublicId) {
+      await deleteFromCloudinary(doc.cloudinaryPublicId).catch(() => {});
+    }
+
+    await prisma.document.delete({ where: { id: documentId } });
+    
+    if (doc.memberId) {
+      revalidatePath(`/members/${doc.memberId}`)
+      revalidatePath(`/members/${doc.memberId}/edit`)
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to delete document" };
+  }
+}
+
+export async function toggleMemberStatus(id: string, newStatus: MemberStatus) {
   try {
     await prisma.member.update({
       where: { id },
-      data: { status: MemberStatus.INACTIVE },
+      data: { status: newStatus },
     })
     revalidatePath("/members/manage")
     return { success: true }
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to archive member" }
+    return { success: false, error: error.message || "Failed to update member status" }
+  }
+}
+
+export async function deleteMember(id: string) {
+  try {
+    // Also delete associated documents from DB
+    await prisma.document.deleteMany({ where: { memberId: id } });
+    
+    await prisma.member.delete({
+      where: { id },
+    })
+    revalidatePath("/members/manage")
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to delete member. Make sure there are no related financial records." }
   }
 }

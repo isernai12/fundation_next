@@ -1,4 +1,5 @@
 "use client"
+import { formatDate, formatDateTime } from "@/lib/format"
 
 import { useEffect, useState } from "react"
 import { getMemberDirectoryReport } from "@/features/reports/actions"
@@ -34,7 +35,7 @@ export default function MemberDirectoryReportPage() {
       header: "Join Date",
       cell: ({ row }: any) => {
         const d = row.getValue("joinDate")
-        return d ? new Date(d).toLocaleDateString() : 'N/A'
+        return d ? formatDate(d) : 'N/A'
       }
     }
   ]
@@ -54,7 +55,7 @@ export default function MemberDirectoryReportPage() {
       </div>
       <div className="hidden print:block text-center mb-8">
         <h1 className="text-2xl font-bold">Member Directory Report</h1>
-        <p className="text-sm text-gray-500">Generated on: {new Date().toLocaleString()}</p>
+        <p className="text-sm text-gray-500">Generated on: {formatDateTime(new Date())}</p>
       </div>
 
       <ReportViewer title="Member_Directory_Report" columns={columns} data={data} />

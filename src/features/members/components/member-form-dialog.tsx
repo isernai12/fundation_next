@@ -37,42 +37,39 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
   const [open, setOpen] = useState(false)
   const isEditing = !!member
 
+  let parsedReference = { name: "", mobile: "", relation: "" };
+  try {
+    if (member?.reference) {
+      parsedReference = JSON.parse(member.reference);
+    }
+  } catch (e) {
+    // Ignore parse error
+  }
+
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema) as any,
+    resolver: zodResolver(memberSchema),
     defaultValues: {
       groupId: member?.groupId || "",
-      firstName: member?.firstName || "",
-      lastName: member?.lastName || "",
+      fullName: member?.fullName || "",
       fatherName: member?.fatherName || "",
       motherName: member?.motherName || "",
-      gender: member?.gender || "",
       dob: member?.dob ? new Date(member.dob).toISOString().split('T')[0] : "",
       nationalId: member?.nationalId || "",
       occupation: member?.occupation || "",
-      monthlyIncome: member?.monthlyIncome ? String(member.monthlyIncome) : "",
-      bloodGroup: member?.bloodGroup || "",
-      mobile: member?.mobile || "",
-      altMobile: member?.altMobile || "",
-      email: member?.email || "",
-      phone: member?.phone || "",
+      education: member?.education || "",
       presentAddress: member?.presentAddress || "",
       permanentAddress: member?.permanentAddress || "",
+      mobile: member?.mobile || "",
+      email: member?.email || "",
+      bloodGroup: member?.bloodGroup || "",
+      
       emergencyContactName: member?.emergencyContactName || "",
       emergencyContactMobile: member?.emergencyContactMobile || "",
       emergencyContactRelation: member?.emergencyContactRelation || "",
-      joinDate: member?.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : "",
-      status: member?.status || "ACTIVE",
-      remarks: member?.remarks || "",
-      maritalStatus: member?.maritalStatus || "",
-      education: member?.education || "",
-      workplace: member?.workplace || "",
-      designation: member?.designation || "",
-      skills: member?.skills ? JSON.parse(member.skills) : [],
-      reference: member?.reference || "",
-      reasonForJoining: member?.reasonForJoining || "",
-      participation: member?.participation ? JSON.parse(member.participation) : [],
-      declarationAccepted: member?.declarationAccepted ?? true,
-      memberType: member?.memberType || "REGULAR",
+      
+      referenceName: parsedReference.name || "",
+      referenceMobile: parsedReference.mobile || "",
+      referenceRelation: parsedReference.relation || "",
     },
   })
 
@@ -82,7 +79,7 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
       : await createMember(data)
 
     if (res.success) {
-      toast.success(isEditing ? "Member updated" : "Member created")
+      toast.success(isEditing ? "সদস্য আপডেট করা হয়েছে" : "সদস্য যুক্ত করা হয়েছে")
       setOpen(false)
       form.reset()
     } else {
@@ -123,42 +120,19 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
                     </FormItem>
                   )}
                 />
-                
-                <FormField control={form.control} name="joinDate" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Join Date</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
               </div>
 
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="firstName" render={({ field }) => (
-                    <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="lastName" render={({ field }) => (
-                    <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormField control={form.control} name="fullName" render={({ field }) => (
+                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="fatherName" render={({ field }) => (
                     <FormItem><FormLabel>Father's Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="motherName" render={({ field }) => (
                     <FormItem><FormLabel>Mother's Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="gender" render={({ field }) => (
-                    <FormItem><FormLabel>Gender</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="MALE">Male</SelectItem>
-                          <SelectItem value="FEMALE">Female</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    <FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="dob" render={({ field }) => (
                     <FormItem><FormLabel>Date of Birth</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
@@ -172,8 +146,8 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
                   <FormField control={form.control} name="occupation" render={({ field }) => (
                     <FormItem><FormLabel>Occupation</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
-                  <FormField control={form.control} name="monthlyIncome" render={({ field }) => (
-                    <FormItem><FormLabel>Monthly Income</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormField control={form.control} name="education" render={({ field }) => (
+                    <FormItem><FormLabel>Education</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                 </div>
               </div>
@@ -184,14 +158,8 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
                   <FormField control={form.control} name="mobile" render={({ field }) => (
                     <FormItem><FormLabel>Mobile</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
-                  <FormField control={form.control} name="altMobile" render={({ field }) => (
-                    <FormItem><FormLabel>Alternative Mobile</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
                   <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="presentAddress" render={({ field }) => (
                     <FormItem className="col-span-2"><FormLabel>Present Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -213,31 +181,6 @@ export function MemberFormDialog({ member, groups, trigger }: MemberFormDialogPr
                   )} />
                   <FormField control={form.control} name="emergencyContactRelation" render={({ field }) => (
                     <FormItem><FormLabel>Relation</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Other</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {isEditing && (
-                    <FormField control={form.control} name="status" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger></FormControl>
-                          <SelectContent>
-                            <SelectItem value="ACTIVE">Active</SelectItem>
-                            <SelectItem value="INACTIVE">Inactive</SelectItem>
-                            <SelectItem value="SUSPENDED">Suspended</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  )}
-                  <FormField control={form.control} name="remarks" render={({ field }) => (
-                    <FormItem className={isEditing ? "" : "col-span-2"}><FormLabel>Remarks</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                 </div>
               </div>

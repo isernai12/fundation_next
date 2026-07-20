@@ -87,7 +87,7 @@ export async function getGrants() {
     orderBy: { createdAt: "desc" },
     include: {
       beneficiary: {
-        select: { firstName: true, lastName: true, beneficiaryId: true }
+        select: { fullName: true, beneficiaryId: true }
       },
       allocations: {
         include: {

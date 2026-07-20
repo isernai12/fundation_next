@@ -1,4 +1,5 @@
 "use client"
+import { formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -52,13 +53,13 @@ export function LoansTable({ data }: { data: any[] }) {
     {
       id: "beneficiary",
       header: "Beneficiary",
-      accessorFn: row => row.beneficiary ? `${row.beneficiary.firstName} ${row.beneficiary.lastName}` : "Unknown",
-      cell: ({ row }) => row.original.beneficiary ? `${row.original.beneficiary.firstName} ${row.original.beneficiary.lastName}` : "Unknown"
+      accessorFn: row => row.beneficiary ? `${row.beneficiary.fullName || 'নাম পাওয়া যায়নি'}` : "Unknown",
+      cell: ({ row }) => row.original.beneficiary ? `${row.original.beneficiary.fullName || 'নাম পাওয়া যায়নি'}` : "Unknown"
     },
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => `৳${(row.getValue("amount") as number) / 100}`,
+      cell: ({ row }) => `৳${(row.getValue("amount") as number)}`,
     },
     {
       id: "paid",
@@ -66,7 +67,7 @@ export function LoansTable({ data }: { data: any[] }) {
       cell: ({ row }) => {
         const reps = row.original.repayments || []
         const total = reps.reduce((sum: number, r: any) => sum + r.amount, 0)
-        return `৳${total / 100}`
+        return `৳${total}`
       }
     },
     {
@@ -76,7 +77,7 @@ export function LoansTable({ data }: { data: any[] }) {
         const reps = row.original.repayments || []
         const totalPaid = reps.reduce((sum: number, r: any) => sum + r.amount, 0)
         const amt = row.getValue("amount") as number
-        return `৳${(amt - totalPaid) / 100}`
+        return `৳${(amt - totalPaid)}`
       }
     },
     {
@@ -98,7 +99,7 @@ export function LoansTable({ data }: { data: any[] }) {
     {
       accessorKey: "requestedDate",
       header: "Date",
-      cell: ({ row }) => new Date(row.getValue("requestedDate")).toLocaleDateString(),
+      cell: ({ row }) => formatDate(row.getValue("requestedDate")),
     },
     {
       id: "actions",

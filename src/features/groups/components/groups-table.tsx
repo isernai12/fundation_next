@@ -1,4 +1,5 @@
 "use client"
+import { formatDate, formatCurrency } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -24,7 +25,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Group } from "@prisma/client"
 import { GroupFormDialog } from "./group-form-dialog"
-import { archiveGroup } from "../actions"
+
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -36,9 +37,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { deleteGroup, updateGroup } from "../actions"
+import { archiveGroup, deleteGroup, updateGroup } from "../actions"
 
-type GroupWithCount = Group & { _count: { members: number } }
+type GroupWithCount = Group & { _count: { members: number }, currentFund?: number }
 
 export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount[], manageMode?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -78,7 +79,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
     {
       id: "currentFund",
       header: "Current Fund",
-      cell: () => "৳0.00", // Will be implemented when Ledger is fully integrated
+      cell: ({ row }) => `৳${formatCurrency(row.original.currentFund || 0)}`,
     },
     {
       accessorKey: "status",
@@ -98,7 +99,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
           </Button>
         )
       },
-      cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString(),
+      cell: ({ row }) => formatDate(row.getValue("createdAt")),
     },
     {
       id: "actions",

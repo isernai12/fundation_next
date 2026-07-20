@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Save, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, UploadCloud, X } from "lucide-react";
+import Image from "next/image";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -32,37 +32,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { memberSchema, type MemberFormValues } from "../schema";
 import { createMember } from "../actions";
-
-const SKILLS = [
-  "Medical",
-  "Education",
-  "IT",
-  "Law",
-  "Social Work",
-  "Disaster Response",
-  "Blood Donation",
-  "Fundraising",
-  "Management",
-  "Public Speaking",
-  "Other",
-];
-
-const PARTICIPATION_OPTIONS = [
-  "Monthly Contribution",
-  "Humanitarian Activities",
-  "Volunteer Activities",
-  "Social Awareness",
-  "Emergency Support",
-  "Blood Donation",
-  "Fundraising",
-  "Educational Programs",
-  "Medical Camps",
-  "Other",
-];
-
 
 const SectionCard = ({
   title,
@@ -75,25 +48,14 @@ const SectionCard = ({
   onToggle: () => void;
   children: React.ReactNode;
 }) => (
-  <Collapsible
-    open={isOpen}
-    onOpenChange={onToggle}
-  >
+  <Collapsible open={isOpen} onOpenChange={onToggle}>
     <Card className="mb-6 shadow-sm border-muted">
       <CardHeader className="py-4 border-b bg-muted/10">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
           <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-9 p-0 hover:bg-transparent"
-            >
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
+            <Button variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
+              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               <span className="sr-only">Toggle</span>
             </Button>
           </CollapsibleTrigger>
@@ -110,65 +72,48 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    personal: true,
-    contact: true,
-    education: true,
-    skills: true,
-    foundation: true,
-    participation: true,
-    emergency: true,
-    declaration: true,
-    documents: true,
-    admin: true,
-    pending: true,
+    section1: true,
+    section2: true,
+    section3: true,
+    section4: true,
+    section5: true,
   });
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema) as any,
+    resolver: zodResolver(memberSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      groupId: "",
+      fullName: "",
       fatherName: "",
       motherName: "",
-      gender: "",
       dob: "",
-      bloodGroup: "",
-      maritalStatus: "",
       nationalId: "",
+      occupation: "",
+      education: "",
       presentAddress: "",
       permanentAddress: "",
-
       mobile: "",
-      altMobile: "", // WhatsApp Number
       email: "",
-
-      education: "",
-      occupation: "",
-      workplace: "",
-      designation: "",
-
-      skills: [],
-
-      reference: "",
-      reasonForJoining: "",
-
-      participation: ["Monthly Contribution"],
+      bloodGroup: "",
 
       emergencyContactName: "",
       emergencyContactRelation: "",
       emergencyContactMobile: "",
 
-      declarationAccepted: true,
+      referenceName: "",
+      referenceRelation: "",
+      referenceMobile: "",
 
-      groupId: "",
-      status: "ACTIVE",
-      memberType: "REGULAR",
-      joinDate: new Date().toISOString().split("T")[0],
-      remarks: "",
+      photoBase64: "",
+      idDocumentType: "NID",
+      idDocumentBase64: "",
     },
   });
 
@@ -177,63 +122,73 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
     try {
       const res = await createMember(data);
       if (res.success) {
-        toast.success("Member added successfully");
-        router.push(`/members/${res.data?.id}`);
-        router.refresh();
+        toast.success("সদস্য সফলভাবে যুক্ত করা হয়েছে");
+        router.push("/members/manage");
       } else {
-        toast.error(res.error || "Failed to create member");
+        toast.error(res.error || "সদস্য যুক্ত করতে ব্যর্থ হয়েছে");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "photoBase64" | "idDocumentBase64"
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue(field, reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="pb-24 max-w-5xl mx-auto"
-      >
-        {/* SECTION 01: PERSONAL INFORMATION */}
-        <SectionCard title="01. Personal Information" isOpen={openSections.personal} onToggle={() => toggleSection("personal")}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto">
+        <div className="mb-6">
+          <FormField
+            control={form.control}
+            name="groupId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-lg">গ্রুপ নির্বাচন করুন *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full md:w-[400px]">
+                      <SelectValue placeholder="একটি গ্রুপ নির্বাচন করুন" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.name} ({g.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* SECTION 1: ব্যক্তিগত তথ্য */}
+        <SectionCard title="১. ব্যক্তিগত তথ্য" isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="firstName"
+              name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name *</FormLabel>
+                  <FormLabel>পূর্ণ নাম *</FormLabel>
                   <FormControl>
-                    <Input placeholder="First Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Last Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="nationalId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>National ID Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="National ID" {...field} />
+                    <Input placeholder="সদস্যের পূর্ণ নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -244,9 +199,9 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               name="fatherName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Father's Name</FormLabel>
+                  <FormLabel>পিতার নাম</FormLabel>
                   <FormControl>
-                    <Input placeholder="Father's Name" {...field} />
+                    <Input placeholder="পিতার নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -257,9 +212,9 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               name="motherName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mother's Name</FormLabel>
+                  <FormLabel>মাতার নাম</FormLabel>
                   <FormControl>
-                    <Input placeholder="Mother's Name" {...field} />
+                    <Input placeholder="মাতার নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -270,7 +225,7 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               name="dob"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>জন্ম তারিখ</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -280,25 +235,39 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
             />
             <FormField
               control={form.control}
-              name="gender"
+              name="nationalId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gender</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Gender" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="MALE">Male</SelectItem>
-                      <SelectItem value="FEMALE">Female</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন নম্বর</FormLabel>
+                  <FormControl>
+                    <Input placeholder="এনআইডি বা জন্ম নিবন্ধন নম্বর" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="occupation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>পেশা / কর্মক্ষেত্র</FormLabel>
+                  <FormControl>
+                    <Input placeholder="পেশা বা কর্মক্ষেত্র" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="education"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>শিক্ষাগত যোগ্যতা</FormLabel>
+                  <FormControl>
+                    <Input placeholder="শিক্ষাগত যোগ্যতা" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -308,14 +277,11 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               name="bloodGroup"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Blood Group</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <FormLabel>রক্তের গ্রুপ</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Blood Group" />
+                        <SelectValue placeholder="রক্তের গ্রুপ নির্বাচন করুন" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -335,26 +301,26 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
             />
             <FormField
               control={form.control}
-              name="maritalStatus"
+              name="mobile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Marital Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Marital Status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Single">Single</SelectItem>
-                      <SelectItem value="Married">Married</SelectItem>
-                      <SelectItem value="Divorced">Divorced</SelectItem>
-                      <SelectItem value="Widowed">Widowed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>মোবাইল নম্বর</FormLabel>
+                  <FormControl>
+                    <Input placeholder="মোবাইল নম্বর" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ইমেইল (যদি থাকে)</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="example@email.com" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -365,9 +331,9 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
                 name="presentAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Present Address</FormLabel>
+                    <FormLabel>বর্তমান ঠিকানা</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Present Address" {...field} />
+                      <Textarea placeholder="বর্তমান ঠিকানা লিখুন" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -380,9 +346,9 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
                 name="permanentAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Permanent Address</FormLabel>
+                    <FormLabel>স্থায়ী ঠিকানা</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Permanent Address" {...field} />
+                      <Textarea placeholder="স্থায়ী ঠিকানা লিখুন" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -392,336 +358,17 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
           </div>
         </SectionCard>
 
-        {/* SECTION 02: CONTACT INFORMATION */}
-        <SectionCard title="02. Contact Information" isOpen={openSections.contact} onToggle={() => toggleSection("contact")}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="mobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mobile Number *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="01XXXXXXXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="altMobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>WhatsApp Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="01XXXXXXXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="email@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </SectionCard>
-
-        {/* SECTION 03: EDUCATION & PROFESSION */}
-        <SectionCard title="03. Education & Profession" isOpen={openSections.education} onToggle={() => toggleSection("education")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="education"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Highest Education</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Education" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Primary">Primary</SelectItem>
-                      <SelectItem value="JSC">JSC</SelectItem>
-                      <SelectItem value="SSC">SSC</SelectItem>
-                      <SelectItem value="HSC">HSC</SelectItem>
-                      <SelectItem value="Diploma">Diploma</SelectItem>
-                      <SelectItem value="Bachelor's">Bachelor's</SelectItem>
-                      <SelectItem value="Master's">Master's</SelectItem>
-                      <SelectItem value="PhD">PhD</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="occupation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Occupation</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Occupation" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Student">Student</SelectItem>
-                      <SelectItem value="Job">Job</SelectItem>
-                      <SelectItem value="Business">Business</SelectItem>
-                      <SelectItem value="Teacher">Teacher</SelectItem>
-                      <SelectItem value="Doctor">Doctor</SelectItem>
-                      <SelectItem value="Engineer">Engineer</SelectItem>
-                      <SelectItem value="Lawyer">Lawyer</SelectItem>
-                      <SelectItem value="Farmer">Farmer</SelectItem>
-                      <SelectItem value="Freelancer">Freelancer</SelectItem>
-                      <SelectItem value="Housewife">Housewife</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="workplace"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Workplace / Organization</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Company / Institute Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="designation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Designation</FormLabel>
-                  <FormControl>
-                    <Input placeholder="E.g. Manager" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </SectionCard>
-
-        {/* SECTION 04: SKILLS */}
-        <SectionCard title="04. Skills" isOpen={openSections.skills} onToggle={() => toggleSection("skills")}>
-          <FormField
-            control={form.control}
-            name="skills"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel className="text-base">Select Skills</FormLabel>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {SKILLS.map((item) => (
-                    <FormField
-                      key={item}
-                      control={form.control}
-                      name="skills"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([
-                                        ...(field.value || []),
-                                        item,
-                                      ])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {item}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </SectionCard>
-
-        {/* SECTION 05: FOUNDATION INFORMATION */}
-        <SectionCard title="05. Foundation Information" isOpen={openSections.foundation} onToggle={() => toggleSection("foundation")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="reference"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    How did the member know about the Foundation?
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select reference source" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Friend">Friend</SelectItem>
-                      <SelectItem value="Relative">Relative</SelectItem>
-                      <SelectItem value="Existing Member">
-                        Existing Member
-                      </SelectItem>
-                      <SelectItem value="Facebook">Facebook</SelectItem>
-                      <SelectItem value="YouTube">YouTube</SelectItem>
-                      <SelectItem value="Website">Website</SelectItem>
-                      <SelectItem value="Foundation Program">
-                        Foundation Program
-                      </SelectItem>
-                      <SelectItem value="Social Campaign">
-                        Social Campaign
-                      </SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="md:col-span-2">
-              <FormField
-                control={form.control}
-                name="reasonForJoining"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reason for becoming a member</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="min-h-[120px]"
-                        placeholder="Explain why the member wants to join..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* SECTION 06: PARTICIPATION */}
-        <SectionCard title="06. Participation" isOpen={openSections.participation} onToggle={() => toggleSection("participation")}>
-          <FormField
-            control={form.control}
-            name="participation"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel className="text-base">
-                    Willing to Participate In
-                  </FormLabel>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {PARTICIPATION_OPTIONS.map((item) => (
-                    <FormField
-                      key={item}
-                      control={form.control}
-                      name="participation"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([
-                                        ...(field.value || []),
-                                        item,
-                                      ])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {item}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </SectionCard>
-
-        {/* SECTION 07: EMERGENCY CONTACT */}
-        <SectionCard title="07. Emergency Contact" isOpen={openSections.emergency} onToggle={() => toggleSection("emergency")}>
+        {/* SECTION 2: জরুরি যোগাযোগ */}
+        <SectionCard title="২. জরুরি যোগাযোগ" isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="emergencyContactName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>নাম</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contact Name" {...field} />
+                    <Input placeholder="নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -732,9 +379,9 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               name="emergencyContactRelation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Relationship</FormLabel>
+                  <FormLabel>সম্পর্ক</FormLabel>
                   <FormControl>
-                    <Input placeholder="E.g. Brother, Friend" {...field} />
+                    <Input placeholder="সম্পর্ক" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -745,9 +392,9 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
               name="emergencyContactMobile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile Number</FormLabel>
+                  <FormLabel>মোবাইল নম্বর</FormLabel>
                   <FormControl>
-                    <Input placeholder="01XXXXXXXXX" {...field} />
+                    <Input placeholder="মোবাইল নম্বর" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -756,210 +403,186 @@ export function AddMemberForm({ groups }: { groups: any[] }) {
           </div>
         </SectionCard>
 
-        {/* SECTION 08: MEMBER DECLARATION */}
-        <SectionCard title="08. Member Declaration" isOpen={openSections.declaration} onToggle={() => toggleSection("declaration")}>
-          <div className="p-4 bg-muted/20 rounded-md border text-sm text-muted-foreground mb-4 leading-relaxed">
-            I hereby declare that the information provided above is true and
-            accurate to the best of my knowledge. I agree to abide by the rules
-            and regulations of the Foundation and commit to supporting its
-            mission and activities.
+        {/* SECTION 3: রেফারেন্সদাতা */}
+        <SectionCard title="৩. রেফারেন্সদাতা (যিনি সদস্যকে সুপারিশ করেছেন)" isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField
+              control={form.control}
+              name="referenceName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>নাম</FormLabel>
+                  <FormControl>
+                    <Input placeholder="নাম" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="referenceRelation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>সম্পর্ক</FormLabel>
+                  <FormControl>
+                    <Input placeholder="সম্পর্ক" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="referenceMobile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>মোবাইল নম্বর</FormLabel>
+                  <FormControl>
+                    <Input placeholder="মোবাইল নম্বর" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <FormField
-            control={form.control}
-            name="declarationAccepted"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+        </SectionCard>
+
+        {/* SECTION 4: অঙ্গীকার */}
+        <SectionCard title="৪. অঙ্গীকার" isOpen={openSections.section4} onToggle={() => toggleSection("section4")}>
+          <div className="p-6 bg-muted/20 rounded-md border text-base text-foreground leading-relaxed">
+            আমি ঘোষণা করছি যে ফাউন্ডেশনের উদ্দেশ্য, আদর্শ ও নীতিমালার প্রতি সম্মান রেখে একজন দায়িত্বশীল সদস্য হিসেবে কাজ করার চেষ্টা করব। আমি আমার সামর্থ্য অনুযায়ী ফাউন্ডেশনের মানবিক কার্যক্রমে সহযোগিতা করব এবং সংগঠনের শৃঙ্খলা, পারস্পরিক সম্মান ও ভ্রাতৃত্বের মূল্যবোধ বজায় রাখব ইনশাআল্লাহ।
+          </div>
+        </SectionCard>
+
+        {/* SECTION 5: ডকুমেন্টস */}
+        <SectionCard title="৫. ডকুমেন্টস" isOpen={openSections.section5} onToggle={() => toggleSection("section5")}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Photo Upload */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-base mb-2">সদস্যের ছবি</h3>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={photoInputRef}
+                onChange={(e) => handleFileChange(e, "photoBase64")}
+              />
+              
+              {!form.watch("photoBase64") ? (
+                <div 
+                  onClick={() => photoInputRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+                  <p className="text-sm font-medium">ছবি আপলোড করুন</p>
+                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG বা JPG</p>
+                </div>
+              ) : (
+                <div className="relative border rounded-lg overflow-hidden h-48 w-full md:w-48 mx-auto">
+                  <Image 
+                    src={form.watch("photoBase64") as string} 
+                    alt="Preview" 
+                    fill 
+                    className="object-cover" 
                   />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Declaration Accepted</FormLabel>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                    onClick={() => form.setValue("photoBase64", "")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-              </FormItem>
-            )}
-          />
-        </SectionCard>
+              )}
+            </div>
 
-        {/* SECTION 09: DOCUMENTS */}
-        <SectionCard title="09. Documents" isOpen={openSections.documents} onToggle={() => toggleSection("documents")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              "Member Photo",
-              "National ID Front",
-              "National ID Back",
-              ...(!form.watch("nationalId") ? ["Birth Certificate"] : []),
-              "Signature Image",
-            ].map((doc) => (
-              <div
-                key={doc}
-                className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center bg-muted/5"
-              >
-                <div className="text-sm font-medium mb-2">{doc}</div>
-                <Input type="file" className="text-xs max-w-full" />
-                <div className="text-xs text-muted-foreground mt-2 flex gap-2">
-                  <span className="hover:underline cursor-pointer">
-                    Preview
-                  </span>
-                  <span className="hover:underline cursor-pointer text-red-500">
-                    Delete
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* SECTION 10: ADMIN INFORMATION */}
-        <SectionCard title="10. Admin Information" isOpen={openSections.admin} onToggle={() => toggleSection("admin")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="groupId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assign to Group *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a Group" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name} ({group.code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="joinDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Join Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                      <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                      <SelectItem value="SUSPENDED">SUSPENDED</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="memberType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Member Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Member Type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="REGULAR">Regular Member</SelectItem>
-                      <SelectItem value="FOUNDER">Founder Member</SelectItem>
-                      <SelectItem value="LIFE">Life Member</SelectItem>
-                      <SelectItem value="HONORARY">Honorary Member</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="md:col-span-2 lg:col-span-3">
+            {/* Document Upload */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-base mb-2">জাতীয় পরিচয়পত্র অথবা জন্ম নিবন্ধন</h3>
+              
               <FormField
                 control={form.control}
-                name="remarks"
+                name="idDocumentType"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Admin Remarks</FormLabel>
+                  <FormItem className="mb-4">
                     <FormControl>
-                      <Textarea placeholder="Internal notes..." {...field} />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="NID" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            জাতীয় পরিচয়পত্র
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="BIRTH_CERTIFICATE" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            জন্ম নিবন্ধন
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={docInputRef}
+                onChange={(e) => handleFileChange(e, "idDocumentBase64")}
+              />
+              
+              {!form.watch("idDocumentBase64") ? (
+                <div 
+                  onClick={() => docInputRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+                  <p className="text-sm font-medium">ডকুমেন্ট আপলোড করুন</p>
+                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG বা JPG</p>
+                </div>
+              ) : (
+                <div className="relative border rounded-lg overflow-hidden h-48 w-full">
+                  <Image 
+                    src={form.watch("idDocumentBase64") as string} 
+                    alt="Preview" 
+                    fill 
+                    className="object-contain" 
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                    onClick={() => form.setValue("idDocumentBase64", "")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </SectionCard>
 
-        {/* PENDING FEATURES */}
-        <SectionCard title="11. Pending Features (Coming Soon)" isOpen={openSections.pending} onToggle={() => toggleSection("pending")}>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 opacity-60">
-            {[
-              "Membership Card",
-              "QR Code",
-              "Digital Signature",
-              "Approval Workflow",
-              "Nominee",
-            ].map((feature) => (
-              <div
-                key={feature}
-                className="p-4 border rounded-lg bg-muted text-center flex flex-col items-center justify-center space-y-2"
-              >
-                <span className="text-sm font-medium">{feature}</span>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                  Coming Soon
-                </span>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t flex justify-end gap-4 shadow-lg md:pl-64 z-50">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
-            Cancel
+        {/* ACTIONS */}
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button variant="outline" type="button" onClick={() => router.push("/members/manage")}>
+            বাতিল
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? "Saving..." : "Save Member"}
+            {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "সংরক্ষণ"}
           </Button>
         </div>
       </form>

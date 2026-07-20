@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -74,7 +75,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
       header: "Join Date",
       cell: ({ row }) => {
         const d = row.getValue("joinDate") as Date | null
-        return d ? d.toLocaleDateString() : 'N/A'
+        return d ? formatDate(d) : 'N/A'
       },
       filterFn: (row, id, filterValue) => {
         if (!filterValue) return true;
@@ -87,24 +88,24 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     {
       accessorKey: "monthlyContribution",
       header: "Monthly Contribution",
-      cell: ({ row }) => `৳${Number((row.getValue("monthlyContribution") as number || 0)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+      cell: ({ row }) => `৳${formatCurrency(row.getValue("monthlyContribution") as number || 0)}`
     },
     {
       accessorKey: "expectedContribution",
       header: "Expected",
-      cell: ({ row }) => `৳${Number((row.getValue("expectedContribution") as number)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+      cell: ({ row }) => `৳${formatCurrency(row.getValue("expectedContribution") as number)}`
     },
     {
       accessorKey: "paid",
       header: "Paid",
-      cell: ({ row }) => `৳${Number((row.getValue("paid") as number)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+      cell: ({ row }) => `৳${formatCurrency(row.getValue("paid") as number)}`
     },
     {
       accessorKey: "advanceBalance",
       header: "Advance",
       cell: ({ row }) => {
         const amt = row.getValue("advanceBalance") as number
-        return amt > 0 ? <span className="text-green-600 font-medium">৳{Number(amt).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> : "৳0.00"
+        return amt > 0 ? <span className="text-green-600 font-medium">৳{formatCurrency(amt)}</span> : "৳0.00"
       }
     },
     {
@@ -114,7 +115,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
         const amount = row.getValue("currentDue") as number
         return (
           <span className={`font-semibold ${amount > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-            ৳{Number(amount).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            ৳{formatCurrency(amount)}
           </span>
         )
       }
@@ -140,7 +141,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
       header: "Last Payment",
       cell: ({ row }) => {
         const d = row.getValue("lastCollectionDate") as Date
-        return d ? d.toLocaleDateString() : 'N/A'
+        return d ? formatDate(d) : 'N/A'
       }
     },
     {

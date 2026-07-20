@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 import { useState } from "react"
 import {
@@ -84,17 +85,17 @@ export function RepaymentsTable({ repayments, activeLoans }: { repayments: any[]
     {
       id: "beneficiary",
       header: "Beneficiary",
-      accessorFn: row => `${row.loan.beneficiary.firstName} ${row.loan.beneficiary.lastName}`,
+      accessorFn: row => `${row.loan.beneficiary.fullName || 'নাম পাওয়া যায়নি'}`,
     },
     {
       accessorKey: "date",
       header: "Date",
-      cell: ({ row }) => new Date(row.getValue("date")).toLocaleDateString(),
+      cell: ({ row }) => formatDate(row.getValue("date")),
     },
     {
       accessorKey: "amount",
       header: "Amount Paid",
-      cell: ({ row }) => <span className="font-medium text-green-600">+${(row.getValue("amount") as number) / 100}</span>,
+      cell: ({ row }) => <span className="font-medium text-green-600">+${(row.getValue("amount") as number)}</span>,
     },
     {
       id: "ledgerRef",
@@ -150,7 +151,7 @@ export function RepaymentsTable({ repayments, activeLoans }: { repayments: any[]
                       const outstanding = l.amount - l.repayments.reduce((s: number, r: any) => s + r.amount, 0)
                       return (
                         <SelectItem key={l.id} value={l.id}>
-                          {l.loanNumber} - {`${l.beneficiary.firstName} ${l.beneficiary.lastName}`} (Due: ${(outstanding / 100).toFixed(2)})
+                          {l.loanNumber} - {`${l.beneficiary.fullName || 'নাম পাওয়া যায়নি'}`} (Due: ${(outstanding).toFixed(2)})
                         </SelectItem>
                       )
                     })}
@@ -162,7 +163,7 @@ export function RepaymentsTable({ repayments, activeLoans }: { repayments: any[]
                 <>
                   <div className="bg-muted p-4 rounded-md flex justify-between items-center">
                     <span className="text-sm font-semibold">Outstanding Balance</span>
-                    <span className="text-xl font-bold">৳{Number((outstandingBalance / 100)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    <span className="text-xl font-bold">৳{formatCurrency(outstandingBalance)}</span>
                   </div>
 
                   <div className="space-y-2">
@@ -170,8 +171,8 @@ export function RepaymentsTable({ repayments, activeLoans }: { repayments: any[]
                     <Input 
                       type="number" 
                       step="0.01" 
-                      value={amount ? amount / 100 : ""} 
-                      onChange={e => setAmount(Number(e.target.value) * 100)} 
+                      value={amount ? amount : ""} 
+                      onChange={e => setAmount(Number(e.target.value))} 
                     />
                   </div>
 

@@ -4,8 +4,9 @@ import { GroupSelector } from "@/features/groups/components/group-selector"
 import { Card, CardContent } from "@/components/ui/card"
 import { Users } from "lucide-react"
 
-export default async function GroupMembersPage({ searchParams }: { searchParams: { groupId?: string } }) {
-  const groupId = searchParams.groupId
+export default async function GroupMembersPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
+  const resolvedParams = await searchParams
+  const groupId = resolvedParams.groupId
   const members = groupId ? await getGroupMembers(groupId) : []
 
   return (

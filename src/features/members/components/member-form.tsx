@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Save, ChevronDown, ChevronUp, FileIcon, Eye, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, UploadCloud, X } from "lucide-react";
+import Image from "next/image";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -32,38 +32,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { memberSchema, type MemberFormValues } from "../schema";
-import { createMember, updateMember } from "../actions";
-import { uploadDocument } from "@/features/documents/actions";
-
-const SKILLS = [
-  "Medical",
-  "Education",
-  "IT",
-  "Law",
-  "Social Work",
-  "Disaster Response",
-  "Blood Donation",
-  "Fundraising",
-  "Management",
-  "Public Speaking",
-  "Other",
-];
-
-const PARTICIPATION_OPTIONS = [
-  "Monthly Contribution",
-  "Humanitarian Activities",
-  "Volunteer Activities",
-  "Social Awareness",
-  "Emergency Support",
-  "Blood Donation",
-  "Fundraising",
-  "Educational Programs",
-  "Medical Camps",
-  "Other",
-];
-
+import { createMember, updateMember, deleteMemberDocument } from "../actions";
+import { Member } from "@prisma/client";
+import { formatDate } from "@/lib/format";
 
 const SectionCard = ({
   title,
@@ -76,25 +50,14 @@ const SectionCard = ({
   onToggle: () => void;
   children: React.ReactNode;
 }) => (
-  <Collapsible
-    open={isOpen}
-    onOpenChange={onToggle}
-  >
+  <Collapsible open={isOpen} onOpenChange={onToggle}>
     <Card className="mb-6 shadow-sm border-muted">
       <CardHeader className="py-4 border-b bg-muted/10">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
           <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-9 p-0 hover:bg-transparent"
-            >
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
+            <Button variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
+              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               <span className="sr-only">Toggle</span>
             </Button>
           </CollapsibleTrigger>
@@ -122,210 +85,150 @@ export function MemberForm({
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState("");
-  const [files, setFiles] = useState<Record<string, File>>({});
-
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    personal: true,
-    contact: true,
-    education: true,
-    skills: true,
-    foundation: true,
-    participation: true,
-    emergency: true,
-    declaration: true,
-    documents: true,
-    admin: true,
-    pending: true,
+    section1: true,
+    section2: true,
+    section3: true,
+    section4: true,
+    section5: true,
   });
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
+  let parsedReference = { name: "", mobile: "", relation: "" };
+  try {
+    if (member?.reference) {
+      parsedReference = JSON.parse(member.reference);
+    }
+  } catch (e) {}
+
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema) as any,
+    resolver: zodResolver(memberSchema),
     defaultValues: initialData || {
-      firstName: "",
-      lastName: "",
-      fatherName: "",
-      motherName: "",
-      gender: "",
-      dob: "",
-      bloodGroup: "",
-      maritalStatus: "",
-      nationalId: "",
-      presentAddress: "",
-      permanentAddress: "",
-
-      mobile: "",
-      altMobile: "", // WhatsApp Number
-      email: "",
-
-      education: "",
-      occupation: "",
-      workplace: "",
-      designation: "",
-
-      skills: [],
-
-      reference: "",
-      reasonForJoining: "",
-
-      participation: ["Monthly Contribution"],
-
-      emergencyContactName: "",
-      emergencyContactRelation: "",
-      emergencyContactMobile: "",
-
-      declarationAccepted: true,
-
-      groupId: "",
-      status: "ACTIVE",
-      memberType: "REGULAR",
-      joinDate: new Date().toISOString().split("T")[0],
-      remarks: "",
+      groupId: member?.groupId || "",
+      fullName: member?.fullName || "",
+      fatherName: member?.fatherName || "",
+      motherName: member?.motherName || "",
+      dob: member?.dob ? new Date(member.dob).toISOString().split('T')[0] : "",
+      nationalId: member?.nationalId || "",
+      occupation: member?.occupation || "",
+      education: member?.education || "",
+      presentAddress: member?.presentAddress || "",
+      permanentAddress: member?.permanentAddress || "",
+      mobile: member?.mobile || "",
+      email: member?.email || "",
+      bloodGroup: member?.bloodGroup || "",
+      
+      emergencyContactName: member?.emergencyContactName || "",
+      emergencyContactMobile: member?.emergencyContactMobile || "",
+      emergencyContactRelation: member?.emergencyContactRelation || "",
+      
+      referenceName: parsedReference.name || "",
+      referenceMobile: parsedReference.mobile || "",
+      referenceRelation: parsedReference.relation || "",
+      
+      photoBase64: "",
+      idDocumentType: "NID",
+      idDocumentBase64: "",
     },
   });
 
+  const existingPhoto = member?.documents?.find((d: any) => d.title === "Member Photo")?.secureUrl;
+  const existingIdDoc = member?.documents?.find((d: any) => d.title === "National ID" || d.title === "Birth Certificate")?.secureUrl;
+
   async function onSubmit(data: MemberFormValues) {
-    if (mode === "create") {
-      if (!files["Member Photo"]) {
-        toast.error("Member Photo is required");
-        return;
-      }
-      if (!files["Signature Image"]) {
-        toast.error("Signature Image is required");
-        return;
-      }
-      const hasNID = files["National ID Front"] && files["National ID Back"];
-      const hasBirthCert = !!files["Birth Certificate"];
-      if (!hasNID && !hasBirthCert) {
-        toast.error("Please provide either National ID (Front and Back) OR a Birth Certificate.");
-        return;
-      }
-    }
-
     setIsSubmitting(true);
-    setUploadProgress("");
     try {
-      const res = mode === "create" ? await createMember(data) : await updateMember(memberId!, data);
-      if (res.success && (res.data || mode === "edit")) {
-        const targetMemberId = mode === "create" ? res.data?.id : memberId;
-        let hasUploadError = false;
-
-        const fileEntries = Object.entries(files);
-        if (fileEntries.length > 0) {
-          for (let i = 0; i < fileEntries.length; i++) {
-            const [title, file] = fileEntries[i];
-            setUploadProgress(`Uploading ${title} (${i + 1}/${fileEntries.length})...`);
-            
-            const formData = new FormData();
-            formData.append("title", title);
-            formData.append("targetType", "MEMBER");
-            formData.append("entityId", targetMemberId!);
-            formData.append("file", file);
-            
-            const uploadRes = await uploadDocument(formData);
-            if (!uploadRes.success) {
-              hasUploadError = true;
-              toast.error(`Failed to upload ${title}: ${uploadRes.error}`);
-            }
-          }
-        }
-
-        if (hasUploadError) {
-          toast.warning(mode === "create" ? "Member added, but some documents failed to upload." : "Member updated, but some documents failed to upload.");
-        } else {
-          toast.success(mode === "create" ? "Member added successfully" : "Member updated successfully");
-        }
-        
-        router.push(mode === "create" ? `/members/${targetMemberId}` : `/members/manage`);
-        router.refresh();
+      const res = mode === "edit" ? await updateMember(memberId!, data) : await createMember(data);
+      if (res.success) {
+        toast.success(mode === "edit" ? "সদস্য আপডেট করা হয়েছে" : "সদস্য যুক্ত করা হয়েছে");
+        router.push("/members/manage");
       } else {
-        toast.error(res.error || `Failed to ${mode} member`);
+        toast.error(res.error || "সদস্য সংরক্ষণ করতে ব্যর্থ হয়েছে");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
     } finally {
       setIsSubmitting(false);
-      setUploadProgress("");
     }
   }
 
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "photoBase64" | "idDocumentBase64"
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue(field, reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="pb-24 max-w-5xl mx-auto space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto space-y-6">
+        
         {mode === "edit" && member && (
           <Card className="bg-muted/30">
             <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Member ID</p>
+                <p className="text-sm text-muted-foreground">সদস্য আইডি</p>
                 <p className="font-mono font-medium">{member.memberId}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <div className="font-medium">
-                  {member.status === "ACTIVE" ? (
-                    <span className="text-green-600 dark:text-green-400">Active</span>
-                  ) : (
-                    <span className="text-muted-foreground">{member.status}</span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Created Date</p>
-                <p className="font-medium">{new Date(member.createdAt).toLocaleDateString()}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Updated Date</p>
-                <p className="font-medium">{new Date(member.updatedAt).toLocaleDateString()}</p>
+                <p className="text-sm text-muted-foreground">যোগদানের তারিখ</p>
+                <p className="font-medium">{formatDate(member.createdAt)}</p>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* SECTION 01: PERSONAL INFORMATION */}
-        <SectionCard title="01. Personal Information" isOpen={openSections.personal} onToggle={() => toggleSection("personal")}>
+        <div className="mb-6">
+          <FormField
+            control={form.control}
+            name="groupId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-lg">গ্রুপ নির্বাচন করুন *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full md:w-[400px]">
+                      <SelectValue placeholder="একটি গ্রুপ নির্বাচন করুন" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.name} ({g.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* SECTION 1: ব্যক্তিগত তথ্য */}
+        <SectionCard title="১. ব্যক্তিগত তথ্য" isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="firstName"
+              name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name *</FormLabel>
+                  <FormLabel>পূর্ণ নাম *</FormLabel>
                   <FormControl>
-                    <Input placeholder="First Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Last Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="nationalId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>National ID Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="National ID" {...field} />
+                    <Input placeholder="সদস্যের পূর্ণ নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -336,9 +239,9 @@ export function MemberForm({
               name="fatherName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Father's Name</FormLabel>
+                  <FormLabel>পিতার নাম</FormLabel>
                   <FormControl>
-                    <Input placeholder="Father's Name" {...field} />
+                    <Input placeholder="পিতার নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -349,9 +252,9 @@ export function MemberForm({
               name="motherName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mother's Name</FormLabel>
+                  <FormLabel>মাতার নাম</FormLabel>
                   <FormControl>
-                    <Input placeholder="Mother's Name" {...field} />
+                    <Input placeholder="মাতার নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -362,7 +265,7 @@ export function MemberForm({
               name="dob"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>জন্ম তারিখ</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -372,25 +275,39 @@ export function MemberForm({
             />
             <FormField
               control={form.control}
-              name="gender"
+              name="nationalId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gender</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Gender" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="MALE">Male</SelectItem>
-                      <SelectItem value="FEMALE">Female</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন নম্বর</FormLabel>
+                  <FormControl>
+                    <Input placeholder="এনআইডি বা জন্ম নিবন্ধন নম্বর" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="occupation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>পেশা / কর্মক্ষেত্র</FormLabel>
+                  <FormControl>
+                    <Input placeholder="পেশা বা কর্মক্ষেত্র" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="education"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>শিক্ষাগত যোগ্যতা</FormLabel>
+                  <FormControl>
+                    <Input placeholder="শিক্ষাগত যোগ্যতা" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -400,14 +317,11 @@ export function MemberForm({
               name="bloodGroup"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Blood Group</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <FormLabel>রক্তের গ্রুপ</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Blood Group" />
+                        <SelectValue placeholder="রক্তের গ্রুপ নির্বাচন করুন" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -427,26 +341,26 @@ export function MemberForm({
             />
             <FormField
               control={form.control}
-              name="maritalStatus"
+              name="mobile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Marital Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Marital Status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Single">Single</SelectItem>
-                      <SelectItem value="Married">Married</SelectItem>
-                      <SelectItem value="Divorced">Divorced</SelectItem>
-                      <SelectItem value="Widowed">Widowed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>মোবাইল নম্বর</FormLabel>
+                  <FormControl>
+                    <Input placeholder="মোবাইল নম্বর" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ইমেইল (যদি থাকে)</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="example@email.com" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -457,9 +371,9 @@ export function MemberForm({
                 name="presentAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Present Address</FormLabel>
+                    <FormLabel>বর্তমান ঠিকানা</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Present Address" {...field} />
+                      <Textarea placeholder="বর্তমান ঠিকানা লিখুন" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -472,9 +386,9 @@ export function MemberForm({
                 name="permanentAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Permanent Address</FormLabel>
+                    <FormLabel>স্থায়ী ঠিকানা</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Permanent Address" {...field} />
+                      <Textarea placeholder="স্থায়ী ঠিকানা লিখুন" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -484,336 +398,17 @@ export function MemberForm({
           </div>
         </SectionCard>
 
-        {/* SECTION 02: CONTACT INFORMATION */}
-        <SectionCard title="02. Contact Information" isOpen={openSections.contact} onToggle={() => toggleSection("contact")}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="mobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mobile Number *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="01XXXXXXXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="altMobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>WhatsApp Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="01XXXXXXXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="email@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </SectionCard>
-
-        {/* SECTION 03: EDUCATION & PROFESSION */}
-        <SectionCard title="03. Education & Profession" isOpen={openSections.education} onToggle={() => toggleSection("education")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="education"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Highest Education</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Education" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Primary">Primary</SelectItem>
-                      <SelectItem value="JSC">JSC</SelectItem>
-                      <SelectItem value="SSC">SSC</SelectItem>
-                      <SelectItem value="HSC">HSC</SelectItem>
-                      <SelectItem value="Diploma">Diploma</SelectItem>
-                      <SelectItem value="Bachelor's">Bachelor's</SelectItem>
-                      <SelectItem value="Master's">Master's</SelectItem>
-                      <SelectItem value="PhD">PhD</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="occupation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Occupation</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Occupation" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Student">Student</SelectItem>
-                      <SelectItem value="Job">Job</SelectItem>
-                      <SelectItem value="Business">Business</SelectItem>
-                      <SelectItem value="Teacher">Teacher</SelectItem>
-                      <SelectItem value="Doctor">Doctor</SelectItem>
-                      <SelectItem value="Engineer">Engineer</SelectItem>
-                      <SelectItem value="Lawyer">Lawyer</SelectItem>
-                      <SelectItem value="Farmer">Farmer</SelectItem>
-                      <SelectItem value="Freelancer">Freelancer</SelectItem>
-                      <SelectItem value="Housewife">Housewife</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="workplace"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Workplace / Organization</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Company / Institute Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="designation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Designation</FormLabel>
-                  <FormControl>
-                    <Input placeholder="E.g. Manager" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </SectionCard>
-
-        {/* SECTION 04: SKILLS */}
-        <SectionCard title="04. Skills" isOpen={openSections.skills} onToggle={() => toggleSection("skills")}>
-          <FormField
-            control={form.control}
-            name="skills"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel className="text-base">Select Skills</FormLabel>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {SKILLS.map((item) => (
-                    <FormField
-                      key={item}
-                      control={form.control}
-                      name="skills"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([
-                                        ...(field.value || []),
-                                        item,
-                                      ])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {item}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </SectionCard>
-
-        {/* SECTION 05: FOUNDATION INFORMATION */}
-        <SectionCard title="05. Foundation Information" isOpen={openSections.foundation} onToggle={() => toggleSection("foundation")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="reference"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    How did the member know about the Foundation?
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select reference source" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Friend">Friend</SelectItem>
-                      <SelectItem value="Relative">Relative</SelectItem>
-                      <SelectItem value="Existing Member">
-                        Existing Member
-                      </SelectItem>
-                      <SelectItem value="Facebook">Facebook</SelectItem>
-                      <SelectItem value="YouTube">YouTube</SelectItem>
-                      <SelectItem value="Website">Website</SelectItem>
-                      <SelectItem value="Foundation Program">
-                        Foundation Program
-                      </SelectItem>
-                      <SelectItem value="Social Campaign">
-                        Social Campaign
-                      </SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="md:col-span-2">
-              <FormField
-                control={form.control}
-                name="reasonForJoining"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reason for becoming a member</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="min-h-[120px]"
-                        placeholder="Explain why the member wants to join..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* SECTION 06: PARTICIPATION */}
-        <SectionCard title="06. Participation" isOpen={openSections.participation} onToggle={() => toggleSection("participation")}>
-          <FormField
-            control={form.control}
-            name="participation"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel className="text-base">
-                    Willing to Participate In
-                  </FormLabel>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {PARTICIPATION_OPTIONS.map((item) => (
-                    <FormField
-                      key={item}
-                      control={form.control}
-                      name="participation"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([
-                                        ...(field.value || []),
-                                        item,
-                                      ])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {item}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </SectionCard>
-
-        {/* SECTION 07: EMERGENCY CONTACT */}
-        <SectionCard title="07. Emergency Contact" isOpen={openSections.emergency} onToggle={() => toggleSection("emergency")}>
+        {/* SECTION 2: জরুরি যোগাযোগ */}
+        <SectionCard title="২. জরুরি যোগাযোগ" isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="emergencyContactName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>নাম</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contact Name" {...field} />
+                    <Input placeholder="নাম" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -824,9 +419,9 @@ export function MemberForm({
               name="emergencyContactRelation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Relationship</FormLabel>
+                  <FormLabel>সম্পর্ক</FormLabel>
                   <FormControl>
-                    <Input placeholder="E.g. Brother, Friend" {...field} />
+                    <Input placeholder="সম্পর্ক" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -837,9 +432,9 @@ export function MemberForm({
               name="emergencyContactMobile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile Number</FormLabel>
+                  <FormLabel>মোবাইল নম্বর</FormLabel>
                   <FormControl>
-                    <Input placeholder="01XXXXXXXXX" {...field} />
+                    <Input placeholder="মোবাইল নম্বর" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -848,232 +443,270 @@ export function MemberForm({
           </div>
         </SectionCard>
 
-        {/* SECTION 08: MEMBER DECLARATION */}
-        <SectionCard title="08. Member Declaration" isOpen={openSections.declaration} onToggle={() => toggleSection("declaration")}>
-          <div className="p-4 bg-muted/20 rounded-md border text-sm text-muted-foreground mb-4 leading-relaxed">
-            I hereby declare that the information provided above is true and
-            accurate to the best of my knowledge. I agree to abide by the rules
-            and regulations of the Foundation and commit to supporting its
-            mission and activities.
+        {/* SECTION 3: রেফারেন্সদাতা */}
+        <SectionCard title="৩. রেফারেন্সদাতা (যিনি সদস্যকে সুপারিশ করেছেন)" isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField
+              control={form.control}
+              name="referenceName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>নাম</FormLabel>
+                  <FormControl>
+                    <Input placeholder="নাম" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="referenceRelation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>সম্পর্ক</FormLabel>
+                  <FormControl>
+                    <Input placeholder="সম্পর্ক" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="referenceMobile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>মোবাইল নম্বর</FormLabel>
+                  <FormControl>
+                    <Input placeholder="মোবাইল নম্বর" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <FormField
-            control={form.control}
-            name="declarationAccepted"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Declaration Accepted</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
         </SectionCard>
 
-        {/* SECTION 09: DOCUMENTS */}
-        <SectionCard title="09. Documents" isOpen={openSections.documents} onToggle={() => toggleSection("documents")}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              "Member Photo",
-              "National ID Front",
-              "National ID Back",
-              ...(!form.watch("nationalId") ? ["Birth Certificate"] : []),
-              "Signature Image",
-            ].map((doc) => {
-              const file = files[doc];
-              return (
-                <div
-                  key={doc}
-                  className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center bg-muted/5 relative overflow-hidden"
+        {/* SECTION 4: অঙ্গীকার */}
+        <SectionCard title="৪. অঙ্গীকার" isOpen={openSections.section4} onToggle={() => toggleSection("section4")}>
+          <div className="p-6 bg-muted/20 rounded-md border text-base text-foreground leading-relaxed">
+            আমি ঘোষণা করছি যে ফাউন্ডেশনের উদ্দেশ্য, আদর্শ ও নীতিমালার প্রতি সম্মান রেখে একজন দায়িত্বশীল সদস্য হিসেবে কাজ করার চেষ্টা করব। আমি আমার সামর্থ্য অনুযায়ী ফাউন্ডেশনের মানবিক কার্যক্রমে সহযোগিতা করব এবং সংগঠনের শৃঙ্খলা, পারস্পরিক সম্মান ও ভ্রাতৃত্বের মূল্যবোধ বজায় রাখব ইনশাআল্লাহ।
+          </div>
+        </SectionCard>
+
+        {/* SECTION 5: ডকুমেন্টস */}
+        <SectionCard title="৫. ডকুমেন্টস" isOpen={openSections.section5} onToggle={() => toggleSection("section5")}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Photo Upload */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-base mb-2">সদস্যের ছবি</h3>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={photoInputRef}
+                onChange={(e) => handleFileChange(e, "photoBase64")}
+              />
+              
+              {!form.watch("photoBase64") && !existingPhoto ? (
+                <div 
+                  onClick={() => photoInputRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
                 >
-                  <div className="text-sm font-medium mb-2 z-10 bg-background/80 px-2 rounded">{doc}</div>
-                  {!file ? (
-                    <Input 
-                      type="file" 
-                      className="text-xs max-w-full z-10" 
-                      onChange={(e) => {
-                        const selectedFile = e.target.files?.[0];
-                        if (selectedFile) {
-                          setFiles(prev => ({ ...prev, [doc]: selectedFile }));
-                        }
-                      }}
+                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+                  <p className="text-sm font-medium">ছবি আপলোড করুন</p>
+                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG বা JPG</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative border rounded-lg overflow-hidden h-48 w-full md:w-48 mx-auto group">
+                    <Image 
+                      src={(form.watch("photoBase64") as string) || existingPhoto} 
+                      alt="Preview" 
+                      fill 
+                      className="object-cover" 
                     />
-                  ) : (
-                    <div className="flex flex-col items-center space-y-2 w-full z-10 bg-background/80 p-2 rounded">
-                      <div className="flex items-center space-x-2 text-xs truncate max-w-full">
-                        <FileIcon className="h-4 w-4 shrink-0 text-blue-500" />
-                        <span className="truncate">{file.name}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground flex gap-3">
-                        <span 
-                          className="hover:underline cursor-pointer text-red-500 flex items-center"
-                          onClick={() => {
-                            setFiles(prev => {
-                              const next = { ...prev };
-                              delete next[doc];
-                              return next;
-                            });
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => photoInputRef.current?.click()}
+                      >
+                        Replace
+                      </Button>
+                      {!form.watch("photoBase64") && existingPhoto && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={async () => {
+                            if (window.confirm("Are you sure you want to delete this document?")) {
+                              const doc = member.documents.find((d: any) => d.title === "Member Photo");
+                              if (doc) {
+                                const res = await deleteMemberDocument(doc.id);
+                                if (res.success) {
+                                  toast.success("Document deleted");
+                                  router.refresh();
+                                } else {
+                                  toast.error(res.error);
+                                }
+                              }
+                            }
                           }}
                         >
-                          <Trash2 className="h-3 w-3 mr-1" /> Delete
-                        </span>
-                      </div>
+                          Delete
+                        </Button>
+                      )}
                     </div>
-                  )}
-                  {file && file.type.startsWith('image/') && (
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                      <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
+                    {form.watch("photoBase64") && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                        onClick={() => form.setValue("photoBase64", "")}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {!form.watch("photoBase64") && existingPhoto && (
+                    <div className="text-center text-xs text-muted-foreground">
+                      Uploaded on: {formatDate(member.documents.find((d: any) => d.title === "Member Photo")?.createdAt)}
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </SectionCard>
+              )}
+            </div>
 
-        {/* SECTION 10: ADMIN INFORMATION */}
-        <SectionCard title="10. Admin Information" isOpen={openSections.admin} onToggle={() => toggleSection("admin")}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="groupId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assign to Group *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a Group" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name} ({group.code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="joinDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Join Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                      <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                      <SelectItem value="SUSPENDED">SUSPENDED</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="memberType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Member Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Member Type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="REGULAR">Regular Member</SelectItem>
-                      <SelectItem value="FOUNDER">Founder Member</SelectItem>
-                      <SelectItem value="LIFE">Life Member</SelectItem>
-                      <SelectItem value="HONORARY">Honorary Member</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="md:col-span-2 lg:col-span-3">
+            {/* Document Upload */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-base mb-2">জাতীয় পরিচয়পত্র অথবা জন্ম নিবন্ধন</h3>
+              
               <FormField
                 control={form.control}
-                name="remarks"
+                name="idDocumentType"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Admin Remarks</FormLabel>
+                  <FormItem className="mb-4">
                     <FormControl>
-                      <Textarea placeholder="Internal notes..." {...field} />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="NID" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            জাতীয় পরিচয়পত্র
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="BIRTH_CERTIFICATE" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            জন্ম নিবন্ধন
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={docInputRef}
+                onChange={(e) => handleFileChange(e, "idDocumentBase64")}
+              />
+              
+              {!form.watch("idDocumentBase64") && !existingIdDoc ? (
+                <div 
+                  onClick={() => docInputRef.current?.click()}
+                  className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+                  <p className="text-sm font-medium">ডকুমেন্ট আপলোড করুন</p>
+                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG বা JPG</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative border rounded-lg overflow-hidden h-48 w-full group">
+                    <Image 
+                      src={(form.watch("idDocumentBase64") as string) || existingIdDoc} 
+                      alt="Preview" 
+                      fill 
+                      className="object-contain" 
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => docInputRef.current?.click()}
+                      >
+                        Replace
+                      </Button>
+                      {!form.watch("idDocumentBase64") && existingIdDoc && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={async () => {
+                            if (window.confirm("Are you sure you want to delete this document?")) {
+                              const doc = member.documents.find((d: any) => d.title === "National ID" || d.title === "Birth Certificate");
+                              if (doc) {
+                                const res = await deleteMemberDocument(doc.id);
+                                if (res.success) {
+                                  toast.success("Document deleted");
+                                  router.refresh();
+                                } else {
+                                  toast.error(res.error);
+                                }
+                              }
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                    {form.watch("idDocumentBase64") && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                        onClick={() => form.setValue("idDocumentBase64", "")}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {!form.watch("idDocumentBase64") && existingIdDoc && (
+                    <div className="text-center text-xs text-muted-foreground">
+                      Uploaded on: {formatDate(member.documents.find((d: any) => d.title === "National ID" || d.title === "Birth Certificate")?.createdAt)}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </SectionCard>
 
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t flex justify-end gap-4 shadow-lg md:pl-64 z-50 items-center">
-          {uploadProgress && (
-            <span className="text-sm text-blue-600 animate-pulse font-medium mr-auto md:ml-4">
-              {uploadProgress}
-            </span>
-          )}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => router.push('/members/manage')}
-            disabled={isSubmitting}
-          >
-            Back to Manage Members
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
-            Cancel
+        {/* ACTIONS */}
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button variant="outline" type="button" onClick={() => router.push("/members/manage")}>
+            বাতিল
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? "Saving..." : mode === "create" ? "Save Member" : "Save Changes"}
+            {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "সংরক্ষণ"}
           </Button>
         </div>
       </form>

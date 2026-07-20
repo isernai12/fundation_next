@@ -1,4 +1,5 @@
 "use client"
+import { formatDateTime } from "@/lib/format"
 
 import { useEffect, useState } from "react"
 import { getFoundationSummaryReport } from "@/features/reports/actions"
@@ -23,7 +24,7 @@ export default function FoundationSummaryReportPage() {
       header: "Current Balance",
       cell: ({ row }: any) => {
         const val = row.getValue("balance") as number
-        const formatted = (val / 100).toFixed(2)
+        const formatted = (val).toFixed(2)
         return <span className={val < 0 ? "text-red-500 font-bold" : "font-semibold"}>৳{formatted}</span>
       }
     }
@@ -44,7 +45,7 @@ export default function FoundationSummaryReportPage() {
       </div>
       <div className="hidden print:block text-center mb-8">
         <h1 className="text-2xl font-bold">Foundation Summary Report</h1>
-        <p className="text-sm text-gray-500">Generated on: {new Date().toLocaleString()}</p>
+        <p className="text-sm text-gray-500">Generated on: {formatDateTime(new Date())}</p>
       </div>
 
       <ReportViewer title="Foundation_Summary_Report" columns={columns} data={data} />

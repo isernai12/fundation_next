@@ -16,7 +16,7 @@ import { grantSchema, type GrantFormValues } from "../schema"
 import { Plus, Trash2 } from "lucide-react"
 
 export function GrantForm({ beneficiaries, groups }: { 
-  beneficiaries: { id: string; beneficiaryId: string; firstName: string | null; lastName: string | null }[], 
+  beneficiaries: { id: string; beneficiaryId: string; fullName: string | null;  }[], 
   groups: { id: string; name: string; code: string }[] 
 }) {
   const router = useRouter()
@@ -85,7 +85,7 @@ export function GrantForm({ beneficiaries, groups }: {
                     <SelectContent>
                       {beneficiaries.map(b => (
                         <SelectItem key={b.id} value={b.id}>
-                          {b.beneficiaryId} - {b.firstName} {b.lastName}
+                          {b.beneficiaryId} - {b.fullName || 'নাম পাওয়া যায়নি'} 
                         </SelectItem>
                       ))}
                     </SelectContent>

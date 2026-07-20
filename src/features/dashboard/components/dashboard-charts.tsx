@@ -1,4 +1,5 @@
 "use client"
+import { formatCurrency } from "@/lib/format"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
@@ -54,7 +55,7 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: any) => `৳${Number(Number(value || 0)).toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} />
+              <Tooltip formatter={(value: any) => `৳${formatCurrency(Number(value || 0))}`} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
