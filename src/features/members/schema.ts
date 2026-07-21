@@ -29,7 +29,10 @@ export const memberSchema = z.object({
   photoBase64: z.string().optional(), // Used for upload
   
   idDocumentType: z.enum(["NID", "BIRTH_CERTIFICATE"]).optional(),
-  idDocumentBase64: z.string().optional(), // Used for upload
+  nidFrontBase64: z.string().optional(),
+  nidBackBase64: z.string().optional(),
+  birthCertificateBase64: z.string().optional(),
+  signatureBase64: z.string().optional(),
 })
 
 export type MemberFormValues = z.infer<typeof memberSchema>

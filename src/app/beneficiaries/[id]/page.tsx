@@ -9,10 +9,37 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
   const resolvedParams = await params;
   const beneficiary = await prisma.beneficiary.findUnique({
     where: { id: resolvedParams.id },
-    include: { member: true }
+    include: { member: true, documents: true }
   })
 
   if (!beneficiary) return notFound()
+
+  const getDoc = (title: string) => beneficiary.documents?.find(d => d.title === title)?.secureUrl;
+  
+  const photoDoc = getDoc("Beneficiary Photo") || beneficiary.beneficiaryPhoto;
+  const signatureDoc = getDoc("Signature");
+  const nidFrontDoc = getDoc("NID Front") || beneficiary.nidOrBirthCertificate; // Fallback to legacy string if needed
+  const nidBackDoc = getDoc("NID Back");
+  const bcDoc = getDoc("Birth Certificate") || beneficiary.nidOrBirthCertificate; // Fallback to legacy string if needed
+
+  const DocumentCard = ({ title, url }: { title: string, url?: string | null }) => (
+    <div className="border rounded-md p-3">
+      <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{title}</p>
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+          {url.endsWith('.pdf') ? (
+            <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline">PDF দেখুন</div>
+          ) : (
+            <Image src={url} alt={title} fill className="object-contain bg-muted/10" />
+          )}
+        </a>
+      ) : (
+        <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+          ডকুমেন্ট আপলোড করা হয়নি
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
@@ -63,34 +90,17 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
             <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৩. ডকুমেন্টসমূহ</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="border rounded-md p-3">
-                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">সুবিধাভোগীর ছবি</p>
-                {beneficiary.beneficiaryPhoto ? (
-                  <a href={beneficiary.beneficiaryPhoto} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
-                    <Image src={beneficiary.beneficiaryPhoto} alt="Beneficiary Photo" fill className="object-contain" />
-                  </a>
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
-                    ডকুমেন্ট আপলোড করা হয়নি
-                  </div>
-                )}
-              </div>
-              <div className="border rounded-md p-3">
-                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">জাতীয় পরিচয়পত্র অথবা জন্ম নিবন্ধন</p>
-                {beneficiary.nidOrBirthCertificate ? (
-                  <a href={beneficiary.nidOrBirthCertificate} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
-                    {beneficiary.nidOrBirthCertificate.endsWith('.pdf') ? (
-                      <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline">PDF দেখুন</div>
-                    ) : (
-                      <Image src={beneficiary.nidOrBirthCertificate} alt="ID Document" fill className="object-contain bg-muted/10" />
-                    )}
-                  </a>
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
-                    ডকুমেন্ট আপলোড করা হয়নি
-                  </div>
-                )}
-              </div>
+              <DocumentCard title="সুবিধাভোগীর ছবি" url={photoDoc} />
+              <DocumentCard title="স্বাক্ষর" url={signatureDoc} />
+              
+              {beneficiary.idDocumentType === "NID" ? (
+                <>
+                  <DocumentCard title="জাতীয় পরিচয়পত্র (সামনের অংশ)" url={nidFrontDoc} />
+                  <DocumentCard title="জাতীয় পরিচয়পত্র (পেছনের অংশ)" url={nidBackDoc} />
+                </>
+              ) : (
+                <DocumentCard title="জন্ম নিবন্ধন" url={bcDoc} />
+              )}
             </div>
           </section>
         </div>
@@ -99,8 +109,8 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
         <div className="w-full md:w-64 shrink-0 flex flex-col items-center pt-2 print:pt-10">
           <div className="border border-border p-2 bg-muted/10 w-full max-w-[200px]">
             <div className="relative w-full aspect-[4/5] bg-muted flex flex-col items-center justify-center border border-dashed border-muted-foreground/30">
-              {beneficiary.beneficiaryPhoto ? (
-                <Image src={beneficiary.beneficiaryPhoto} alt="Photo" fill className="object-cover" />
+              {photoDoc ? (
+                <Image src={photoDoc} alt="Photo" fill className="object-cover" />
               ) : (
                 <span className="text-sm text-muted-foreground">ছবি</span>
               )}

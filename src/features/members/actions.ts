@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { memberSchema, type MemberFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { MemberStatus } from "@prisma/client"
+import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
 
 export async function getMembers() {
   return prisma.member.findMany({
@@ -32,7 +33,51 @@ async function generateMemberId() {
   return `MBR-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
 
-import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
+async function handleDocumentUpload(
+  base64Str: string | undefined, 
+  title: string, 
+  folder: string, 
+  memberId: string, 
+  documentNumberSuffix: string
+) {
+  if (!base64Str) return;
+  
+  const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+  const uploaded = await uploadToCloudinary(buffer, { folder })
+  
+  const existingDoc = await prisma.document.findFirst({
+    where: { memberId, title }
+  });
+
+  if (existingDoc) {
+    if (existingDoc.cloudinaryPublicId) {
+      await deleteFromCloudinary(existingDoc.cloudinaryPublicId).catch(() => {});
+    }
+    await prisma.document.update({
+      where: { id: existingDoc.id },
+      data: {
+        cloudinaryPublicId: uploaded.public_id,
+        secureUrl: uploaded.secure_url,
+        sizeBytes: uploaded.bytes || 0,
+      }
+    });
+  } else {
+    await prisma.document.create({
+      data: {
+        documentNumber: `DOC-${Date.now()}-${documentNumberSuffix}`,
+        title,
+        type: "IMAGE",
+        cloudinaryPublicId: uploaded.public_id,
+        secureUrl: uploaded.secure_url,
+        originalFilename: `${title.toLowerCase().replace(/\s/g, '_')}.jpg`,
+        mimeType: "image/jpeg",
+        sizeBytes: uploaded.bytes || 0,
+        targetType: "MEMBER",
+        memberId,
+      }
+    });
+  }
+}
 
 export async function createMember(data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
@@ -71,7 +116,7 @@ export async function createMember(data: MemberFormValues) {
     const member = await prisma.member.create({
       data: {
         memberId,
-        groupId: pd.groupId as string,
+        group: { connect: { id: pd.groupId as string } },
         fullName: pd.fullName,
         fatherName: pd.fatherName || null,
         motherName: pd.motherName || null,
@@ -84,6 +129,7 @@ export async function createMember(data: MemberFormValues) {
         mobile: pd.mobile || null,
         email: pd.email || null,
         bloodGroup: pd.bloodGroup || null,
+        idDocumentType: pd.idDocumentType || "NID",
         
         emergencyContactName: pd.emergencyContactName || null,
         emergencyContactRelation: pd.emergencyContactRelation || null,
@@ -97,44 +143,28 @@ export async function createMember(data: MemberFormValues) {
     })
 
     // Handle Documents
-    if (pd.photoBase64) {
-      const buffer = Buffer.from(pd.photoBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
-      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/photos" })
+    await handleDocumentUpload(pd.photoBase64, "Member Photo", "foundation/members/photos", member.id, "P");
+    await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/members/signatures", member.id, "SIG");
+    
+    if (pd.idDocumentType === "NID") {
+      await handleDocumentUpload(pd.nidFrontBase64, "NID Front", "foundation/members/ids", member.id, "NIDF");
+      await handleDocumentUpload(pd.nidBackBase64, "NID Back", "foundation/members/ids", member.id, "NIDB");
       
-      await prisma.document.create({
-        data: {
-          documentNumber: `DOC-${Date.now()}-P`,
-          title: "Member Photo",
-          type: "IMAGE",
-          cloudinaryPublicId: uploaded.public_id,
-          secureUrl: uploaded.secure_url,
-          originalFilename: "photo.jpg",
-          mimeType: "image/jpeg",
-          sizeBytes: uploaded.bytes || 0,
-          targetType: "MEMBER",
-          memberId: member.id,
-        }
-      });
-    }
-
-    if (pd.idDocumentBase64 && pd.idDocumentType) {
-      const buffer = Buffer.from(pd.idDocumentBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
-      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/ids" })
-
-      await prisma.document.create({
-        data: {
-          documentNumber: `DOC-${Date.now()}-ID`,
-          title: pd.idDocumentType === "NID" ? "National ID" : "Birth Certificate",
-          type: "IMAGE",
-          cloudinaryPublicId: uploaded.public_id,
-          secureUrl: uploaded.secure_url,
-          originalFilename: "id_document.jpg",
-          mimeType: "image/jpeg",
-          sizeBytes: uploaded.bytes || 0,
-          targetType: "MEMBER",
-          memberId: member.id,
-        }
-      });
+      // Cleanup Birth Certificate if exists
+      const bcDoc = await prisma.document.findFirst({ where: { memberId: member.id, title: "Birth Certificate" } });
+      if (bcDoc) {
+        if (bcDoc.cloudinaryPublicId) await deleteFromCloudinary(bcDoc.cloudinaryPublicId).catch(() => {});
+        await prisma.document.delete({ where: { id: bcDoc.id } });
+      }
+    } else if (pd.idDocumentType === "BIRTH_CERTIFICATE") {
+      await handleDocumentUpload(pd.birthCertificateBase64, "Birth Certificate", "foundation/members/ids", member.id, "BC");
+      
+      // Cleanup NID if exists
+      const nidDocs = await prisma.document.findMany({ where: { memberId: member.id, title: { in: ["NID Front", "NID Back", "National ID"] } } });
+      for (const d of nidDocs) {
+        if (d.cloudinaryPublicId) await deleteFromCloudinary(d.cloudinaryPublicId).catch(() => {});
+        await prisma.document.delete({ where: { id: d.id } });
+      }
     }
 
     revalidatePath("/members/manage")
@@ -174,7 +204,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
     const member = await prisma.member.update({
       where: { id },
       data: {
-        groupId: pd.groupId as string,
+        group: { connect: { id: pd.groupId as string } },
         fullName: pd.fullName,
         fatherName: pd.fatherName || null,
         motherName: pd.motherName || null,
@@ -187,6 +217,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
         mobile: pd.mobile || null,
         email: pd.email || null,
         bloodGroup: pd.bloodGroup || null,
+        idDocumentType: pd.idDocumentType || "NID",
         
         emergencyContactName: pd.emergencyContactName || null,
         emergencyContactRelation: pd.emergencyContactRelation || null,
@@ -197,84 +228,27 @@ export async function updateMember(id: string, data: MemberFormValues) {
     })
 
     // Document replacements
-    if (pd.photoBase64) {
-      const buffer = Buffer.from(pd.photoBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
-      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/photos" })
+    await handleDocumentUpload(pd.photoBase64, "Member Photo", "foundation/members/photos", id, "P");
+    await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/members/signatures", id, "SIG");
+    
+    if (pd.idDocumentType === "NID") {
+      await handleDocumentUpload(pd.nidFrontBase64, "NID Front", "foundation/members/ids", id, "NIDF");
+      await handleDocumentUpload(pd.nidBackBase64, "NID Back", "foundation/members/ids", id, "NIDB");
       
-      const existingPhotoDoc = await prisma.document.findFirst({
-        where: { memberId: id, title: "Member Photo" }
-      });
-
-      if (existingPhotoDoc) {
-        if (existingPhotoDoc.cloudinaryPublicId) {
-          await deleteFromCloudinary(existingPhotoDoc.cloudinaryPublicId).catch(() => {});
-        }
-        await prisma.document.update({
-          where: { id: existingPhotoDoc.id },
-          data: {
-            cloudinaryPublicId: uploaded.public_id,
-            secureUrl: uploaded.secure_url,
-            sizeBytes: uploaded.bytes || 0,
-          }
-        })
-      } else {
-        await prisma.document.create({
-          data: {
-            documentNumber: `DOC-${Date.now()}-P`,
-            title: "Member Photo",
-            type: "IMAGE",
-            cloudinaryPublicId: uploaded.public_id,
-            secureUrl: uploaded.secure_url,
-            originalFilename: "photo.jpg",
-            mimeType: "image/jpeg",
-            sizeBytes: uploaded.bytes || 0,
-            targetType: "MEMBER",
-            memberId: id,
-          }
-        });
+      // Cleanup Birth Certificate if exists
+      const bcDoc = await prisma.document.findFirst({ where: { memberId: id, title: "Birth Certificate" } });
+      if (bcDoc) {
+        if (bcDoc.cloudinaryPublicId) await deleteFromCloudinary(bcDoc.cloudinaryPublicId).catch(() => {});
+        await prisma.document.delete({ where: { id: bcDoc.id } });
       }
-    }
-
-    if (pd.idDocumentBase64 && pd.idDocumentType) {
-      const buffer = Buffer.from(pd.idDocumentBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
-      const uploaded = await uploadToCloudinary(buffer, { folder: "foundation/members/ids" })
+    } else if (pd.idDocumentType === "BIRTH_CERTIFICATE") {
+      await handleDocumentUpload(pd.birthCertificateBase64, "Birth Certificate", "foundation/members/ids", id, "BC");
       
-      const title = pd.idDocumentType === "NID" ? "National ID" : "Birth Certificate";
-      const existingIdDoc = await prisma.document.findFirst({
-        where: { 
-          memberId: id, 
-          OR: [{ title: "National ID" }, { title: "Birth Certificate" }]
-        }
-      });
-
-      if (existingIdDoc) {
-        if (existingIdDoc.cloudinaryPublicId) {
-          await deleteFromCloudinary(existingIdDoc.cloudinaryPublicId).catch(() => {});
-        }
-        await prisma.document.update({
-          where: { id: existingIdDoc.id },
-          data: {
-            title,
-            cloudinaryPublicId: uploaded.public_id,
-            secureUrl: uploaded.secure_url,
-            sizeBytes: uploaded.bytes || 0,
-          }
-        })
-      } else {
-        await prisma.document.create({
-          data: {
-            documentNumber: `DOC-${Date.now()}-ID`,
-            title,
-            type: "IMAGE",
-            cloudinaryPublicId: uploaded.public_id,
-            secureUrl: uploaded.secure_url,
-            originalFilename: "id_document.jpg",
-            mimeType: "image/jpeg",
-            sizeBytes: uploaded.bytes || 0,
-            targetType: "MEMBER",
-            memberId: id,
-          }
-        });
+      // Cleanup NID if exists
+      const nidDocs = await prisma.document.findMany({ where: { memberId: id, title: { in: ["NID Front", "NID Back", "National ID"] } } });
+      for (const d of nidDocs) {
+        if (d.cloudinaryPublicId) await deleteFromCloudinary(d.cloudinaryPublicId).catch(() => {});
+        await prisma.document.delete({ where: { id: d.id } });
       }
     }
 
@@ -287,21 +261,21 @@ export async function updateMember(id: string, data: MemberFormValues) {
   }
 }
 
-export async function deleteMemberDocument(documentId: string) {
+export async function deleteMemberDocument(memberId: string, title: string) {
   try {
-    const doc = await prisma.document.findUnique({ where: { id: documentId } });
-    if (!doc) return { success: false, error: "Document not found" };
+    const doc = await prisma.document.findFirst({ 
+      where: { memberId, title } 
+    });
 
-    if (doc.cloudinaryPublicId) {
-      await deleteFromCloudinary(doc.cloudinaryPublicId).catch(() => {});
+    if (doc) {
+      if (doc.cloudinaryPublicId) {
+        await deleteFromCloudinary(doc.cloudinaryPublicId).catch(() => {});
+      }
+      await prisma.document.delete({ where: { id: doc.id } });
     }
-
-    await prisma.document.delete({ where: { id: documentId } });
     
-    if (doc.memberId) {
-      revalidatePath(`/members/${doc.memberId}`)
-      revalidatePath(`/members/${doc.memberId}/edit`)
-    }
+    revalidatePath(`/members/${memberId}`)
+    revalidatePath(`/members/${memberId}/edit`)
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to delete document" };

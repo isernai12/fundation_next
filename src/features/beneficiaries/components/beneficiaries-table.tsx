@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { BeneficiaryFormDialog } from "./beneficiary-form-dialog"
+
 import { Eye, Edit, Trash, MoreHorizontal, ArrowUpDown } from "lucide-react"
 import {
   DropdownMenu,
@@ -110,15 +110,11 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
               </DropdownMenuItem>
               {manageMode && (
                 <>
-                  <BeneficiaryFormDialog
-                    beneficiary={beneficiary}
-                    members={members}
-                    trigger={
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
-                      </DropdownMenuItem>
-                    }
-                  />
+                  <DropdownMenuItem asChild>
+                    <Link href={`/beneficiaries/${beneficiary.id}/edit`}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
+                    </Link>
+                  </DropdownMenuItem>
                   {beneficiary.status === "INACTIVE" ? (
                     <DropdownMenuItem
                       onClick={async () => {

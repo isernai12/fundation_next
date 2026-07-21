@@ -24,6 +24,14 @@ export const beneficiarySchema = z.object({
   
   beneficiaryPhoto: z.string().optional(),
   nidOrBirthCertificate: z.string().optional(),
+  
+  // Base64 document uploads
+  photoBase64: z.string().optional(),
+  idDocumentType: z.enum(["NID", "BIRTH_CERTIFICATE"]).optional(),
+  nidFrontBase64: z.string().optional(),
+  nidBackBase64: z.string().optional(),
+  birthCertificateBase64: z.string().optional(),
+  signatureBase64: z.string().optional(),
 
   memberId: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),

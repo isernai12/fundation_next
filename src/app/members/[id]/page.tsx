@@ -17,8 +17,32 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     if (member.reference) reference = JSON.parse(member.reference);
   } catch(e) {}
 
-  const photoDoc = member.documents?.find(d => d.title === "Member Photo")
-  const idDoc = member.documents?.find(d => d.title === "National ID" || d.title === "Birth Certificate")
+  const getDoc = (title: string) => member.documents?.find(d => d.title === title)?.secureUrl;
+  
+  const photoDoc = getDoc("Member Photo");
+  const signatureDoc = getDoc("Signature");
+  const nidFrontDoc = getDoc("NID Front") || getDoc("National ID"); 
+  const nidBackDoc = getDoc("NID Back");
+  const bcDoc = getDoc("Birth Certificate");
+
+  const DocumentCard = ({ title, url }: { title: string, url?: string | null }) => (
+    <div className="border rounded-md p-3">
+      <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{title}</p>
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+          {url.endsWith('.pdf') ? (
+            <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline">PDF দেখুন</div>
+          ) : (
+            <Image src={url} alt={title} fill className="object-contain bg-muted/10" />
+          )}
+        </a>
+      ) : (
+        <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+          ডকুমেন্ট আপলোড করা হয়নি
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
@@ -100,30 +124,17 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৫. ডকুমেন্টসমূহ</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="border rounded-md p-3">
-                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">সদস্যের ছবি</p>
-                {photoDoc ? (
-                  <a href={photoDoc.secureUrl} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
-                    <Image src={photoDoc.secureUrl} alt="Member Photo" fill className="object-contain" />
-                  </a>
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
-                    ডকুমেন্ট আপলোড করা হয়নি
-                  </div>
-                )}
-              </div>
-              <div className="border rounded-md p-3">
-                <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{idDoc ? (idDoc.title === "National ID" ? "জাতীয় পরিচয়পত্র" : "জন্ম নিবন্ধন") : "জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন"}</p>
-                {idDoc ? (
-                  <a href={idDoc.secureUrl} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
-                    <Image src={idDoc.secureUrl} alt="ID Document" fill className="object-contain bg-muted/10" />
-                  </a>
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
-                    ডকুমেন্ট আপলোড করা হয়নি
-                  </div>
-                )}
-              </div>
+              <DocumentCard title="সদস্যের ছবি" url={photoDoc} />
+              <DocumentCard title="স্বাক্ষর" url={signatureDoc} />
+              
+              {member.idDocumentType === "NID" ? (
+                <>
+                  <DocumentCard title="জাতীয় পরিচয়পত্র (সামনের অংশ)" url={nidFrontDoc} />
+                  <DocumentCard title="জাতীয় পরিচয়পত্র (পেছনের অংশ)" url={nidBackDoc} />
+                </>
+              ) : (
+                <DocumentCard title="জন্ম নিবন্ধন" url={bcDoc} />
+              )}
             </div>
           </section>
         </div>
@@ -133,7 +144,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           <div className="border border-border p-2 bg-muted/10 w-full max-w-[200px]">
             <div className="relative w-full aspect-[4/5] bg-muted flex flex-col items-center justify-center border border-dashed border-muted-foreground/30">
               {photoDoc ? (
-                <Image src={photoDoc.secureUrl} alt="Photo" fill className="object-cover" />
+                <Image src={photoDoc} alt="Photo" fill className="object-cover" />
               ) : (
                 <span className="text-sm text-muted-foreground">সদস্যের ছবি</span>
               )}

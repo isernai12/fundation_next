@@ -127,6 +127,7 @@ model Member {
   gender        String?
   dob           DateTime?
   nationalId    String?   @unique
+  idDocumentType String?  @default("NID")
   occupation    String?
   monthlyIncome Int?
   bloodGroup    String?
@@ -186,6 +187,7 @@ model Beneficiary {
   presentAddress   String?
   permanentAddress String?
   nationalId       String?           @unique
+  idDocumentType   String?           @default("NID")
   fatherOrHusbandName String?
   beneficiaryPhoto String?
   nidOrBirthCertificate String?

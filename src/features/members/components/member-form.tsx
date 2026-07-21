@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -56,7 +56,7 @@ const SectionCard = ({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
+            <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
               {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               <span className="sr-only">Toggle</span>
             </Button>
@@ -94,7 +94,10 @@ export function MemberForm({
   });
 
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const docInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
+  const nidFrontInputRef = useRef<HTMLInputElement>(null);
+  const nidBackInputRef = useRef<HTMLInputElement>(null);
+  const bcInputRef = useRef<HTMLInputElement>(null);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -132,16 +135,46 @@ export function MemberForm({
       referenceMobile: parsedReference.mobile || "",
       referenceRelation: parsedReference.relation || "",
       
+      idDocumentType: member?.idDocumentType || "NID",
       photoBase64: "",
-      idDocumentType: "NID",
-      idDocumentBase64: "",
+      signatureBase64: "",
+      nidFrontBase64: "",
+      nidBackBase64: "",
+      birthCertificateBase64: "",
     },
   });
 
-  const existingPhoto = member?.documents?.find((d: any) => d.title === "Member Photo")?.secureUrl;
-  const existingIdDoc = member?.documents?.find((d: any) => d.title === "National ID" || d.title === "Birth Certificate")?.secureUrl;
+  const getDoc = (title: string) => member?.documents?.find((d: any) => d.title === title);
+  
+  const existingPhoto = getDoc("Member Photo")?.secureUrl;
+  const existingSignature = getDoc("Signature")?.secureUrl;
+  const existingNidFront = getDoc("NID Front")?.secureUrl || (getDoc("National ID")?.secureUrl && form.watch("idDocumentType") === "NID" ? getDoc("National ID")?.secureUrl : null);
+  const existingNidBack = getDoc("NID Back")?.secureUrl;
+  const existingBC = getDoc("Birth Certificate")?.secureUrl;
 
   async function onSubmit(data: MemberFormValues) {
+    if (!data.signatureBase64 && !existingSignature) {
+      toast.error("স্বাক্ষর আপলোড করা আবশ্যক");
+      return;
+    }
+
+    // Validation for Identity Documents
+    if (data.idDocumentType === "NID") {
+      if (!data.nidFrontBase64 && !existingNidFront) {
+        toast.error("জাতীয় পরিচয়পত্রের সামনের অংশ আপলোড করা আবশ্যক");
+        return;
+      }
+      if (!data.nidBackBase64 && !existingNidBack) {
+        toast.error("জাতীয় পরিচয়পত্রের পেছনের অংশ আপলোড করা আবশ্যক");
+        return;
+      }
+    } else {
+      if (!data.birthCertificateBase64 && !existingBC) {
+        toast.error("জন্ম নিবন্ধন আপলোড করা আবশ্যক");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const res = mode === "edit" ? await updateMember(memberId!, data) : await createMember(data);
@@ -160,7 +193,7 @@ export function MemberForm({
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: "photoBase64" | "idDocumentBase64"
+    field: keyof MemberFormValues
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -170,6 +203,105 @@ export function MemberForm({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleDeleteDocument = async (title: string, fieldName: keyof MemberFormValues) => {
+    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি এই ডকুমেন্টটি মুছে ফেলতে চান?")) return;
+    
+    // Clear local form state
+    form.setValue(fieldName, "");
+
+    // If it's an existing document in edit mode, delete it via server action
+    if (mode === "edit" && memberId) {
+      try {
+        const res = await deleteMemberDocument(memberId, title);
+        if (res.success) {
+          toast.success("ডকুমেন্ট সফলভাবে মুছে ফেলা হয়েছে");
+          router.refresh(); // Refresh page to get updated DB state
+        } else {
+          toast.error(res.error || "ডকুমেন্ট মুছে ফেলতে ব্যর্থ হয়েছে");
+        }
+      } catch (e) {
+        toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
+      }
+    }
+  };
+
+  const UploadBox = ({ 
+    title, 
+    subtext, 
+    inputRef, 
+    field, 
+    existingUrl,
+    dbTitle
+  }: { 
+    title: string; 
+    subtext: string; 
+    inputRef: React.RefObject<HTMLInputElement>;
+    field: keyof MemberFormValues;
+    existingUrl?: string | null;
+    dbTitle: string;
+  }) => {
+    const watchVal = form.watch(field) as string;
+    const docObj = getDoc(dbTitle) || (dbTitle === "NID Front" && getDoc("National ID"));
+    
+    return (
+      <div className="space-y-4">
+        <h3 className="font-medium text-base mb-2">{title}</h3>
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          ref={inputRef}
+          onChange={(e) => handleFileChange(e, field)}
+        />
+        
+        {!watchVal && !existingUrl ? (
+          <div 
+            onClick={() => inputRef.current?.click()}
+            className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+          >
+            <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-sm font-medium">ছবি আপলোড করুন</p>
+            <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="relative border rounded-lg overflow-hidden h-48 w-full group bg-muted/10">
+              <Image 
+                src={watchVal || existingUrl!} 
+                alt="Preview" 
+                fill 
+                className="object-contain" 
+              />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => inputRef.current?.click()}
+                >
+                  Replace
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDeleteDocument(dbTitle, field)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+            {!watchVal && existingUrl && docObj && (
+              <div className="text-center text-xs text-muted-foreground">
+                Uploaded on: {formatDate(docObj.createdAt)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -498,110 +630,43 @@ export function MemberForm({
         {/* SECTION 5: ডকুমেন্টস */}
         <SectionCard title="৫. ডকুমেন্টস" isOpen={openSections.section5} onToggle={() => toggleSection("section5")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Photo Upload */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-base mb-2">সদস্যের ছবি</h3>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                ref={photoInputRef}
-                onChange={(e) => handleFileChange(e, "photoBase64")}
-              />
-              
-              {!form.watch("photoBase64") && !existingPhoto ? (
-                <div 
-                  onClick={() => photoInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                >
-                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
-                  <p className="text-sm font-medium">ছবি আপলোড করুন</p>
-                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG বা JPG</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="relative border rounded-lg overflow-hidden h-48 w-full md:w-48 mx-auto group">
-                    <Image 
-                      src={(form.watch("photoBase64") as string) || existingPhoto} 
-                      alt="Preview" 
-                      fill 
-                      className="object-cover" 
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => photoInputRef.current?.click()}
-                      >
-                        Replace
-                      </Button>
-                      {!form.watch("photoBase64") && existingPhoto && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={async () => {
-                            if (window.confirm("Are you sure you want to delete this document?")) {
-                              const doc = member.documents.find((d: any) => d.title === "Member Photo");
-                              if (doc) {
-                                const res = await deleteMemberDocument(doc.id);
-                                if (res.success) {
-                                  toast.success("Document deleted");
-                                  router.refresh();
-                                } else {
-                                  toast.error(res.error);
-                                }
-                              }
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                    </div>
-                    {form.watch("photoBase64") && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                        onClick={() => form.setValue("photoBase64", "")}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  {!form.watch("photoBase64") && existingPhoto && (
-                    <div className="text-center text-xs text-muted-foreground">
-                      Uploaded on: {formatDate(member.documents.find((d: any) => d.title === "Member Photo")?.createdAt)}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <UploadBox 
+              title="সদস্যের ছবি" 
+              subtext="JPEG, PNG বা JPG" 
+              inputRef={photoInputRef} 
+              field="photoBase64" 
+              dbTitle="Member Photo"
+              existingUrl={existingPhoto} 
+            />
+            
+            <UploadBox 
+              title="স্বাক্ষর *" 
+              subtext="JPEG, PNG বা JPG" 
+              inputRef={signatureInputRef} 
+              field="signatureBase64" 
+              dbTitle="Signature"
+              existingUrl={existingSignature} 
+            />
 
-            {/* Document Upload */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-base mb-2">জাতীয় পরিচয়পত্র অথবা জন্ম নিবন্ধন</h3>
-              
+            <div className="md:col-span-2 border-t pt-6 mt-2">
               <FormField
                 control={form.control}
                 name="idDocumentType"
                 render={({ field }) => (
-                  <FormItem className="mb-4">
+                  <FormItem className="mb-6">
+                    <FormLabel className="text-base font-semibold">পরিচয়পত্র ধরন</FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex space-x-4"
+                        onValueChange={(val) => field.onChange(val)}
+                        value={field.value}
+                        className="flex space-x-6 mt-2"
                       >
                         <FormItem className="flex items-center space-x-2 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="NID" />
                           </FormControl>
                           <FormLabel className="font-normal cursor-pointer">
-                            জাতীয় পরিচয়পত্র
+                            জাতীয় পরিচয়পত্র (NID)
                           </FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2 space-y-0">
@@ -617,86 +682,38 @@ export function MemberForm({
                   </FormItem>
                 )}
               />
-
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                ref={docInputRef}
-                onChange={(e) => handleFileChange(e, "idDocumentBase64")}
-              />
-              
-              {!form.watch("idDocumentBase64") && !existingIdDoc ? (
-                <div 
-                  onClick={() => docInputRef.current?.click()}
-                  className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                >
-                  <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
-                  <p className="text-sm font-medium">ডকুমেন্ট আপলোড করুন</p>
-                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG বা JPG</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="relative border rounded-lg overflow-hidden h-48 w-full group">
-                    <Image 
-                      src={(form.watch("idDocumentBase64") as string) || existingIdDoc} 
-                      alt="Preview" 
-                      fill 
-                      className="object-contain" 
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => docInputRef.current?.click()}
-                      >
-                        Replace
-                      </Button>
-                      {!form.watch("idDocumentBase64") && existingIdDoc && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={async () => {
-                            if (window.confirm("Are you sure you want to delete this document?")) {
-                              const doc = member.documents.find((d: any) => d.title === "National ID" || d.title === "Birth Certificate");
-                              if (doc) {
-                                const res = await deleteMemberDocument(doc.id);
-                                if (res.success) {
-                                  toast.success("Document deleted");
-                                  router.refresh();
-                                } else {
-                                  toast.error(res.error);
-                                }
-                              }
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                    </div>
-                    {form.watch("idDocumentBase64") && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                        onClick={() => form.setValue("idDocumentBase64", "")}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  {!form.watch("idDocumentBase64") && existingIdDoc && (
-                    <div className="text-center text-xs text-muted-foreground">
-                      Uploaded on: {formatDate(member.documents.find((d: any) => d.title === "National ID" || d.title === "Birth Certificate")?.createdAt)}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
+
+            {form.watch("idDocumentType") === "NID" ? (
+              <>
+                <UploadBox 
+                  title="জাতীয় পরিচয়পত্র (সামনের অংশ) *" 
+                  subtext="JPEG, PNG বা JPG" 
+                  inputRef={nidFrontInputRef} 
+                  field="nidFrontBase64" 
+                  dbTitle="NID Front"
+                  existingUrl={existingNidFront} 
+                />
+                <UploadBox 
+                  title="জাতীয় পরিচয়পত্র (পেছনের অংশ) *" 
+                  subtext="JPEG, PNG বা JPG" 
+                  inputRef={nidBackInputRef} 
+                  field="nidBackBase64" 
+                  dbTitle="NID Back"
+                  existingUrl={existingNidBack} 
+                />
+              </>
+            ) : (
+              <UploadBox 
+                title="জন্ম নিবন্ধন *" 
+                subtext="JPEG, PNG বা JPG" 
+                inputRef={bcInputRef} 
+                field="birthCertificateBase64" 
+                dbTitle="Birth Certificate"
+                existingUrl={existingBC} 
+              />
+            )}
+
           </div>
         </SectionCard>
 
