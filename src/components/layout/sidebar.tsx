@@ -111,10 +111,8 @@ const sidebarItems: MenuItem[] = [
     icon: Gift,
     submenu: [
       { name: "Add Grant", href: "/grants/new" },
-      { name: "All Grants", href: "/grants" },
       { name: "Manage Grants", href: "/grants/manage" },
       { name: "Grant Ledger", href: "/grants/ledger" },
-      { name: "Grant Documents", href: "/grants/documents" },
       { name: "Grant Reports", href: "/grants/reports" },
     ]
   },

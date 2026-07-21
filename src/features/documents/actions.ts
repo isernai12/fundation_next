@@ -119,3 +119,12 @@ export async function getAllDocuments() {
     orderBy: { createdAt: "desc" }
   })
 }
+
+export async function deleteDocumentById(id: string) {
+  try {
+    await prisma.document.delete({ where: { id } })
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

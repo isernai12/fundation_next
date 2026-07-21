@@ -59,40 +59,33 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            Grant No <ArrowUpDown className="ml-2 h-4 w-4" />
+            অনুদান নম্বর <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
     },
     {
       id: "beneficiary",
-      header: "Beneficiary",
+      header: "সুবিধাভোগী",
       cell: ({ row }) => `${row.original.beneficiary.fullName || 'নাম পাওয়া যায়নি'} (${row.original.beneficiary.beneficiaryId})`
     },
     {
       accessorKey: "purpose",
-      header: "Category",
+      header: "কারণ",
     },
     {
       accessorKey: "amount",
-      header: "Amount",
+      header: "পরিমাণ",
       cell: ({ row }) => `৳${formatCurrency(row.original.amount)}`
     },
     {
-      id: "fundingGroups",
-      header: "Funding Groups",
-      cell: ({ row }) => {
-        return row.original.allocations.map(a => a.fund.group?.code).filter(Boolean).join(", ") || "General Fund"
-      }
-    },
-    {
       accessorKey: "dateApproved",
-      header: "Date",
+      header: "তারিখ",
       cell: ({ row }) => row.original.dateApproved ? formatDate(row.original.dateApproved) : "N/A"
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: "অবস্থা",
       cell: ({ row }) => (
         <Badge variant={row.original.status === "PAID" ? "default" : "secondary"}>
           {row.original.status}
@@ -107,39 +100,41 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">মেনু খুলুন</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link href={`/grants/${grant.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> View Details
+                  <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
                 </Link>
               </DropdownMenuItem>
               {manageMode && (
                 <>
-                  <DropdownMenuItem>
-                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  <DropdownMenuItem asChild>
+                    <Link href={`/grants/${grant.id}/edit`}>
+                      <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Printer className="mr-2 h-4 w-4" /> Print
+                    <Printer className="mr-2 h-4 w-4" /> প্রিন্ট
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Archive className="mr-2 h-4 w-4" /> Archive
+                    <Archive className="mr-2 h-4 w-4" /> আর্কাইভ
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={async () => {
-                      if (confirm("Are you sure you want to delete this grant?")) {
+                      if (confirm("আপনি কি নিশ্চিত যে এই অনুদানটি মুছে ফেলতে চান?")) {
                         const res = await deleteGrant(grant.id)
-                        if (res.success) toast.success("Grant deleted")
-                        else toast.error(res.error || "Failed to delete grant")
+                        if (res.success) toast.success("অনুদান মুছে ফেলা হয়েছে")
+                        else toast.error(res.error || "অনুদান মুছতে ব্যর্থ হয়েছে")
                       }
                     }}
                   >
-                    <Trash className="mr-2 h-4 w-4" /> Delete
+                    <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
                   </DropdownMenuItem>
                 </>
               )}

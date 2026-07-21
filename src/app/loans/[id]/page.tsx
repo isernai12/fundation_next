@@ -96,15 +96,22 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৩. ঋণের বিবরণ</h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
+                <tr className="border-b">
+                  <td className="py-2 w-1/3 text-muted-foreground font-medium">ঋণের ধরন</td>
+                  <td className="py-2">{loan.loanType === "BUSINESS" ? "ব্যবসায়িক" : "অন্যান্য"}</td>
+                </tr>
                 {loan.loanType === "BUSINESS" ? (
                   <>
-                    <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">ব্যবসার ধরন</td><td className="py-2">{loan.businessType}</td></tr>
+                    <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ব্যবসার ধরন</td><td className="py-2">{loan.businessType}</td></tr>
                     <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঋণ গ্রহণের উদ্দেশ্য</td><td className="py-2">{loan.purpose}</td></tr>
                   </>
                 ) : (
-                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">কারণ</td><td className="py-2">{loan.purpose}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">কারণ</td><td className="py-2">{loan.purpose}</td></tr>
                 )}
                 <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঋণের পরিমাণ</td><td className="py-2 font-bold">৳{formatCurrency(loan.amount)}</td></tr>
+                {loan.notes && (
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মন্তব্য</td><td className="py-2 whitespace-pre-wrap">{loan.notes}</td></tr>
+                )}
               </tbody>
             </table>
           </section>
@@ -165,15 +172,6 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
               </tbody>
             </table>
           </section>
-
-          {loan.notes && (
-            <section>
-              <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">মন্তব্য</h2>
-              <div className="p-3 bg-muted/10 rounded-md border text-sm whitespace-pre-wrap">
-                {loan.notes}
-              </div>
-            </section>
-          )}
 
         </div>
       </div>

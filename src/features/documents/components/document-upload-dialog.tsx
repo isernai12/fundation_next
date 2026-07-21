@@ -40,13 +40,13 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!file) return toast.error("Please select a file")
-    if (!title) return toast.error("Please enter a title")
+    if (!file) return toast.error("দয়া করে একটি ফাইল নির্বাচন করুন")
+    if (!title) return toast.error("দয়া করে একটি শিরোনাম প্রদান করুন")
 
     const formData = new FormData()
     formData.append("file", file)
     formData.append("title", title)
-    formData.append("categoryId", categoryId)
+    formData.append("categoryId", categoryId === "none" ? "" : categoryId)
     formData.append("targetType", targetType)
     formData.append("entityId", entityId)
     formData.append("description", description)
@@ -56,7 +56,7 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
     try {
       const res = await uploadDocument(formData)
       if (res.success) {
-        toast.success("Document uploaded successfully")
+        toast.success("ডকুমেন্ট সফলভাবে আপলোড করা হয়েছে")
         setOpen(false)
         setFile(null)
         setTitle("")
@@ -76,16 +76,16 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button><UploadCloud className="mr-2 h-4 w-4" /> Upload Document</Button>}
+        {trigger || <Button><UploadCloud className="mr-2 h-4 w-4" /> ডকুমেন্ট আপলোড</Button>}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
+          <DialogTitle>ডকুমেন্ট আপলোড</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label>File (PDF, JPG, PNG, WEBP - Max 5MB)</Label>
+            <Label>ফাইল (PDF, JPG, PNG, WEBP - সর্বোচ্চ ৫ MB)</Label>
             <Input 
               type="file" 
               accept=".pdf,image/jpeg,image/png,image/webp"
@@ -94,16 +94,16 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
           </div>
 
           <div className="space-y-2">
-            <Label>Document Title *</Label>
+            <Label>ডকুমেন্টের শিরোনাম *</Label>
             <Input value={title} onChange={e => setTitle(e.target.value)} required />
           </div>
 
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>বিভাগ</Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="বিভাগ নির্বাচন করুন" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="none">কোনটি নয়</SelectItem>
                 {categories.map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
@@ -112,18 +112,18 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
           </div>
 
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>বিবরণ</Label>
             <Input value={description} onChange={e => setDescription(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Remarks</Label>
+            <Label>মন্তব্য</Label>
             <Input value={remarks} onChange={e => setRemarks(e.target.value)} />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isUploading}>{isUploading ? "Uploading..." : "Upload"}</Button>
+            <Button variant="outline" type="button" onClick={() => setOpen(false)}>বাতিল</Button>
+            <Button type="submit" disabled={isUploading}>{isUploading ? "আপলোড হচ্ছে..." : "আপলোড"}</Button>
           </div>
         </form>
       </DialogContent>
