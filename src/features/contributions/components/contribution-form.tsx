@@ -1,5 +1,4 @@
 "use client"
-import { formatMonth } from "@/lib/format"
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -15,8 +14,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createContribution } from "../actions"
 import { contributionSchema, type ContributionFormValues } from "../schema"
+import { MemberCombobox } from "@/components/member-combobox"
 
-export function ContributionForm({ members }: { members: { id: string; memberId: string; fullName: string | null; group: { code: string } | null }[] }) {
+const bengaliMonths = [
+  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+];
+
+export function ContributionForm({ members }: { members: { id: string; memberId: string; fullName: string | null; group: { name: string; code: string } | null }[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -42,40 +47,62 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
     setLoading(true)
     const res = await createContribution(data)
     if (res.success) {
-      toast.success("Contribution recorded successfully")
+      toast.success("চাঁদার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে")
       router.push("/contributions")
     } else {
-      toast.error(res.error)
+      toast.error(res.error || "সংরক্ষণ করতে ব্যর্থ হয়েছে")
     }
     setLoading(false)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add Contribution</CardTitle>
-        <CardDescription>Record a new member contribution</CardDescription>
+    <Card className="max-w-5xl mx-auto shadow-sm border mt-4">
+      <CardHeader className="border-b mb-6 pb-4">
+        <CardTitle className="text-xl font-bold">চাঁদা গ্রহণ</CardTitle>
+        <CardDescription>সদস্যের নতুন চাঁদার তথ্য এন্ট্রি করুন</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
               <FormField
                 control={form.control}
                 name="memberId"
                 render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>সদস্য *</FormLabel>
+                    <FormControl>
+                      <MemberCombobox
+                        members={members}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="month"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Member</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>মাস</FormLabel>
+                    <Select 
+                      onValueChange={v => field.onChange(parseInt(v) || 0)} 
+                      defaultValue={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select member" />
+                          <SelectValue placeholder="মাস নির্বাচন করুন" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {members.map(m => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.memberId} - {m.fullName || 'নাম পাওয়া যায়নি'} ({m.group?.code})
+                        {Array.from({length: 12}, (_, i) => i + 1).map(m => (
+                          <SelectItem key={m} value={m.toString()}>
+                            {bengaliMonths[m - 1]}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -84,58 +111,34 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-2 gap-2">
-                <FormField
-                  control={form.control}
-                  name="month"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Month</FormLabel>
-                      <Select 
-                        onValueChange={v => field.onChange(parseInt(v))} 
-                        defaultValue={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Month" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Array.from({length: 12}, (_, i) => i + 1).map(m => (
-                            <SelectItem key={m} value={m.toString()}>
-                              {formatMonth(m - 1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Year</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="year"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>বছর</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} value={field.value ?? ""} onChange={e => {
+                        const val = parseInt(e.target.value);
+                        field.onChange(isNaN(val) ? "" : val);
+                      }} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>চাঁদার পরিমাণ (৳)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                      <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => {
+                        const val = parseFloat(e.target.value);
+                        field.onChange(isNaN(val) ? "" : val);
+                      }} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,7 +150,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 name="paymentDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Date</FormLabel>
+                    <FormLabel>জমাদানের তারিখ</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -161,17 +164,17 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 name="paymentMethod"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
+                    <FormLabel>পরিশোধের মাধ্যম</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select method" />
+                          <SelectValue placeholder="মাধ্যম নির্বাচন করুন" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="CASH">Cash</SelectItem>
-                        <SelectItem value="BANK">Bank Transfer</SelectItem>
-                        <SelectItem value="MOBILE_MONEY">Mobile Money</SelectItem>
+                        <SelectItem value="CASH">ক্যাশ (নগদ)</SelectItem>
+                        <SelectItem value="BANK">ব্যাংক ট্রান্সফার</SelectItem>
+                        <SelectItem value="MOBILE_MONEY">মোবাইল ব্যাংকিং</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -184,9 +187,9 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 name="referenceNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Transaction Reference (Optional)</FormLabel>
+                    <FormLabel>ট্রানজেকশন রেফারেন্স (ঐচ্ছিক)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Receipt or Tx ID" {...field} />
+                      <Input placeholder="রসিদ বা ট্রানজেকশন আইডি" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -198,17 +201,16 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>অবস্থা</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="অবস্থা নির্বাচন করুন" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PAID">Paid</SelectItem>
-                        <SelectItem value="PARTIAL">Partial</SelectItem>
-                        <SelectItem value="PENDING">Pending (Due)</SelectItem>
+                        <SelectItem value="PAID">পরিশোধিত</SelectItem>
+                        <SelectItem value="PENDING">বকেয়া</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -222,9 +224,9 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Remarks</FormLabel>
+                  <FormLabel>মন্তব্য</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Any additional notes..." {...field} />
+                    <Textarea placeholder="অতিরিক্ত কোনো মন্তব্য..." className="resize-none" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -235,7 +237,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
               control={form.control}
               name="isAdditional"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/20">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -244,22 +246,22 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      Additional Contribution
+                      অতিরিক্ত চাঁদা
                     </FormLabel>
                     <CardDescription>
-                      Check this if this is an extra contribution for the same month (e.g. paying fines or extra savings).
+                      একই মাসের জন্য অতিরিক্ত কোনো চাঁদা (যেমন জরিমানা বা বিশেষ জমা) হলে এটি নির্বাচন করুন।
                     </CardDescription>
                   </div>
                 </FormItem>
               )}
             />
 
-            <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
-                Reset
+            <div className="flex justify-end space-x-4 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={() => router.push("/contributions")}>
+                বাতিল
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save Contribution"}
+                {loading ? "সংরক্ষণ করা হচ্ছে..." : "সংরক্ষণ করুন"}
               </Button>
             </div>
           </form>

@@ -97,32 +97,32 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button variant="default">Disburse Loan</Button>}
+        {trigger || <Button variant="default">ঋণ বিতরণ</Button>}
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Disburse Loan & Fund Allocation Engine</DialogTitle>
+          <DialogTitle>ঋণ বিতরণ ও তহবিল বরাদ্দকরণ</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="flex justify-between items-center bg-muted p-4 rounded-md">
             <div>
-              <p className="text-sm text-muted-foreground">Loan Amount</p>
+              <p className="text-sm text-muted-foreground">ঋণের পরিমাণ</p>
               <p className="text-2xl font-bold">৳{formatCurrency(loanAmount)}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Remaining to Allocate</p>
+              <p className="text-sm text-muted-foreground">বাকি বরাদ্দ</p>
               <p className={`text-2xl font-bold ${remaining === 0 ? "text-green-500" : remaining < 0 ? "text-red-500" : ""}`}>
-                ${(remaining).toFixed(2)}
+                ৳{(remaining).toFixed(2)}
               </p>
             </div>
           </div>
 
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Source Allocations</h3>
+            <h3 className="font-semibold">বরাদ্দের উৎস</h3>
             <div className="space-x-2">
-              <Button variant="outline" size="sm" onClick={handleAutoAllocate}>Auto Allocate</Button>
-              <Button variant="outline" size="sm" onClick={handleAddAllocation}>+ Add Source</Button>
+              <Button variant="outline" size="sm" onClick={handleAutoAllocate}>অটো বরাদ্দ</Button>
+              <Button variant="outline" size="sm" onClick={handleAddAllocation}>+ উৎস যুক্ত করুন</Button>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
               <div key={idx} className="flex space-x-2 items-center">
                 <Select value={alloc.fundId} onValueChange={(val) => handleUpdateAllocation(idx, "fundId", val)}>
                   <SelectTrigger className="w-[300px]">
-                    <SelectValue placeholder="Select Source Fund" />
+                    <SelectValue placeholder="উৎস তহবিল নির্বাচন করুন" />
                   </SelectTrigger>
                   <SelectContent>
                     {groupFunds.map(f => (
@@ -144,8 +144,8 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
                   <Input 
                     type="number" 
                     className="pl-7" 
-                    value={alloc.amount ? alloc.amount : ""} 
-                    onChange={(e) => handleUpdateAllocation(idx, "amount", Number(e.target.value))} 
+                    value={alloc.amount || ""} 
+                    onChange={(e) => { const v = parseFloat(e.target.value); handleUpdateAllocation(idx, "amount", isNaN(v) ? 0 : v) }} 
                   />
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => handleRemoveAllocation(idx)}>
@@ -154,13 +154,13 @@ export function LoanDisbursementDialog({ loanId, loanAmount, funds, trigger }: L
               </div>
             ))}
             {allocations.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">No allocations added. Click Add Source or Auto Allocate.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">কোনো বরাদ্দ যুক্ত করা হয়নি। উৎস যুক্ত করুন বা অটো বরাদ্দ ক্লিক করুন।</p>
             )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={remaining !== 0}>Confirm Disbursement</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>বাতিল করুন</Button>
+            <Button onClick={handleSubmit} disabled={remaining !== 0}>বিতরণ নিশ্চিত করুন</Button>
           </div>
         </div>
       </DialogContent>

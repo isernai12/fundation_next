@@ -97,9 +97,8 @@ const sidebarItems: MenuItem[] = [
     href: "/loans", 
     icon: PiggyBank,
     submenu: [
-      { name: "Add Loan", href: "/loans/new" },
-      { name: "All Loans", href: "/loans" },
-      { name: "Manage Loans", href: "/loans/manage" },
+      { name: "নতুন ঋণ", href: "/loans/new" },
+      { name: "ঋণ ব্যবস্থাপনা", href: "/loans" },
       { name: "Loan Repayments", href: "/loans/repayments" },
       { name: "Loan Installments", href: "/loans/installments" },
       { name: "Loan Ledger", href: "/loans/ledger" },

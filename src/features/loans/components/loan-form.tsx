@@ -2,17 +2,17 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loanSchema, type LoanFormValues } from "../schema"
-import { createFullLoan } from "../actions"
+import { createLoanRequest, editLoanRequest } from "../actions"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,56 +28,52 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Beneficiary, Fund, Group } from "@prisma/client"
-import { Trash2, Plus } from "lucide-react"
+import { Beneficiary } from "@prisma/client"
+import { MemberCombobox } from "@/components/member-combobox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface LoanFormProps {
   beneficiaries: Beneficiary[]
-  funds: (Fund & { group: Group | null })[]
+  initialData?: LoanFormValues & { id: string }
 }
 
-export function LoanForm({ beneficiaries, funds }: LoanFormProps) {
+export function LoanForm({ beneficiaries, initialData }: LoanFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
+  const isEditMode = !!initialData
+
   const form = useForm<LoanFormValues>({
-    resolver: zodResolver(loanSchema),
-    defaultValues: {
+    resolver: zodResolver(loanSchema as any),
+    defaultValues: initialData || {
       beneficiaryId: "",
+      loanType: "OTHER", // Let's use OTHER as a default if not set
       amount: 0,
       purpose: "",
-      installmentCount: 1,
+      businessType: "",
       notes: "",
-      allocations: [{ fundId: "", amount: 0 }],
-      dateApproved: new Date(),
     },
   })
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "allocations",
-  })
-
-  const watchedAmount = form.watch("amount")
-  const watchedInstallmentCount = form.watch("installmentCount")
-  const watchedAllocations = form.watch("allocations")
-
-  const totalAllocated = watchedAllocations.reduce((sum, a) => sum + (a.amount || 0), 0)
-  const installmentAmount = watchedAmount && watchedInstallmentCount ? Math.floor(watchedAmount / watchedInstallmentCount) : 0
+  const watchedLoanType = form.watch("loanType")
+  const watchedBeneficiaryId = form.watch("beneficiaryId")
+  const selectedBeneficiary = beneficiaries.find(b => b.id === watchedBeneficiaryId)
 
   async function onSubmit(data: LoanFormValues) {
-    if (totalAllocated !== data.amount) {
-      toast.error(`Total allocated (${totalAllocated}) must equal loan amount (${data.amount})`)
-      return
-    }
-
     setIsLoading(true)
-    const result = await createFullLoan(data)
+    const result = isEditMode && initialData?.id
+      ? await editLoanRequest(initialData.id, data)
+      : await createLoanRequest(data)
+    
     setIsLoading(false)
 
     if (result.success) {
-      toast.success("Loan created, approved and disbursed successfully!")
-      router.push("/loans")
+      toast.success(isEditMode ? "ঋণ সফলভাবে সংশোধন করা হয়েছে!" : "নতুন ঋণ সফলভাবে তৈরি করা হয়েছে!")
+      if (isEditMode && initialData?.id) {
+        router.push(`/loans/${initialData.id}`)
+      } else {
+        router.push("/loans")
+      }
       router.refresh()
     } else {
       toast.error(result.error)
@@ -88,208 +84,170 @@ export function LoanForm({ beneficiaries, funds }: LoanFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         
-        {/* 1. Beneficiary */}
+        {/* ১. সুবিধাভোগী নির্বাচন */}
         <Card>
           <CardHeader>
-            <CardTitle>1. Beneficiary</CardTitle>
-            <CardDescription>Select the beneficiary receiving the loan.</CardDescription>
+            <CardTitle>১. সুবিধাভোগী নির্বাচন</CardTitle>
+            <CardDescription>ঋণ গ্রহণের জন্য সুবিধাভোগী নির্বাচন করুন।</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="beneficiaryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Beneficiary</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a beneficiary" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {beneficiaries.map(b => (
-                        <SelectItem key={b.id} value={b.id}>{b.fullName || 'নাম পাওয়া যায়নি'} </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        {/* 2. Loan Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>2. Loan Info</CardTitle>
-            <CardDescription>Enter the loan details.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Amount</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="purpose"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Purpose</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. Education, Medical" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormLabel>সুবিধাভোগী *</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Any additional notes" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        {/* 3. Funding Source */}
-        <Card>
-          <CardHeader>
-            <CardTitle>3. Funding Source</CardTitle>
-            <CardDescription>Allocate funds from single or multi-group sources. Total must equal loan amount ({watchedAmount || 0}). Total Allocated: {totalAllocated}.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex gap-4 items-end">
-                <FormField
-                  control={form.control}
-                  name={`allocations.${index}.fundId`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Fund</FormLabel>
-                      <Select onValueChange={f.onChange} defaultValue={f.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a fund" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {funds.map(fund => (
-                            <SelectItem key={fund.id} value={fund.id}>
-                              {fund.group ? `${fund.group.name} (${fund.name})` : fund.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`allocations.${index}.amount`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Amount</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...f}
-                          onChange={e => f.onChange(parseInt(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => append({ fundId: "", amount: 0 })}
-            >
-              <Plus className="h-4 w-4 mr-2" /> Add Funding Source
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* 4. Repayment Plan */}
-        <Card>
-          <CardHeader>
-            <CardTitle>4. Repayment Plan (0% Interest)</CardTitle>
-            <CardDescription>Set the number of installments. The system will calculate monthly payments.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="installmentCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Monthly Installments</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                    <MemberCombobox
+                      members={beneficiaries}
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {watchedAmount > 0 && watchedInstallmentCount > 0 && (
-              <div className="rounded-md bg-muted p-4">
-                <p className="text-sm font-medium">Estimated Installment Details:</p>
-                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
-                  <li>Total Amount: {watchedAmount}</li>
-                  <li>Number of Installments: {watchedInstallmentCount}</li>
-                  <li>Installment Amount: ~{installmentAmount} / month</li>
-                </ul>
+            {selectedBeneficiary && (
+              <div className="bg-muted p-4 rounded-md space-y-2">
+                <div className="flex gap-2"><span className="font-semibold w-32">নাম:</span> <span>{selectedBeneficiary.fullName}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">সুবিধাভোগী আইডি:</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">মোবাইল নম্বর:</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* 5. Approval & Documents are simplified since it auto-approves and disburses */}
+        {/* ২. ঋণের তথ্য */}
         <Card>
           <CardHeader>
-            <CardTitle>5. Approval & Submission</CardTitle>
-            <CardDescription>Saving this will create the loan, allocate funds, reduce group funds in ledger, and mark as active.</CardDescription>
+            <CardTitle>২. ঋণের তথ্য</CardTitle>
+            <CardDescription>ঋণের পরিমাণ ও কারণ উল্লেখ করুন।</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button type="submit" disabled={isLoading || totalAllocated !== watchedAmount}>
-              {isLoading ? "Processing..." : "Create & Disburse Loan"}
-            </Button>
+          <CardContent className="space-y-6">
+            <FormField
+              control={form.control}
+              name="loanType"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>ঋণের কারণ *</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="BUSINESS" />
+                        </FormControl>
+                        <FormLabel className="font-normal">ব্যবসা</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="OTHER" />
+                        </FormControl>
+                        <FormLabel className="font-normal">অন্যান্য</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {watchedLoanType === "BUSINESS" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="businessType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ব্যবসার ধরন *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="যেমন: মুদি দোকান, খামার" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="purpose"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ঋণ গ্রহণের উদ্দেশ্য *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="যেমন: মালামাল ক্রয়" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {watchedLoanType === "OTHER" && (
+                <FormField
+                  control={form.control}
+                  name="purpose"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>কারণ / Reason *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="যেমন: চিকিৎসা, শিক্ষা" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ঋণের পরিমাণ (৳) *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>মন্তব্য (ঐচ্ছিক)</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="অতিরিক্ত কোনো তথ্য থাকলে লিখুন" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
+
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
+            বাতিল করুন
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "প্রসেসিং..." : (isEditMode ? "সংরক্ষণ করুন" : "ঋণ আবেদন করুন")}
+          </Button>
+        </div>
       </form>
     </Form>
   )

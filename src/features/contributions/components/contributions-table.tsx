@@ -143,7 +143,7 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("status") === "PAID" ? "default" : row.getValue("status") === "PARTIAL" ? "secondary" : "destructive"}>
+        <Badge variant={row.getValue("status") === "PAID" ? "default" : "destructive"}>
           {row.getValue("status")}
         </Badge>
       ),

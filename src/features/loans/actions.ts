@@ -13,6 +13,7 @@ export async function getLoans() {
       beneficiary: true,
       allocations: { include: { fund: { include: { group: true } } } },
       repayments: true,
+      installments: true,
     }
   })
 }
@@ -34,23 +35,25 @@ async function generateLoanNumber() {
   const year = new Date().getFullYear()
   return `L-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
-
 export async function createLoanRequest(data: LoanFormValues) {
   const parsed = loanSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   const pd = parsed.data
 
   const loanNumber = await generateLoanNumber()
-  const installmentAmount = Math.floor(pd.amount / pd.installmentCount) // Simple division for zero interest
+  const installmentCount = 1
+  const installmentAmount = pd.amount
 
   try {
     const loan = await prisma.loan.create({
       data: {
         loanNumber,
         beneficiaryId: pd.beneficiaryId,
+        loanType: pd.loanType,
+        businessType: pd.loanType === "BUSINESS" ? pd.businessType : null,
         amount: pd.amount,
-        purpose: pd.purpose,
-        installmentCount: pd.installmentCount,
+        purpose: pd.purpose || "",
+        installmentCount,
         installmentAmount,
         notes: pd.notes,
         status: "PENDING",
@@ -58,22 +61,46 @@ export async function createLoanRequest(data: LoanFormValues) {
     })
     
     // Create Installment Schedule (Draft)
-    const installments = Array.from({ length: pd.installmentCount }).map((_, i) => {
-      const dueDate = new Date()
-      dueDate.setMonth(dueDate.getMonth() + i + 1)
-      return {
+    const dueDate = new Date()
+    dueDate.setMonth(dueDate.getMonth() + 1)
+    
+    await prisma.loanInstallment.create({
+      data: {
         loanId: loan.id,
-        amount: (i === pd.installmentCount - 1) ? (pd.amount - (installmentAmount * (pd.installmentCount - 1))) : installmentAmount,
+        amount: installmentAmount,
         dueDate,
       }
     })
-    
-    await prisma.loanInstallment.createMany({ data: installments })
 
     revalidatePath("/loans")
     return { success: true, data: loan }
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to create loan" }
+  }
+}
+
+export async function editLoanRequest(id: string, data: LoanFormValues) {
+  const parsed = loanSchema.safeParse(data)
+  if (!parsed.success) return { success: false, error: "Invalid data" }
+  const pd = parsed.data
+
+  try {
+    const loan = await prisma.loan.update({
+      where: { id },
+      data: {
+        beneficiaryId: pd.beneficiaryId,
+        loanType: pd.loanType,
+        businessType: pd.loanType === "BUSINESS" ? pd.businessType : null,
+        amount: pd.amount,
+        purpose: pd.purpose || "",
+        notes: pd.notes,
+      }
+    })
+    revalidatePath(`/loans/${id}`)
+    revalidatePath("/loans")
+    return { success: true, data: loan }
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to update loan" }
   }
 }
 
@@ -205,85 +232,6 @@ export async function repayLoan(loanId: string, amount: number, paymentMethod: s
     revalidatePath(`/loans/${loanId}`)
     return { success: true }
   })
-}
-
-export async function createFullLoan(data: LoanFormValues) {
-  const parsed = loanSchema.safeParse(data)
-  if (!parsed.success) return { success: false, error: "Invalid data" }
-  const pd = parsed.data
-
-  const loanNumber = await generateLoanNumber()
-  const installmentAmount = Math.floor(pd.amount / pd.installmentCount)
-
-  try {
-    const loan = await prisma.$transaction(async (tx) => {
-      const loan = await tx.loan.create({
-        data: {
-          loanNumber,
-          beneficiaryId: pd.beneficiaryId,
-          amount: pd.amount,
-          purpose: pd.purpose,
-          installmentCount: pd.installmentCount,
-          installmentAmount,
-          notes: pd.notes,
-          status: "APPROVED",
-          dateApproved: pd.dateApproved || new Date(),
-        }
-      })
-
-      // Create Installment Schedule (Draft)
-      const installments = Array.from({ length: pd.installmentCount }).map((_, i) => {
-        const dueDate = new Date()
-        dueDate.setMonth(dueDate.getMonth() + i + 1)
-        return {
-          loanId: loan.id,
-          amount: (i === pd.installmentCount - 1) ? (pd.amount - (installmentAmount * (pd.installmentCount - 1))) : installmentAmount,
-          dueDate,
-        }
-      })
-      await tx.loanInstallment.createMany({ data: installments })
-
-      // Create Allocations
-      await tx.fundAllocation.createMany({
-        data: pd.allocations.map(a => ({
-          fundId: a.fundId,
-          targetType: "LOAN",
-          loanId: loan.id,
-          amount: a.amount
-        }))
-      })
-
-      // Fetch General Fund
-      const generalFund = await tx.fund.findFirst({ where: { groupId: null } })
-      if (!generalFund) throw new Error("General fund not found")
-
-      // Ledger Entries for Disbursement
-      const entries = [
-        { fundId: generalFund.id, isCredit: true, amount: pd.amount }
-      ]
-      for (const alloc of pd.allocations) {
-        entries.push({ fundId: alloc.fundId, isCredit: false, amount: alloc.amount })
-      }
-
-      await LedgerEngine.createTransaction({
-        date: new Date(),
-        type: "LOAN",
-        referenceId: loan.loanNumber,
-        notes: `Disbursement for Loan ${loan.loanNumber}`,
-        entries
-      }, tx)
-
-      return await tx.loan.update({
-        where: { id: loan.id },
-        data: { status: "ACTIVE", disbursedDate: new Date() }
-      })
-    })
-
-    revalidatePath("/loans")
-    return { success: true, data: loan }
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to create and disburse loan" }
-  }
 }
 
 export async function deleteLoanAction(id: string) {

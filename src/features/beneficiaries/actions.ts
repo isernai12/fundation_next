@@ -74,7 +74,7 @@ async function handleDocumentUpload(
         mimeType: "image/jpeg",
         sizeBytes: uploaded.bytes || 0,
         targetType: "BENEFICIARY",
-        beneficiaryId,
+        beneficiary: { connect: { id: beneficiaryId } },
       }
     });
   }

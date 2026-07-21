@@ -73,7 +73,7 @@ async function handleDocumentUpload(
         mimeType: "image/jpeg",
         sizeBytes: uploaded.bytes || 0,
         targetType: "MEMBER",
-        memberId,
+        member: { connect: { id: memberId } },
       }
     });
   }
@@ -176,7 +176,10 @@ export async function createMember(data: MemberFormValues) {
 
 export async function updateMember(id: string, data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
-  if (!parsed.success) return { success: false, error: "ফর্মের তথ্য সঠিক নয়" }
+  if (!parsed.success) {
+    console.error("Member update validation failed:", parsed.error);
+    return { success: false, error: "ফর্মের তথ্য সঠিক নয়" }
+  }
   const pd = parsed.data
 
   if (pd.nationalId) {
@@ -257,6 +260,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
     revalidatePath(`/members/${id}/edit`)
     return { success: true, data: member }
   } catch (error: any) {
+    console.error("Prisma error in updateMember:", error);
     return { success: false, error: error.message || "সদস্য আপডেট করতে ব্যর্থ হয়েছে" }
   }
 }

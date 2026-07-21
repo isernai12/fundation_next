@@ -171,8 +171,8 @@ export function RepaymentsTable({ repayments, activeLoans }: { repayments: any[]
                     <Input 
                       type="number" 
                       step="0.01" 
-                      value={amount ? amount : ""} 
-                      onChange={e => setAmount(Number(e.target.value))} 
+                      value={amount || ""} 
+                      onChange={e => { const v = parseFloat(e.target.value); setAmount(isNaN(v) ? 0 : v); }} 
                     />
                   </div>
 

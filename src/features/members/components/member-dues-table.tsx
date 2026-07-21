@@ -127,7 +127,6 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
         const status = row.getValue("status") as string
         let variant: "default" | "secondary" | "destructive" | "outline" = "default"
         if (status === "Paid" || status === "Advance") variant = "default"
-        if (status === "Partial") variant = "secondary"
         if (status === "Due") variant = "destructive"
         return <Badge variant={variant}>{status}</Badge>
       },
@@ -218,7 +217,6 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="Paid">Paid</SelectItem>
             <SelectItem value="Due">Due</SelectItem>
-            <SelectItem value="Partial">Partial</SelectItem>
             <SelectItem value="Advance">Advance</SelectItem>
           </SelectContent>
         </Select>

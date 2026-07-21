@@ -109,8 +109,7 @@ export async function getMemberDuesList() {
     let status = "Paid";
 
     if (currentDue > 0) {
-      if (totalPaid > 0) status = "Partial";
-      else status = "Due";
+      status = "Due";
     } else if (currentDue < 0) {
       advanceBalance = Math.abs(currentDue);
       currentDue = 0;

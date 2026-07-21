@@ -68,7 +68,7 @@ export async function createGrant(data: GrantFormValues) {
       await LedgerEngine.createTransaction({
         date: new Date(pd.grantDate),
         type: "GRANT",
-        referenceId: pd.referenceNumber,
+        referenceId: grantNumber,
         notes: pd.remarks,
         createdBy: pd.approvedBy,
         entries: ledgerEntries

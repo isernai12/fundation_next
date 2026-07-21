@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache"
 
 export async function createContribution(data: ContributionFormValues) {
   const parsed = contributionSchema.safeParse(data)
-  if (!parsed.success) return { success: false, error: "Invalid data" }
+  if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" }
   
   const pd = parsed.data
 
@@ -15,7 +15,7 @@ export async function createContribution(data: ContributionFormValues) {
     return await prisma.$transaction(async (tx) => {
       // 1. Get member to ensure they exist and get their group
       const member = await tx.member.findUnique({ where: { id: pd.memberId } })
-      if (!member) throw new Error("Member not found")
+      if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি")
 
       let monthlyContribution = null;
 
@@ -32,13 +32,13 @@ export async function createContribution(data: ContributionFormValues) {
         
         if (existing) {
           if (existing.status === "PAID") {
-            throw new Error("This contribution is already fully paid. Use 'Additional Payment' for extra contributions.")
+            throw new Error("এই চাঁদাটি ইতিমধ্যেই সম্পূর্ণ পরিশোধিত। অতিরিক্ত চাঁদার জন্য 'অতিরিক্ত চাঁদা' ব্যবহার করুন।")
           }
-          // If it's PENDING or PARTIAL, we can update it
+          // If it's PENDING, we can update it
           monthlyContribution = await tx.monthlyContribution.update({
             where: { id: existing.id },
             data: {
-              status: pd.status, // Update to PAID or PARTIAL
+              status: pd.status, // Update to PAID
               // Optionally update expectedAmount if needed, but usually we just add payments
             }
           })
@@ -59,14 +59,14 @@ export async function createContribution(data: ContributionFormValues) {
         })
       }
 
-      // 4. Only process Ledger and Payment if Status is PAID or PARTIAL
-      if (pd.status === "PAID" || pd.status === "PARTIAL") {
+      // 4. Only process Ledger and Payment if Status is PAID
+      if (pd.status === "PAID") {
         // Prevent duplicate payment processing if they submit the exact same reference by accident
         if (pd.referenceNumber) {
           const existingPayment = await tx.contributionPayment.findFirst({
             where: { referenceNumber: pd.referenceNumber }
           })
-          if (existingPayment) throw new Error("A payment with this reference number has already been recorded.")
+          if (existingPayment) throw new Error("এই রেফারেন্স নম্বর দিয়ে ইতিমধ্যে একটি পেমেন্ট রেকর্ড করা হয়েছে।")
         }
 
         // Prepare Funds
@@ -105,7 +105,7 @@ export async function createContribution(data: ContributionFormValues) {
       return { success: true, error: undefined }
     })
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed to process contribution" }
+    return { success: false, error: error instanceof Error ? error.message : "চাঁদা প্রক্রিয়া করতে ব্যর্থ হয়েছে" }
   }
 }
 
@@ -123,7 +123,7 @@ export async function getContributions() {
 
 export async function updateContribution(id: string, data: ContributionFormValues) {
   const parsed = contributionSchema.safeParse(data);
-  if (!parsed.success) return { success: false, error: "Invalid data" };
+  if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" };
   const pd = parsed.data;
 
   try {
@@ -132,10 +132,10 @@ export async function updateContribution(id: string, data: ContributionFormValue
         where: { id },
         include: { payments: true }
       });
-      if (!contribution) throw new Error("Contribution not found");
+      if (!contribution) throw new Error("চাঁদার তথ্য খুঁজে পাওয়া যায়নি");
 
       const member = await tx.member.findUnique({ where: { id: pd.memberId } });
-      if (!member) throw new Error("Member not found");
+      if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি");
 
       // Update Monthly Contribution
       const updatedContribution = await tx.monthlyContribution.update({
@@ -152,15 +152,15 @@ export async function updateContribution(id: string, data: ContributionFormValue
 
       // Handle payments & ledger updates
       // Note: We assume only 1 payment for simplicity in this MVP context unless multiple exist.
-      // If payment exists, update it. If not, and status is PAID/PARTIAL, create it.
-      if (pd.status === "PAID" || pd.status === "PARTIAL") {
+      // If payment exists, update it. If not, and status is PAID, create it.
+      if (pd.status === "PAID") {
         const existingPayment = contribution.payments[0];
         
         if (existingPayment) {
           // Check if reference changed and already exists elsewhere
           if (pd.referenceNumber && pd.referenceNumber !== existingPayment.referenceNumber) {
              const refExists = await tx.contributionPayment.findFirst({ where: { referenceNumber: pd.referenceNumber, id: { not: existingPayment.id } }});
-             if (refExists) throw new Error("Reference number already in use.");
+             if (refExists) throw new Error("রেফারেন্স নম্বরটি ইতিমধ্যে ব্যবহৃত হচ্ছে।");
           }
 
           const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(member.groupId, tx);
@@ -236,7 +236,7 @@ export async function updateContribution(id: string, data: ContributionFormValue
       return { success: true, error: undefined };
     });
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to update contribution" };
+    return { success: false, error: error.message || "চাঁদা আপডেট করতে ব্যর্থ হয়েছে" };
   }
 }
 
@@ -247,7 +247,7 @@ export async function deleteContribution(id: string) {
         where: { id },
         include: { payments: true }
       });
-      if (!contribution) throw new Error("Contribution not found");
+      if (!contribution) throw new Error("চাঁদার তথ্য খুঁজে পাওয়া যায়নি");
 
       for (const payment of contribution.payments) {
         await tx.contributionPayment.delete({ where: { id: payment.id } });
@@ -261,6 +261,6 @@ export async function deleteContribution(id: string) {
       return { success: true, error: undefined };
     });
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to delete contribution" };
+    return { success: false, error: error.message || "চাঁদা মুছে ফেলতে ব্যর্থ হয়েছে" };
   }
 }

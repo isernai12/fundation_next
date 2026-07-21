@@ -29,7 +29,6 @@ enum GroupStatus {
 
 enum ContributionStatus {
   PENDING
-  PARTIAL
   PAID
   CANCELLED
 }
@@ -100,7 +99,6 @@ model Group {
   code         String      @unique
   shortName    String?
   description  String?
-  groupLeader  String?
   remarks      String?
   status       GroupStatus @default(ACTIVE)
   createdAt    DateTime    @default(now())
@@ -115,22 +113,21 @@ model Group {
 }
 
 model Member {
-  id        String  @id @default(uuid())
-  memberId  String  @unique
-  groupId   String
+  id       String  @id @default(uuid())
+  memberId String  @unique
+  groupId  String
   fullName String?
-  
 
   // Personal Information
-  fatherName    String?
-  motherName    String?
-  gender        String?
-  dob           DateTime?
-  nationalId    String?   @unique
-  idDocumentType String?  @default("NID")
-  occupation    String?
-  monthlyIncome Int?
-  bloodGroup    String?
+  fatherName     String?
+  motherName     String?
+  gender         String?
+  dob            DateTime?
+  nationalId     String?   @unique
+  idDocumentType String?   @default("NID")
+  occupation     String?
+  monthlyIncome  Int?
+  bloodGroup     String?
 
   // Contact Information
   mobile           String? @unique
@@ -175,25 +172,25 @@ model Member {
 }
 
 model Beneficiary {
-  id               String            @id @default(uuid())
-  beneficiaryId    String            @unique
-  memberId         String?
-  fullName String
-  
-  email            String?
-  phone            String?
-  mobile           String?
-  address          String?
-  presentAddress   String?
-  permanentAddress String?
-  nationalId       String?           @unique
-  idDocumentType   String?           @default("NID")
-  fatherOrHusbandName String?
-  beneficiaryPhoto String?
+  id            String  @id @default(uuid())
+  beneficiaryId String  @unique
+  memberId      String?
+  fullName      String
+
+  email                 String?
+  phone                 String?
+  mobile                String?
+  address               String?
+  presentAddress        String?
+  permanentAddress      String?
+  nationalId            String? @unique
+  idDocumentType        String? @default("NID")
+  fatherOrHusbandName   String?
+  beneficiaryPhoto      String?
   nidOrBirthCertificate String?
-  occupation       String?
-  remarks          String?
-  relationToMember String?
+  occupation            String?
+  remarks               String?
+  relationToMember      String?
 
   assistanceType   String?
   assistanceReason String?
@@ -205,11 +202,11 @@ model Beneficiary {
   emergencyContactName     String?
   emergencyContactRelation String?
   emergencyContactMobile   String?
-  status           BeneficiaryStatus @default(ACTIVE)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  createdBy        String?
-  updatedBy        String?
+  status                   BeneficiaryStatus @default(ACTIVE)
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  createdBy                String?
+  updatedBy                String?
 
   member    Member?    @relation(fields: [memberId], references: [id], onDelete: SetNull)
   loans     Loan[]
@@ -305,6 +302,10 @@ model LedgerEntry {
   createdBy     String?
   updatedBy     String?
 
+  groupId   String?
+  groupCode String?
+  groupName String?
+
   transaction LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   fund        Fund              @relation(fields: [fundId], references: [id], onDelete: Restrict)
 
@@ -322,6 +323,8 @@ model Loan {
   memberId          String?
   beneficiaryId     String?
   amount            Int
+  loanType          String     @default("OTHER") // "BUSINESS" | "OTHER"
+  businessType      String?
   purpose           String
   requestedDate     DateTime   @default(now())
   dateApproved      DateTime?

@@ -214,7 +214,7 @@ export function BeneficiaryForm({
   }: { 
     title: string; 
     subtext: string; 
-    inputRef: React.RefObject<HTMLInputElement>;
+    inputRef: React.RefObject<HTMLInputElement | null>;
     field: keyof BeneficiaryFormValues;
     existingUrl?: string | null;
     dbTitle: string;

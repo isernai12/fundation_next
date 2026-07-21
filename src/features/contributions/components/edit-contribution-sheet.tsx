@@ -118,7 +118,7 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
                   <FormItem>
                     <FormLabel>Amount (৳)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                      <Input type="number" {...field} value={field.value ?? ""} onChange={(e) => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

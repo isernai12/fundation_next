@@ -34,6 +34,15 @@ export class LedgerEngine {
       throw new Error("Transaction amount must be strictly positive.")
     }
 
+    // Fetch funds with their groups to get groupCode and groupName
+    const fundIds = [...new Set(data.entries.map(e => e.fundId))]
+    const funds = await db.fund.findMany({
+      where: { id: { in: fundIds } },
+      include: { group: true }
+    })
+    
+    const fundMap = new Map(funds.map(f => [f.id, f]))
+
     return await db.ledgerTransaction.create({
       data: {
         date: data.date,
@@ -42,12 +51,18 @@ export class LedgerEngine {
         notes: data.notes,
         createdBy: data.createdBy,
         entries: {
-          create: data.entries.map(e => ({
-            fundId: e.fundId,
-            isCredit: e.isCredit,
-            amount: e.amount,
-            createdBy: data.createdBy
-          }))
+          create: data.entries.map(e => {
+            const fund = fundMap.get(e.fundId)
+            return {
+              fundId: e.fundId,
+              isCredit: e.isCredit,
+              amount: e.amount,
+              createdBy: data.createdBy,
+              groupId: fund?.group?.id || null,
+              groupCode: fund?.group?.code || null,
+              groupName: fund?.group?.name || null
+            }
+          })
         }
       },
       include: {

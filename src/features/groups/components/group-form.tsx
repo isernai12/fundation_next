@@ -35,7 +35,6 @@ export function GroupForm() {
       description: "",
       status: "ACTIVE",
       openingBalance: 0,
-      groupLeader: "",
       remarks: "",
     },
   })
@@ -51,7 +50,7 @@ export function GroupForm() {
     setIsSubmitting(false)
 
     if (res.success) {
-      toast.success("Group created successfully")
+      toast.success("গ্রুপ সফলভাবে সংরক্ষিত হয়েছে")
       router.push("/groups/manage")
     } else {
       toast.error(res.error)
@@ -61,24 +60,24 @@ export function GroupForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Group Details</CardTitle>
-        <CardDescription>Enter the basic and financial information for the new group.</CardDescription>
+        <CardTitle>গ্রুপের বিবরণ</CardTitle>
+        <CardDescription>নতুন গ্রুপের জন্য মৌলিক এবং আর্থিক তথ্য লিখুন।</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Basic Information</h3>
+              <h3 className="text-lg font-medium">মৌলিক তথ্য</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Group Name <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>গ্রুপের নাম <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter group name" {...field} />
+                        <Input placeholder="গ্রুপের নাম লিখুন" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -89,7 +88,7 @@ export function GroupForm() {
                   name="code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Group Code <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>গ্রুপ কোড <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Input placeholder="G-001" {...field} />
                       </FormControl>
@@ -102,9 +101,9 @@ export function GroupForm() {
                   name="shortName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Short Name</FormLabel>
+                      <FormLabel>সংক্ষিপ্ত নাম</FormLabel>
                       <FormControl>
-                        <Input placeholder="Optional short name" {...field} />
+                        <Input placeholder="ঐচ্ছিক সংক্ষিপ্ত নাম" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -115,16 +114,16 @@ export function GroupForm() {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>অবস্থা</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
+                            <SelectValue placeholder="একটি অবস্থা নির্বাচন করুন" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="ACTIVE">Active</SelectItem>
-                          <SelectItem value="INACTIVE">Inactive</SelectItem>
+                          <SelectItem value="ACTIVE">সক্রিয়</SelectItem>
+                          <SelectItem value="INACTIVE">নিষ্ক্রিয়</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -137,9 +136,9 @@ export function GroupForm() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>বিবরণ</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Group description..." {...field} />
+                      <Textarea placeholder="গ্রুপের বিবরণ..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,14 +147,14 @@ export function GroupForm() {
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">Financial Information</h3>
+              <h3 className="text-lg font-medium">আর্থিক তথ্য</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="openingBalance"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Opening Balance</FormLabel>
+                      <FormLabel>প্রারম্ভিক তহবিল</FormLabel>
                       <FormControl>
                         <Input type="number" min="0" placeholder="0" {...field} />
                       </FormControl>
@@ -167,30 +166,15 @@ export function GroupForm() {
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">Organization</h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="groupLeader"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Group Leader</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Optional group leader name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <h3 className="text-lg font-medium">অন্যান্য</h3>
               <FormField
                 control={form.control}
                 name="remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Remarks</FormLabel>
+                    <FormLabel>মন্তব্য</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Any additional remarks..." {...field} />
+                      <Textarea placeholder="অন্য কোনো মন্তব্য..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -200,10 +184,10 @@ export function GroupForm() {
 
             <div className="flex justify-end space-x-4 pt-6">
               <Button variant="outline" type="button" onClick={() => router.push("/groups/manage")}>
-                Cancel
+                বাতিল
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Create Group"}
+                {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "গ্রুপ সংরক্ষণ করুন"}
               </Button>
             </div>
           </form>

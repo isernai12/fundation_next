@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getBeneficiaries } from "../actions"
+import { MemberCombobox } from "@/components/member-combobox"
 
 type BeneficiaryOption = {
   id: string
@@ -49,18 +49,20 @@ export function BeneficiarySelector() {
   return (
     <div className="flex items-center space-x-2">
       <span className="text-sm font-medium">Select Beneficiary:</span>
-      <Select value={currentBeneficiaryId} onValueChange={handleValueChange} disabled={loading}>
-        <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder={loading ? "Loading..." : "Select a beneficiary..."} />
-        </SelectTrigger>
-        <SelectContent>
-          {beneficiaries.map((b) => (
-            <SelectItem key={b.id} value={b.id}>
-              {b.beneficiaryId} - {b.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="w-[250px]">
+        {loading ? (
+          <div className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground">
+            Loading...
+          </div>
+        ) : (
+          <MemberCombobox
+            members={beneficiaries.map(b => ({ id: b.id, beneficiaryId: b.beneficiaryId, fullName: b.name }))}
+            value={currentBeneficiaryId}
+            onChange={handleValueChange}
+            placeholder="Select a beneficiary..."
+          />
+        )}
+      </div>
     </div>
   )
 }

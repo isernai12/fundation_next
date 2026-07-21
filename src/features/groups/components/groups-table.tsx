@@ -140,7 +140,6 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                           description: group.description || "",
                           status: "ACTIVE" as const,
                           openingBalance: 0,
-                          groupLeader: group.groupLeader || "",
                           remarks: group.remarks || "",
                         }
                         const res = await updateGroup(group.id, payload)
@@ -160,7 +159,6 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                           description: group.description || "",
                           status: "INACTIVE" as const,
                           openingBalance: 0,
-                          groupLeader: group.groupLeader || "",
                           remarks: group.remarks || "",
                         }
                         const res = await updateGroup(group.id, payload)

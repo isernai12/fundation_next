@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createGrant } from "../actions"
 import { grantSchema, type GrantFormValues } from "../schema"
 import { Plus, Trash2 } from "lucide-react"
+import { MemberCombobox } from "@/components/member-combobox"
 
 export function GrantForm({ beneficiaries, groups }: { 
   beneficiaries: { id: string; beneficiaryId: string; fullName: string | null;  }[], 
@@ -76,20 +77,13 @@ export function GrantForm({ beneficiaries, groups }: {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Select Beneficiary</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Search beneficiary..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {beneficiaries.map(b => (
-                        <SelectItem key={b.id} value={b.id}>
-                          {b.beneficiaryId} - {b.fullName || 'নাম পাওয়া যায়নি'} 
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <MemberCombobox
+                      members={beneficiaries}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -151,7 +145,7 @@ export function GrantForm({ beneficiaries, groups }: {
                 <FormItem>
                   <FormLabel>Total Grant Amount</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                    <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -215,7 +209,7 @@ export function GrantForm({ beneficiaries, groups }: {
                     <FormItem className="flex-1">
                       <FormLabel>Contribution Amount</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                        <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

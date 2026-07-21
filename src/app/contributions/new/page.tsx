@@ -10,16 +10,16 @@ export default async function AddContributionPage() {
     <div className="space-y-6">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
-          Contributions
+          চাঁদা
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">Add Contribution</span>
+        <span className="font-medium text-foreground">চাঁদা গ্রহণ</span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add Contribution</h1>
-          <p className="text-muted-foreground">Record a new contribution for a member.</p>
+          <h1 className="text-3xl font-bold tracking-tight">চাঁদা গ্রহণ</h1>
+          <p className="text-muted-foreground">সদস্যের নতুন চাঁদা রেকর্ড করুন।</p>
         </div>
       </div>
 

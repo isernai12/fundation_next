@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { MemberCombobox } from "@/components/member-combobox"
 
 interface ContributionFormDialogProps {
   members: { id: string; fullName: string | null; memberId: string }[]
@@ -86,18 +87,13 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
             <FormField control={form.control} name="memberId" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Member</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select member" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {members.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.fullName || 'নাম পাওয়া যায়নি'} ({m.memberId})</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <MemberCombobox
+                      members={members}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -107,7 +103,7 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
               <FormField control={form.control} name="month" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Month</FormLabel>
-                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value.toString()}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val) || 0)} value={field.value?.toString() || ""}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -119,13 +115,13 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
                 </FormItem>
               )} />
               <FormField control={form.control} name="year" render={({ field }) => (
-                <FormItem><FormLabel>Year</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Year</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ""} onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="amount" render={({ field }) => (
-                <FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="paymentDate" render={({ field }) => (
                 <FormItem><FormLabel>Payment Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
@@ -140,8 +136,7 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="PAID">Paid</SelectItem>
-                      <SelectItem value="PARTIAL">Partial</SelectItem>
-                      <SelectItem value="PENDING">Pending (Unpaid)</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

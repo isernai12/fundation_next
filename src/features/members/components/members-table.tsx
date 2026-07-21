@@ -29,7 +29,7 @@ import { toggleMemberStatus, deleteMember } from "../actions"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Eye, Edit, Trash, MoreHorizontal, Power, PowerOff } from "lucide-react"
+import { Eye, Edit, Trash, MoreHorizontal, Power, PowerOff, BookOpen } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,6 +100,11 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
               <DropdownMenuItem asChild>
                 <Link href={`/members/${member.id}`}>
                   <Eye className="mr-2 h-4 w-4" /> View Details
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/members/${member.id}/dues`}>
+                  <BookOpen className="mr-2 h-4 w-4" /> চাঁদার তথ্য
                 </Link>
               </DropdownMenuItem>
               {isManage && (

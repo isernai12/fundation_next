@@ -6,6 +6,25 @@ import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { MemberProfileActions } from "@/features/members/components/member-profile-actions"
 
+const DocumentCard = ({ title, url }: { title: string, url?: string | null }) => (
+  <div className="border rounded-md p-3">
+    <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{title}</p>
+    {url ? (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
+        {url.endsWith('.pdf') ? (
+          <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline">PDF দেখুন</div>
+        ) : (
+          <Image src={url} alt={title} fill className="object-contain bg-muted/10" />
+        )}
+      </a>
+    ) : (
+      <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
+        ডকুমেন্ট আপলোড করা হয়নি
+      </div>
+    )}
+  </div>
+);
+
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const member = await getMember(resolvedParams.id)
@@ -24,25 +43,6 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
   const nidFrontDoc = getDoc("NID Front") || getDoc("National ID"); 
   const nidBackDoc = getDoc("NID Back");
   const bcDoc = getDoc("Birth Certificate");
-
-  const DocumentCard = ({ title, url }: { title: string, url?: string | null }) => (
-    <div className="border rounded-md p-3">
-      <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{title}</p>
-      {url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
-          {url.endsWith('.pdf') ? (
-            <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline">PDF দেখুন</div>
-          ) : (
-            <Image src={url} alt={title} fill className="object-contain bg-muted/10" />
-          )}
-        </a>
-      ) : (
-        <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
-          ডকুমেন্ট আপলোড করা হয়নি
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">

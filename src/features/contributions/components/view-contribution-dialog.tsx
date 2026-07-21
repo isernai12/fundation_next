@@ -61,7 +61,7 @@ export function ViewContributionDialog({ isOpen, onClose, contribution }: ViewCo
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Status</p>
-            <Badge variant={contribution.status === "PAID" ? "default" : contribution.status === "PARTIAL" ? "secondary" : "destructive"} className="mt-1">
+            <Badge variant={contribution.status === "PAID" ? "default" : "destructive"} className="mt-1">
               {contribution.status}
             </Badge>
           </div>

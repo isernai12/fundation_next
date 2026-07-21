@@ -1,6 +1,5 @@
 "use client"
 import { formatDate } from "@/lib/format"
-
 import { useState } from "react"
 import {
   ColumnDef,
@@ -24,19 +23,56 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Edit, MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { 
+  Eye, 
+  Edit, 
+  MoreHorizontal, 
+  ArrowUpDown,
+  FileText,
+  CreditCard,
+  Printer,
+  CheckCircle,
+  Trash2,
+  BookOpen
+} from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { deleteLoanAction } from "../actions"
 
 export function LoansTable({ data }: { data: any[] }) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
+  const router = useRouter()
+
+  const handleDelete = async (id: string, hasRepayments: boolean) => {
+    if (hasRepayments) {
+      toast.error("যেহেতু এই ঋণের কিস্তি প্রদান করা হয়েছে, তাই এটি মুছে ফেলা সম্ভব নয়।")
+      return
+    }
+    if (!confirm("আপনি কি নিশ্চিত যে আপনি এই ঋণ মুছে ফেলতে চান?")) return
+
+    const res = await deleteLoanAction(id)
+    if (res.success) {
+      toast.success("ঋণ সফলভাবে মুছে ফেলা হয়েছে।")
+      router.refresh()
+    } else {
+      toast.error(res.error)
+    }
+  }
+
+  const handleMarkAsCompleted = async (id: string) => {
+    // Call server action to mark as completed - needs to be implemented in actions.ts if not already
+    toast.info("Coming soon: Mark as completed")
+  }
 
   const columns: ColumnDef<any>[] = [
     {
@@ -44,7 +80,7 @@ export function LoansTable({ data }: { data: any[] }) {
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Loan #
+            ঋণ নম্বর
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
@@ -52,27 +88,23 @@ export function LoansTable({ data }: { data: any[] }) {
     },
     {
       id: "beneficiary",
-      header: "Beneficiary",
+      header: "সুবিধাভোগীর নাম",
       accessorFn: row => row.beneficiary ? `${row.beneficiary.fullName || 'নাম পাওয়া যায়নি'}` : "Unknown",
       cell: ({ row }) => row.original.beneficiary ? `${row.original.beneficiary.fullName || 'নাম পাওয়া যায়নি'}` : "Unknown"
     },
     {
+      id: "phone",
+      header: "মোবাইল নম্বর",
+      cell: ({ row }) => row.original.beneficiary?.phone || "-"
+    },
+    {
       accessorKey: "amount",
-      header: "Amount",
+      header: "ঋণের পরিমাণ",
       cell: ({ row }) => `৳${(row.getValue("amount") as number)}`,
     },
     {
-      id: "paid",
-      header: "Paid",
-      cell: ({ row }) => {
-        const reps = row.original.repayments || []
-        const total = reps.reduce((sum: number, r: any) => sum + r.amount, 0)
-        return `৳${total}`
-      }
-    },
-    {
       id: "remaining",
-      header: "Remaining",
+      header: "বাকি ঋণ",
       cell: ({ row }) => {
         const reps = row.original.repayments || []
         const totalPaid = reps.reduce((sum: number, r: any) => sum + r.amount, 0)
@@ -81,12 +113,8 @@ export function LoansTable({ data }: { data: any[] }) {
       }
     },
     {
-      accessorKey: "installmentCount",
-      header: "Installments",
-    },
-    {
       accessorKey: "status",
-      header: "Status",
+      header: "অবস্থা",
       cell: ({ row }) => {
         const s = row.getValue("status") as string
         return (
@@ -97,13 +125,24 @@ export function LoansTable({ data }: { data: any[] }) {
       },
     },
     {
-      accessorKey: "requestedDate",
-      header: "Date",
-      cell: ({ row }) => formatDate(row.getValue("requestedDate")),
+      id: "dueDate",
+      header: "পরবর্তী কিস্তির তারিখ",
+      cell: ({ row }) => {
+        const installments = row.original.installments || []
+        const nextInstallment = installments.find((i: any) => i.status === "PENDING")
+        if (nextInstallment) {
+          return formatDate(nextInstallment.dueDate)
+        }
+        return "N/A"
+      }
     },
     {
       id: "actions",
       cell: ({ row }) => {
+        const loan = row.original
+        const hasRepayments = loan.repayments && loan.repayments.length > 0
+        const isEligibleForCompletion = loan.status === "ACTIVE" // Add logic for completion
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -115,14 +154,45 @@ export function LoansTable({ data }: { data: any[] }) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href={`/loans/manage/${row.original.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> Manage
+                <Link href={`/loans/${loan.id}`}>
+                  <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/loans/${row.original.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> Legacy View
+                <Link href={`/loans/${loan.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" /> ঋণ সংশোধন করুন
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/loans/${loan.id}?action=repay`}>
+                  <CreditCard className="mr-2 h-4 w-4" /> কিস্তি গ্রহণ করুন
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={`/loans/ledger?loanId=${loan.id}`}>
+                  <BookOpen className="mr-2 h-4 w-4" /> ঋণের খতিয়ান
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/loans/${loan.id}#history`}>
+                  <FileText className="mr-2 h-4 w-4" /> পরিশোধের ইতিহাস
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="mr-2 h-4 w-4" /> প্রিন্ট করুন
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {isEligibleForCompletion && (
+                <DropdownMenuItem onClick={() => handleMarkAsCompleted(loan.id)}>
+                  <CheckCircle className="mr-2 h-4 w-4" /> সম্পন্ন মার্ক করুন
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem 
+                onClick={() => handleDelete(loan.id, hasRepayments)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> মুছে ফেলুন
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -150,7 +220,7 @@ export function LoansTable({ data }: { data: any[] }) {
     <div>
       <div className="flex items-center space-x-2 py-4">
         <Input
-          placeholder="Filter by Loan Number..."
+          placeholder="ঋণ নম্বর দিয়ে খুঁজুন..."
           value={(table.getColumn("loanNumber")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("loanNumber")?.setFilterValue(event.target.value)
@@ -158,7 +228,7 @@ export function LoansTable({ data }: { data: any[] }) {
           className="max-w-sm"
         />
         <Input
-          placeholder="Filter by Beneficiary..."
+          placeholder="সুবিধাভোগীর নাম দিয়ে খুঁজুন..."
           value={(table.getColumn("beneficiary")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("beneficiary")?.setFilterValue(event.target.value)
@@ -193,7 +263,7 @@ export function LoansTable({ data }: { data: any[] }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No loans found.
+                  কোনো ঋণ পাওয়া যায়নি।
                 </TableCell>
               </TableRow>
             )}
@@ -202,10 +272,10 @@ export function LoansTable({ data }: { data: any[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
+          পূর্ববর্তী
         </Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
+          পরবর্তী
         </Button>
       </div>
     </div>

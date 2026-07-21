@@ -45,7 +45,6 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
       description: group?.description || "",
       status: group?.status || "ACTIVE",
       openingBalance: 0,
-      groupLeader: group?.groupLeader || "",
       remarks: group?.remarks || "",
     },
   })
