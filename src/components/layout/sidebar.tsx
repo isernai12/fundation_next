@@ -40,99 +40,120 @@ type MenuItem = {
 }
 
 const sidebarItems: MenuItem[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "ড্যাশবোর্ড", href: "/", icon: LayoutDashboard },
   { 
-    name: "Members", 
+    name: "সদস্য", 
     href: "/members", 
     icon: Users,
     submenu: [
-      { name: "Add Member", href: "/members/new" },
-      { name: "Manage Members", href: "/members/manage" },
-      { name: "Member Ledger", href: "/members/ledger" },
-      { name: "Member Due List", href: "/members/dues" },
+      { name: "নতুন সদস্য", href: "/members/new" },
+      { name: "সদস্য ব্যবস্থাপনা", href: "/members/manage" },
+      { name: "সদস্য লেজার", href: "/members/ledger" },
+      { name: "সদস্য চাঁদা বকেয়া তালিকা", href: "/members/dues" },
     ]
   },
   { 
-    name: "Beneficiaries", 
+    name: "সুবিধাভোগী", 
     href: "/beneficiaries", 
     icon: Users,
     submenu: [
-      { name: "Add Beneficiary", href: "/beneficiaries/new" },
-      { name: "Manage Beneficiaries", href: "/beneficiaries/manage" },
-      { name: "Beneficiary Ledger", href: "/beneficiaries/ledger" },
-      { name: "Beneficiary Assistance History", href: "/beneficiaries/assistance-history" },
-      { name: "Beneficiary Loan History", href: "/beneficiaries/loan-history" },
-      { name: "Beneficiary Reports", href: "/beneficiaries/reports" },
+      { name: "নতুন সুবিধাভোগী", href: "/beneficiaries/new" },
+      { name: "সুবিধাভোগী ব্যবস্থাপনা", href: "/beneficiaries/manage" },
+      { name: "সুবিধাভোগী লেজার", href: "/beneficiaries/ledger" },
+      { name: "সহায়তার ইতিহাস", href: "/beneficiaries/assistance-history" },
+      { name: "ঋণের ইতিহাস", href: "/beneficiaries/loan-history" },
+      { name: "সুবিধাভোগী রিপোর্ট", href: "/beneficiaries/reports" },
     ]
   },
   { 
-    name: "Groups", 
+    name: "অনুদানদাতা", 
+    href: "/donors", 
+    icon: Users,
+    submenu: [
+      { name: "নতুন অনুদানদাতা", href: "/donors/new" },
+      { name: "অনুদানদাতা ব্যবস্থাপনা", href: "/donors/manage" },
+      { name: "অনুদান গ্রহণ", href: "/donors/receive" },
+      { name: "অনুদান গ্রহণ ব্যবস্থাপনা", href: "/donors/donations" },
+      { name: "অনুদানদাতার লেজার", href: "/donors/ledger" },
+    ]
+  },
+  { 
+    name: "তহবিল কার্যক্রম", 
+    href: "/campaigns", 
+    icon: Building,
+    submenu: [
+      { name: "নতুন তহবিল", href: "/campaigns/new" },
+      { name: "তহবিল ব্যবস্থাপনা", href: "/campaigns/manage" },
+      { name: "তহবিলে অর্থ গ্রহণ", href: "/campaigns/contribute" },
+      { name: "তহবিল গ্রহণ ব্যবস্থাপনা", href: "/campaigns/contributions" },
+      { name: "তহবিল লেজার", href: "/campaigns/ledger" },
+    ]
+  },
+  { 
+    name: "গ্রুপ", 
     href: "/groups", 
     icon: Building,
     submenu: [
-      { name: "Add Group", href: "/groups/new" },
-      { name: "Manage Groups", href: "/groups/manage" },
-      { name: "Group Members", href: "/groups/members" },
-      { name: "Group Fund", href: "/groups/fund" },
-      { name: "Group Ledger", href: "/groups/ledger" },
-      { name: "Group Transactions", href: "/groups/transactions" },
-      { name: "Group Reports", href: "/groups/reports" },
+      { name: "নতুন গ্রুপ", href: "/groups/new" },
+      { name: "গ্রুপ ব্যবস্থাপনা", href: "/groups/manage" },
+      { name: "গ্রুপের সদস্য", href: "/groups/members" },
+      { name: "গ্রুপ ফান্ড", href: "/groups/fund" },
+      { name: "গ্রুপ লেজার", href: "/groups/ledger" },
+      { name: "গ্রুপ লেনদেন", href: "/groups/transactions" },
+      { name: "গ্রুপ রিপোর্ট", href: "/groups/reports" },
     ]
   },
   { 
-    name: "Contributions", 
+    name: "তহবিল / চাঁদা", 
     href: "/contributions", 
     icon: CreditCard,
     submenu: [
-      { name: "Add Contribution", href: "/contributions/new" },
-      { name: "Monthly Contributions", href: "/contributions/monthly" },
-      { name: "Manage Contributions", href: "/contributions" },
-      { name: "Due Contributions", href: "/contributions/due" },
-      { name: "Contribution Ledger", href: "/contributions/ledger" },
-      { name: "Contribution Reports", href: "/contributions/reports" },
+      { name: "তহবিল গ্রহণ", href: "/contributions/new" },
+      { name: "মাসিক চাঁদা", href: "/contributions/monthly" },
+      { name: "চাঁদা ব্যবস্থাপনা", href: "/contributions" },
+      { name: "বকেয়া চাঁদা", href: "/contributions/due" },
+      { name: "চাঁদা লেজার", href: "/contributions/ledger" },
+      { name: "চাঁদা রিপোর্ট", href: "/contributions/reports" },
     ]
   },
   { 
-    name: "Loans", 
+    name: "ঋণ", 
     href: "/loans", 
     icon: PiggyBank,
     submenu: [
       { name: "নতুন ঋণ", href: "/loans/new" },
       { name: "ঋণ ব্যবস্থাপনা", href: "/loans" },
-      { name: "Loan Repayments", href: "/loans/repayments" },
-      { name: "Loan Installments", href: "/loans/installments" },
-      { name: "Loan Ledger", href: "/loans/ledger" },
-      { name: "Loan Reports", href: "/loans/reports" },
+      { name: "ঋণ পরিশোধ", href: "/loans/repayments" },
+      { name: "ঋণ লেজার", href: "/loans/ledger" },
+      { name: "ঋণ রিপোর্ট", href: "/loans/reports" },
     ]
   },
   { 
-    name: "Grants", 
+    name: "অনুদান", 
     href: "/grants", 
     icon: Gift,
     submenu: [
-      { name: "Add Grant", href: "/grants/new" },
-      { name: "Manage Grants", href: "/grants/manage" },
-      { name: "Grant Ledger", href: "/grants/ledger" },
-      { name: "Grant Reports", href: "/grants/reports" },
+      { name: "নতুন অনুদান", href: "/grants/new" },
+      { name: "অনুদান ব্যবস্থাপনা", href: "/grants/manage" },
+      { name: "অনুদান লেজার", href: "/grants/ledger" },
+      { name: "অনুদান রিপোর্ট", href: "/grants/reports" },
     ]
   },
   { 
-    name: "Ledger", 
+    name: "খতিয়ান (Ledger)", 
     href: "/ledger", 
     icon: BookOpen,
     submenu: [
-      { name: "General Ledger", href: "/ledger" },
-      { name: "Group Ledger", href: "/ledger/group" },
-      { name: "Member Ledger", href: "/ledger/member" },
-      { name: "Beneficiary Ledger", href: "/ledger/beneficiary" },
-      { name: "Transaction Register", href: "/ledger/transactions" },
-      { name: "Fund Allocation Ledger", href: "/ledger/allocations" },
-      { name: "Ledger Reports", href: "/ledger/reports" },
+      { name: "সাধারণ খতিয়ান", href: "/ledger" },
+      { name: "গ্রুপ খতিয়ান", href: "/ledger/group" },
+      { name: "সদস্য লেজার", href: "/ledger/member" },
+      { name: "সুবিধাভোগী খতিয়ান", href: "/ledger/beneficiary" },
+      { name: "লেনদেন রেজিস্টার", href: "/ledger/transactions" },
+      { name: "তহবিল বরাদ্দ খতিয়ান", href: "/ledger/allocations" },
+      { name: "খতিয়ান রিপোর্ট", href: "/ledger/reports" },
     ]
   },
-  { name: "Documents", href: "/documents", icon: FolderOpen },
-  { name: "Reports", href: "/reports", icon: PieChart },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "সেটিংস", href: "/settings", icon: Settings },
 ]
 
 export function Sidebar() {

@@ -1,0 +1,30 @@
+- generic [active] [ref=f9e1]:
+  - main [ref=f9e3]:
+    - generic [ref=f9e5]:
+      - generic [ref=f9e6]:
+        - generic [ref=f9e12]: Foundation ERP
+        - generic [ref=f9e13]: Enter your credentials to access your account
+      - generic [ref=f9e15]:
+        - generic [ref=f9e16]:
+          - text: Username or Email
+          - textbox "Username or Email" [ref=f9e17]:
+            - /placeholder: Enter username or email
+            - text: admin
+        - generic [ref=f9e18]:
+          - text: Password
+          - textbox "Password" [ref=f9e19]:
+            - /placeholder: Enter password
+            - text: admin123
+        - button "Sign In" [ref=f9e20]
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=f9e31]:
+        - generic [ref=f9e35]: Login successful
+  - button "Open Next.js Dev Tools" [ref=f9e37] [cursor=pointer]:
+    - generic [ref=f9e40]:
+      - text: Rendering
+      - generic [ref=f9e41]:
+        - generic [ref=f9e42]: .
+        - generic [ref=f9e43]: .
+        - generic [ref=f9e44]: .
+  - alert [ref=f9e30]

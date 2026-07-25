@@ -50,25 +50,25 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
   const columns: ColumnDef<MemberWithGroup>[] = [
     {
       accessorKey: "memberId",
-      header: "Member ID",
+      header: "সদস্য আইডি",
     },
     {
       accessorKey: "fullName",
-      header: "Name",
+      header: "নাম",
       cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`
     },
     {
       accessorKey: "groupId",
-      header: "Group",
+      header: "গ্রুপ",
       cell: ({ row }) => row.original.group ? `${row.original.group.name} (${row.original.group.code})` : "None",
     },
     {
       accessorKey: "mobile",
-      header: "Mobile",
+      header: "মোবাইল",
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: "অবস্থা",
       cell: ({ row }) => {
         const status = row.original.status
         let variant: "default" | "secondary" | "destructive" | "outline" = "default"
@@ -80,7 +80,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     },
     {
       accessorKey: "joinDate",
-      header: "Joined",
+      header: "যোগদানের তারিখ",
       cell: ({ row }) => row.original.joinDate ? formatDate(row.original.joinDate) : 'N/A',
     },
     {
@@ -96,10 +96,10 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link href={`/members/${member.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> View Details
+                  <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -111,47 +111,47 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                 <>
                   <DropdownMenuItem asChild>
                     <Link href={`/members/${member.id}/edit`}>
-                      <Edit className="mr-2 h-4 w-4" /> Edit Member
+                      <Edit className="mr-2 h-4 w-4" /> সদস্য সম্পাদনা করুন
                     </Link>
                   </DropdownMenuItem>
                   
                   {member.status === "ACTIVE" ? (
                     <DropdownMenuItem
                       onClick={async () => {
-                        if (confirm("Are you sure you want to deactivate this member?")) {
+                        if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে নিষ্ক্রিয় করতে চান?")) {
                           const res = await toggleMemberStatus(member.id, "INACTIVE")
-                          if (res.success) toast.success("Member deactivated")
+                          if (res.success) toast.success("সদস্য নিষ্ক্রিয় করা হয়েছে")
                           else toast.error(res.error)
                         }
                       }}
                     >
-                      <PowerOff className="mr-2 h-4 w-4" /> Deactivate
+                      <PowerOff className="mr-2 h-4 w-4" /> নিষ্ক্রিয় করুন
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem
                       onClick={async () => {
-                        if (confirm("Are you sure you want to activate this member?")) {
+                        if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে সক্রিয় করতে চান?")) {
                           const res = await toggleMemberStatus(member.id, "ACTIVE")
-                          if (res.success) toast.success("Member activated")
+                          if (res.success) toast.success("সদস্য সক্রিয় করা হয়েছে")
                           else toast.error(res.error)
                         }
                       }}
                     >
-                      <Power className="mr-2 h-4 w-4" /> Activate
+                      <Power className="mr-2 h-4 w-4" /> সক্রিয় করুন
                     </DropdownMenuItem>
                   )}
                   
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={async () => {
-                      if (confirm("Are you sure you want to permanently delete this member? This action cannot be undone.")) {
+                      if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে স্থায়ীভাবে মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না।")) {
                         const res = await deleteMember(member.id)
-                        if (res.success) toast.success("Member deleted successfully")
+                        if (res.success) toast.success("সদস্য সফলভাবে মুছে ফেলা হয়েছে")
                         else toast.error(res.error)
                       }
                     }}
                   >
-                    <Trash className="mr-2 h-4 w-4" /> Delete
+                    <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
                   </DropdownMenuItem>
                 </>
               )}
@@ -181,7 +181,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     <div>
       <div className="flex items-center space-x-2 py-4">
         <Input
-          placeholder="Search by first name..."
+          placeholder="নাম দিয়ে খুঁজুন..."
           value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("fullName")?.setFilterValue(event.target.value)
@@ -198,10 +198,10 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           }}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Group" />
+            <SelectValue placeholder="গ্রুপ দিয়ে ফিল্টার করুন" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Groups</SelectItem>
+            <SelectItem value="ALL">সকল গ্রুপ</SelectItem>
             {groups.map(g => (
               <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
             ))}
@@ -245,7 +245,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  কোনো ফলাফল পাওয়া যায়নি।
                 </TableCell>
               </TableRow>
             )}
@@ -259,7 +259,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
+          পূর্ববর্তী
         </Button>
         <Button
           variant="outline"
@@ -267,7 +267,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
+          পরবর্তী
         </Button>
       </div>
     </div>

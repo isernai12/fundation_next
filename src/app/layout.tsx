@@ -24,6 +24,8 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const session = await getServerSession(authOptions)
+  const user = session?.user as any
+  const isLoggedIn = !!user?.id
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -36,9 +38,9 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <SidebarProvider>
-              {session && <Sidebar />}
+              {isLoggedIn && <Sidebar />}
               <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {session && <Header />}
+                {isLoggedIn && <Header />}
                 <main className="flex-1 overflow-auto p-6 bg-muted/20">
                   {children}
                 </main>

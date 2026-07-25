@@ -119,7 +119,7 @@ export function MemberLedgerView({ members }: MemberLedgerViewProps) {
         <div className="space-y-6 animate-in fade-in duration-300 print:space-y-4">
           
           <div className="flex justify-between items-center hide-print">
-            <h2 className="text-xl font-bold">সদস্য খতিয়ান (Ledger)</h2>
+            <h2 className="text-xl font-bold">সদস্য লেজার</h2>
             <div className="flex space-x-2">
               <Button variant="outline" onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" /> প্রিন্ট

@@ -1,0 +1,118 @@
+- generic [active] [ref=f1e1]:
+  - complementary [ref=f1e2]:
+    - heading "Foundation ERP" [level=2] [ref=f1e4]
+    - navigation [ref=f1e6]:
+      - link "ড্যাশবোর্ড" [ref=f1e7] [cursor=pointer]:
+        - /url: /
+      - button [ref=f1e14]
+      - button [ref=f1e24]
+      - generic [ref=f1e33]:
+        - button [expanded] [ref=f1e34]
+        - generic [ref=f1e44]:
+          - link "নতুন অনুদানদাতা" [ref=f1e45] [cursor=pointer]:
+            - /url: /donors/new
+          - link "অনুদানদাতা ব্যবস্থাপনা" [ref=f1e46] [cursor=pointer]:
+            - /url: /donors/manage
+          - link "অনুদান গ্রহণ" [ref=f1e47] [cursor=pointer]:
+            - /url: /donors/receive
+          - link "অনুদান গ্রহণ ব্যবস্থাপনা" [ref=f1e48] [cursor=pointer]:
+            - /url: /donors/donations
+          - link "অনুদানদাতার লেজার" [ref=f1e49] [cursor=pointer]:
+            - /url: /donors/ledger
+      - button [ref=f1e51]
+      - button [ref=f1e59]
+      - button [ref=f1e67]
+      - button [ref=f1e74]
+      - button [ref=f1e82]
+      - button [ref=f1e91]
+      - link "ডকুমেন্টস" [ref=f1e97] [cursor=pointer]:
+        - /url: /documents
+      - link "রিপোর্ট" [ref=f1e100] [cursor=pointer]:
+        - /url: /reports
+      - link "সেটিংস" [ref=f1e104] [cursor=pointer]:
+        - /url: /settings
+  - generic [ref=f1e108]:
+    - banner [ref=f1e109]:
+      - generic [ref=f1e110]:
+        - button "Notifications" [ref=f1e111]
+        - button "Toggle theme" [ref=f1e116]
+        - button [ref=f1e124]
+    - main [ref=f1e128]:
+      - generic [ref=f1e129]:
+        - generic [ref=f1e130]:
+          - link "অনুদানদাতা" [ref=f1e131] [cursor=pointer]:
+            - /url: /donors/manage
+          - generic [ref=f1e134]: অনুদান গ্রহণ ব্যবস্থাপনা
+        - generic [ref=f1e135]:
+          - generic [ref=f1e136]:
+            - heading "অনুদান গ্রহণ ব্যবস্থাপনা" [level=1] [ref=f1e140]
+            - paragraph [ref=f1e141]: পূর্বে গৃহীত সকল অনুদান লেনদেনের ব্যবস্থাপনা, রিসিট প্রিন্ট ও লেজার অনুসন্ধান করুন। (Ledger Synchronized)
+          - link "নতুন অনুদান গ্রহণ" [ref=f1e143] [cursor=pointer]:
+            - /url: /donors/receive
+        - generic [ref=f1e144]:
+          - generic [ref=f1e145]:
+            - heading "অনুদান ফিল্টার (Filter Donations)" [level=3] [ref=f1e147]
+            - generic [ref=f1e151]:
+              - generic [ref=f1e152]:
+                - text: অনুসন্ধান (Search)
+                - textbox "ভাউচার, নাম, মোবাইল বা বিবরণ..." [ref=f1e153]
+              - generic [ref=f1e154]:
+                - text: অনুদানদাতা (Donor)
+                - combobox [ref=f1e155]
+                - combobox [ref=f1e158]
+              - generic [ref=f1e159]:
+                - text: গ্রুপ (Selected Group)
+                - combobox [ref=f1e160]
+                - combobox [ref=f1e163]
+              - generic [ref=f1e164]:
+                - text: শুরু তারিখ (From Date)
+                - textbox [ref=f1e165]
+              - generic [ref=f1e166]:
+                - text: শেষ তারিখ (To Date)
+                - textbox [ref=f1e167]
+          - table [ref=f1e170]:
+            - rowgroup [ref=f1e171]:
+              - row [ref=f1e172]:
+                - columnheader "তারিখ (Date)" [ref=f1e173]
+                - columnheader "ভাউচার নং (Voucher No)" [ref=f1e174]
+                - columnheader "অনুদানদাতা (Donor Name)" [ref=f1e175]
+                - columnheader "তহবিল গন্তব্য (Selected Group)" [ref=f1e176]
+                - columnheader "পরিমাণ (Amount)" [ref=f1e177]
+                - columnheader "বিবরণ / মন্তব্য (Remarks)" [ref=f1e178]
+                - columnheader "এন্ট্রি (Created By)" [ref=f1e179]
+                - columnheader "অ্যাকশন" [ref=f1e180]
+            - rowgroup [ref=f1e182]:
+              - row [ref=f1e183]:
+                - cell "07/25/2026 ২৫/৭/২০২৬" [ref=f1e184]:
+                  - generic [ref=f1e185]:
+                    - generic [ref=f1e186]: 07/25/2026
+                    - generic [ref=f1e187]: ২৫/৭/২০২৬
+                - cell "VCH-3922442C" [ref=f1e188]
+                - 'cell "ভাই ভাই ইলেক্ট্রনিক্স আইডি: DNR-0001 | sfserfer" [ref=f1e189]':
+                  - generic [ref=f1e190]:
+                    - generic [ref=f1e191]: ভাই ভাই ইলেক্ট্রনিক্স
+                    - generic [ref=f1e192]: "আইডি: DNR-0001 | sfserfer"
+                - cell "Alpha Group" [ref=f1e193]
+                - cell "৳1000000" [ref=f1e195]
+                - cell "Group Donation" [ref=f1e197]
+                - cell "Admin" [ref=f1e199]
+                - cell [ref=f1e200]:
+                  - button "Open menu" [ref=f1e202]
+              - row [ref=f1e204]:
+                - cell "07/25/2026 ২৫/৭/২০২৬" [ref=f1e205]:
+                  - generic [ref=f1e206]:
+                    - generic [ref=f1e207]: 07/25/2026
+                    - generic [ref=f1e208]: ২৫/৭/২০২৬
+                - cell "VCH-38ADC3B3" [ref=f1e209]
+                - 'cell "ভাই ভাই ইলেক্ট্রনিক্স আইডি: DNR-0001 | sfserfer" [ref=f1e210]':
+                  - generic [ref=f1e211]:
+                    - generic [ref=f1e212]: ভাই ভাই ইলেক্ট্রনিক্স
+                    - generic [ref=f1e213]: "আইডি: DNR-0001 | sfserfer"
+                - cell "Beta Group" [ref=f1e214]
+                - cell "৳75000" [ref=f1e216]
+                - cell "Validation Test Donation" [ref=f1e218]
+                - cell "Admin" [ref=f1e220]
+                - cell [ref=f1e221]:
+                  - button "Open menu" [ref=f1e223]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f1e230] [cursor=pointer]

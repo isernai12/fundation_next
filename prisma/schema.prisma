@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -34,11 +34,9 @@ enum ContributionStatus {
 }
 
 enum LoanStatus {
-  PENDING
-  APPROVED
   ACTIVE
   COMPLETED
-  CANCELLED
+  OVERDUE
   DEFAULTED
 }
 
@@ -57,6 +55,8 @@ enum LedgerType {
   TRANSFER
   ADJUSTMENT
   CORRECTION
+  DONATION
+  CAMPAIGN
 }
 
 enum DocumentType {
@@ -73,6 +73,8 @@ enum TargetType {
   GRANT
   FOUNDATION
   GROUP
+  DONOR
+  CAMPAIGN
 }
 
 // -----------------------------------------------------------------------------
@@ -166,9 +168,10 @@ model Member {
 
   group         Group                 @relation(fields: [groupId], references: [id], onDelete: Restrict)
   beneficiaries Beneficiary[]
-  contributions MonthlyContribution[]
-  loans         Loan[]
-  documents     Document[]
+  contributions         MonthlyContribution[]
+  campaignContributions CampaignContribution[]
+  loans                 Loan[]
+  documents             Document[]
 }
 
 model Beneficiary {
@@ -212,6 +215,24 @@ model Beneficiary {
   loans     Loan[]
   grants    Grant[]
   documents Document[]
+}
+
+model Donor {
+  id         String   @id @default(uuid())
+  donorId    String   @unique
+  fullName   String
+  mobile     String   @unique
+  address    String?
+  nationalId String?  @unique
+  notes      String?
+  status     String   @default("ACTIVE")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?
+  updatedBy  String?
+
+  documents             Document[]
+  campaignContributions CampaignContribution[]
 }
 
 // -----------------------------------------------------------------------------
@@ -286,9 +307,10 @@ model LedgerTransaction {
   createdBy   String?
   updatedBy   String?
 
-  entries             LedgerEntry[]
-  contributionPayment ContributionPayment?
-  loanRepayment       LoanRepayment?
+  entries              LedgerEntry[]
+  contributionPayment  ContributionPayment?
+  loanRepayment        LoanRepayment?
+  campaignContribution CampaignContribution?
 }
 
 model LedgerEntry {
@@ -327,11 +349,9 @@ model Loan {
   businessType      String?
   purpose           String
   requestedDate     DateTime   @default(now())
-  dateApproved      DateTime?
   disbursedDate     DateTime?
-  installmentCount  Int
-  installmentAmount Int
-  status            LoanStatus @default(PENDING)
+
+  status            LoanStatus @default(ACTIVE)
   notes             String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
@@ -341,7 +361,6 @@ model Loan {
   member       Member?           @relation(fields: [memberId], references: [id], onDelete: Restrict)
   beneficiary  Beneficiary?      @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
   allocations  FundAllocation[]
-  installments LoanInstallment[]
   repayments   LoanRepayment[]
   documents    Document[]
 
@@ -349,19 +368,7 @@ model Loan {
   @@index([beneficiaryId])
 }
 
-model LoanInstallment {
-  id        String   @id @default(uuid())
-  loanId    String
-  amount    Int
-  dueDate   DateTime
-  status    String   @default("PENDING")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy String?
-  updatedBy String?
 
-  loan Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
-}
 
 model LoanRepayment {
   id                  String   @id @default(uuid())
@@ -458,6 +465,8 @@ model Document {
   beneficiaryId String?
   loanId        String?
   grantId       String?
+  donorId       String?
+  campaignId    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -471,6 +480,8 @@ model Document {
   beneficiary Beneficiary?      @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
   loan        Loan?             @relation(fields: [loanId], references: [id], onDelete: Cascade)
   grant       Grant?            @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  donor       Donor?            @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  campaign    Campaign?         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([foundationId])
   @@index([groupId])
@@ -478,7 +489,57 @@ model Document {
   @@index([beneficiaryId])
   @@index([loanId])
   @@index([grantId])
+  @@index([donorId])
+  @@index([campaignId])
   @@index([targetType])
+}
+
+// -----------------------------------------------------------------------------
+// CAMPAIGNS (তহবিল কার্যক্রম)
+// -----------------------------------------------------------------------------
+
+model Campaign {
+  id            String    @id @default(uuid())
+  campaignId    String    @unique
+  name          String
+  purpose       String
+  description   String?
+  targetAmount  Int?
+  startDate     DateTime
+  endDate       DateTime?
+  status        String    @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  remarks       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     String?
+  updatedBy     String?
+
+  contributions CampaignContribution[]
+  documents     Document[]
+}
+
+model CampaignContribution {
+  id                  String   @id @default(uuid())
+  campaignId          String
+  memberId            String?
+  donorId             String?
+  ledgerTransactionId String   @unique
+  amount              Int
+  date                DateTime
+  remarks             String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  createdBy           String?
+  updatedBy           String?
+
+  campaign          Campaign          @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  member            Member?           @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  donor             Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  ledgerTransaction LedgerTransaction @relation(fields: [ledgerTransactionId], references: [id], onDelete: Restrict)
+
+  @@index([campaignId])
+  @@index([memberId])
+  @@index([donorId])
 }
 
 model Settings {
@@ -512,6 +573,22 @@ model User {
 
   role      Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
   auditLogs AuditLog[]
+  sessions  UserSession[]
+}
+
+model UserSession {
+  id         String   @id @default(uuid())
+  userId     String
+  jti        String   @unique
+  device     String?
+  browser    String?
+  os         String?
+  ipAddress  String?
+  lastActive DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Role {

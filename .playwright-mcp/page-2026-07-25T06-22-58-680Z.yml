@@ -1,0 +1,77 @@
+- generic [ref=e1]:
+  - complementary [ref=e2]:
+    - heading "Foundation ERP" [level=2] [ref=e4]
+    - navigation [ref=e6]:
+      - link "ড্যাশবোর্ড" [ref=e7] [cursor=pointer]:
+        - /url: /
+      - button [ref=e14]
+      - button [ref=e24]
+      - generic [ref=e33]:
+        - button [expanded] [ref=e34]
+        - generic [ref=e44]:
+          - link "নতুন অনুদানদাতা" [ref=e45] [cursor=pointer]:
+            - /url: /donors/new
+          - link "অনুদানদাতা ব্যবস্থাপনা" [ref=e46] [cursor=pointer]:
+            - /url: /donors/manage
+          - link "অনুদান গ্রহণ" [ref=e47] [cursor=pointer]:
+            - /url: /donors/receive
+          - link "অনুদান গ্রহণ ব্যবস্থাপনা" [ref=e48] [cursor=pointer]:
+            - /url: /donors/donations
+          - link "অনুদানদাতার লেজার" [ref=e49] [cursor=pointer]:
+            - /url: /donors/ledger
+      - button [ref=e51]
+      - button [ref=e59]
+      - button [ref=e67]
+      - button [ref=e74]
+      - button [ref=e82]
+      - button [ref=e91]
+      - link "ডকুমেন্টস" [ref=e97] [cursor=pointer]:
+        - /url: /documents
+      - link "রিপোর্ট" [ref=e100] [cursor=pointer]:
+        - /url: /reports
+      - link "সেটিংস" [ref=e104] [cursor=pointer]:
+        - /url: /settings
+  - generic [ref=e108]:
+    - banner [ref=e109]:
+      - generic [ref=e110]:
+        - button "Notifications" [ref=e111]
+        - button "Toggle theme" [ref=e116]
+        - button [ref=e124]
+    - main [ref=e128]:
+      - generic [ref=e221]:
+        - generic [ref=e222]:
+          - link "অনুদানদাতা" [ref=e223] [cursor=pointer]:
+            - /url: /donors/manage
+          - generic [ref=e226]: অনুদান গ্রহণ
+        - generic [ref=e228]:
+          - heading "অনুদান গ্রহণ" [level=1] [ref=e229]
+          - paragraph [ref=e230]: অনুদানদাতার কাছ থেকে সাধারণ তহবিল অথবা নির্দিষ্ট কার্যক্রমে অনুদান রেকর্ড করুন।
+        - generic [ref=e231]:
+          - generic [ref=e232]:
+            - generic [ref=e233]: অনুদান গ্রহণ (Receive Donation)
+            - generic [ref=e236]:
+              - generic [ref=e237]:
+                - text: অনুদানদাতা (Donor) *
+                - combobox "অনুদানদাতা (Donor) *" [ref=e238]:
+                  - generic: ভাই ভাই ইলেক্ট্রনিক্স (DNR-0001) - sfserfer
+                - combobox [ref=e241]
+              - generic [ref=e242]:
+                - text: তহবিল গন্তব্য (Foundation Group) *
+                - combobox "তহবিল গন্তব্য (Foundation Group) *" [active] [ref=e243]:
+                  - generic: Beta Group
+                - combobox [ref=e246]
+              - generic [ref=e247]:
+                - text: পরিমাণ (Amount) *
+                - spinbutton "পরিমাণ (Amount) *" [ref=e248]: "0"
+              - generic [ref=e249]:
+                - text: তারিখ (Date) *
+                - textbox "তারিখ (Date) *" [ref=e250]: 2026-07-25
+              - generic [ref=e251]:
+                - text: মন্তব্য (Remarks)
+                - textbox "মন্তব্য (Remarks)" [ref=e252]
+          - generic [ref=e253]:
+            - button "বাতিল (Cancel)" [ref=e254]
+            - button "অনুদান গ্রহণ করুন" [ref=e255]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e209] [cursor=pointer]
+  - alert [ref=e264]: অনুদান গ্রহণ | Foundation ERP

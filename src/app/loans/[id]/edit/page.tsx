@@ -7,6 +7,7 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
   
   const loan = await prisma.loan.findUnique({
     where: { id: resolvedParams.id },
+    include: { documents: true }
   })
 
   if (!loan) {
@@ -38,7 +39,7 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
               বিদ্যমান ঋণের তথ্য পরিবর্তন করুন।
             </p>
           </div>
-          <LoanForm beneficiaries={beneficiaries} initialData={initialData} />
+          <LoanForm beneficiaries={beneficiaries} initialData={initialData} initialDocuments={loan.documents} />
         </div>
       </div>
     </div>

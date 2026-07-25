@@ -13,13 +13,12 @@ export async function createContribution(data: ContributionFormValues) {
 
   try {
     return await prisma.$transaction(async (tx) => {
-      // 1. Get member to ensure they exist and get their group
+      // Handle MEMBER CONTRIBUTION
       const member = await tx.member.findUnique({ where: { id: pd.memberId } })
       if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি")
 
       let monthlyContribution = null;
 
-      // 2. Check for duplicate contribution unless explicitly marked as additional
       if (!pd.isAdditional) {
         const existing = await tx.monthlyContribution.findFirst({
           where: {
@@ -34,18 +33,13 @@ export async function createContribution(data: ContributionFormValues) {
           if (existing.status === "PAID") {
             throw new Error("এই চাঁদাটি ইতিমধ্যেই সম্পূর্ণ পরিশোধিত। অতিরিক্ত চাঁদার জন্য 'অতিরিক্ত চাঁদা' ব্যবহার করুন।")
           }
-          // If it's PENDING, we can update it
           monthlyContribution = await tx.monthlyContribution.update({
             where: { id: existing.id },
-            data: {
-              status: pd.status, // Update to PAID
-              // Optionally update expectedAmount if needed, but usually we just add payments
-            }
+            data: { status: pd.status }
           })
         }
       }
 
-      // 3. Create Monthly Contribution Agreement if it doesn't exist
       if (!monthlyContribution) {
         monthlyContribution = await tx.monthlyContribution.create({
           data: {
@@ -59,9 +53,7 @@ export async function createContribution(data: ContributionFormValues) {
         })
       }
 
-      // 4. Only process Ledger and Payment if Status is PAID
       if (pd.status === "PAID") {
-        // Prevent duplicate payment processing if they submit the exact same reference by accident
         if (pd.referenceNumber) {
           const existingPayment = await tx.contributionPayment.findFirst({
             where: { referenceNumber: pd.referenceNumber }
@@ -69,22 +61,19 @@ export async function createContribution(data: ContributionFormValues) {
           if (existingPayment) throw new Error("এই রেফারেন্স নম্বর দিয়ে ইতিমধ্যে একটি পেমেন্ট রেকর্ড করা হয়েছে।")
         }
 
-        // Prepare Funds
         const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(member.groupId, tx)
 
-        // Create Ledger Transaction
         const ledgerTx = await LedgerEngine.createTransaction({
           date: new Date(pd.paymentDate),
           type: "CONTRIBUTION",
           referenceId: pd.referenceNumber,
           notes: pd.notes,
           entries: [
-            { fundId: generalFund.id, isCredit: false, amount: pd.amount }, // Debit Cash/Asset
-            { fundId: groupFund.id, isCredit: true, amount: pd.amount }     // Credit Group Equity
+            { fundId: generalFund.id, isCredit: false, amount: pd.amount },
+            { fundId: groupFund.id, isCredit: true, amount: pd.amount }
           ]
         }, tx)
 
-        // Create Contribution Payment strictly bound to the Ledger Transaction
         await tx.contributionPayment.create({
           data: {
             monthlyContributionId: monthlyContribution.id,
@@ -105,7 +94,7 @@ export async function createContribution(data: ContributionFormValues) {
       return { success: true, error: undefined }
     })
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "চাঁদা প্রক্রিয়া করতে ব্যর্থ হয়েছে" }
+    return { success: false, error: error instanceof Error ? error.message : "মাসিক চাঁদা প্রক্রিয়া করতে ব্যর্থ হয়েছে" }
   }
 }
 

@@ -1,0 +1,215 @@
+- generic:
+  - complementary:
+    - generic:
+      - heading [level=2]: Foundation ERP
+    - generic:
+      - navigation:
+        - link:
+          - /url: /
+          - text: ড্যাশবোর্ড
+        - generic:
+          - button:
+            - generic: সদস্য
+        - generic:
+          - button:
+            - generic: সুবিধাভোগী
+        - generic:
+          - button [expanded]:
+            - generic: অনুদানদাতা
+          - generic:
+            - generic:
+              - link:
+                - /url: /donors/new
+                - text: নতুন অনুদানদাতা
+              - link:
+                - /url: /donors/manage
+                - text: অনুদানদাতা ব্যবস্থাপনা
+              - link:
+                - /url: /donors/receive
+                - text: অনুদান গ্রহণ
+              - link:
+                - /url: /donors/donations
+                - text: অনুদান গ্রহণ ব্যবস্থাপনা
+              - link:
+                - /url: /donors/ledger
+                - text: অনুদানদাতার লেজার
+        - generic:
+          - button:
+            - generic: তহবিল কার্যক্রম
+        - generic:
+          - button:
+            - generic: গ্রুপ
+        - generic:
+          - button:
+            - generic: তহবিল / চাঁদা
+        - generic:
+          - button:
+            - generic: ঋণ
+        - generic:
+          - button:
+            - generic: অনুদান
+        - generic:
+          - button:
+            - generic: খতিয়ান (Ledger)
+        - link:
+          - /url: /documents
+          - text: ডকুমেন্টস
+        - link:
+          - /url: /reports
+          - text: রিপোর্ট
+        - link:
+          - /url: /settings
+          - text: সেটিংস
+  - generic:
+    - banner:
+      - generic:
+        - button:
+          - generic: Notifications
+        - button:
+          - generic: Toggle theme
+        - button
+    - main:
+      - generic:
+        - generic:
+          - link:
+            - /url: /donors/manage
+            - text: অনুদানদাতা
+          - generic: অনুদান গ্রহণ ব্যবস্থাপনা
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: অনুদান গ্রহণ ব্যবস্থাপনা
+            - paragraph: পূর্বে গৃহীত সকল অনুদান লেনদেনের ব্যবস্থাপনা, রিসিট প্রিন্ট ও লেজার অনুসন্ধান করুন। (Ledger Synchronized)
+          - generic:
+            - link:
+              - /url: /donors/receive
+              - text: নতুন অনুদান গ্রহণ
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=3]: অনুদান ফিল্টার (Filter Donations)
+            - generic:
+              - generic:
+                - text: অনুসন্ধান (Search)
+                - textbox:
+                  - /placeholder: ভাউচার, নাম, মোবাইল বা বিবরণ...
+              - generic:
+                - text: অনুদানদাতা (Donor)
+                - combobox:
+                  - generic: সকল অনুদানদাতা (All Donors)
+              - generic:
+                - text: গ্রুপ (Selected Group)
+                - combobox:
+                  - generic: সকল গ্রুপ (All Groups)
+              - generic:
+                - text: শুরু তারিখ (From Date)
+                - textbox
+              - generic:
+                - text: শেষ তারিখ (To Date)
+                - textbox
+          - generic:
+            - generic:
+              - table:
+                - rowgroup:
+                  - row:
+                    - columnheader: তারিখ (Date)
+                    - columnheader: ভাউচার নং (Voucher No)
+                    - columnheader: অনুদানদাতা (Donor Name)
+                    - columnheader: তহবিল গন্তব্য (Selected Group)
+                    - columnheader: পরিমাণ (Amount)
+                    - columnheader: বিবরণ / মন্তব্য (Remarks)
+                    - columnheader: এন্ট্রি (Created By)
+                    - columnheader:
+                      - generic: অ্যাকশন
+                - rowgroup:
+                  - row:
+                    - cell:
+                      - generic:
+                        - generic: 07/25/2026
+                        - generic: ২৫/৭/২০২৬
+                    - cell: VCH-3922442C
+                    - cell:
+                      - generic:
+                        - generic: ভাই ভাই ইলেক্ট্রনিক্স
+                        - generic: "আইডি: DNR-0001 | sfserfer"
+                    - cell:
+                      - generic: Alpha Group
+                    - cell:
+                      - generic: ৳1000000
+                    - cell:
+                      - generic: Group Donation
+                    - cell: Admin
+                    - cell:
+                      - generic:
+                        - button:
+                          - generic: Open menu
+                  - row:
+                    - cell:
+                      - generic:
+                        - generic: 07/25/2026
+                        - generic: ২৫/৭/২০২৬
+                    - cell: VCH-38ADC3B3
+                    - cell:
+                      - generic:
+                        - generic: ভাই ভাই ইলেক্ট্রনিক্স
+                        - generic: "আইডি: DNR-0001 | sfserfer"
+                    - cell:
+                      - generic: Beta Group
+                    - cell:
+                      - generic: ৳75000
+                    - cell:
+                      - generic: Validation Test Donation
+                    - cell: Admin
+                    - cell:
+                      - generic:
+                        - button:
+                          - generic: Open menu
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e209] [cursor=pointer]
+  - alert: অনুদান গ্রহণ ব্যবস্থাপনা | Foundation ERP
+  - dialog [ref=e396]:
+    - generic [ref=e397]:
+      - heading "অনুদান রিসিট প্রিন্ট (Print Receipt)" [level=2] [ref=e398]
+      - generic [ref=e404]:
+        - button "প্রিন্ট করুন" [active] [ref=e405]
+        - button "PDF ডাউনলোড" [ref=e407]
+        - button [ref=e409]
+    - generic [ref=e410]:
+      - generic [ref=e411]:
+        - generic [ref=e412]: FOUNDATION ERP
+        - paragraph [ref=e417]: অফিশিয়াল অনুদান রিসিট ভাউচার (Donation Receipt Voucher)
+        - generic [ref=e418]: লেনদেন সফল ও লেজারে লিপিবদ্ধ
+      - generic [ref=e423]:
+        - generic [ref=e424]:
+          - paragraph [ref=e425]: ভাউচার নম্বর (Voucher No)
+          - paragraph [ref=e426]: VCH-38ADC3B3
+        - generic [ref=e427]:
+          - paragraph [ref=e428]: তারিখ (Date)
+          - paragraph [ref=e429]: 07/25/2026
+          - paragraph [ref=e430]: (২৫/৭/২০২৬)
+      - table [ref=e432]:
+        - rowgroup [ref=e433]:
+          - row [ref=e434]:
+            - columnheader "বিবরণ (Description)" [ref=e435]
+            - columnheader "পরিমাণ (Amount)" [ref=e436]
+        - rowgroup [ref=e437]:
+          - row [ref=e438]:
+            - 'cell "তহবিল গন্তব্য: Beta Group অনুদানদাতা: ভাই ভাই ইলেক্ট্রনিক্স ডোনার আইডি: DNR-0001 মোবাইল: sfserfer মন্তব্য: Validation Test Donation" [ref=e439]':
+              - generic [ref=e440]: "তহবিল গন্তব্য: Beta Group"
+              - paragraph [ref=e444]: "অনুদানদাতা: ভাই ভাই ইলেক্ট্রনিক্স"
+              - paragraph [ref=e445]: "ডোনার আইডি: DNR-0001"
+              - paragraph [ref=e446]: "মোবাইল: sfserfer"
+              - paragraph [ref=e447]: "মন্তব্য: Validation Test Donation"
+            - cell "৳75000" [ref=e448]
+        - rowgroup [ref=e449]:
+          - row [ref=e450]:
+            - cell "মোট গৃহীত (Total Received):" [ref=e451]
+            - cell "৳75000" [ref=e452]
+      - generic [ref=e453]:
+        - generic [ref=e454]:
+          - paragraph [ref=e455]: "লেজার ট্র্যাকিং আইডি:"
+          - paragraph [ref=e456]: 38adc3b3-3028-4bb9-8b3f-e843dfb04925
+          - paragraph [ref=e457]: "এন্ট্রি করেছেন: Admin"
+        - generic [ref=e458]: অনুমোদিত স্বাক্ষর (Authorized Signature)
+      - generic [ref=e460]: "* এটি একটি কম্পিউটার জেনারেটেড রিসিট। লেজার ইঞ্জিন দ্বারা সুরক্ষিত (Single Source of Truth)।"
+    - button "Close" [ref=e461]

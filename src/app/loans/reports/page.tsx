@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 
 export default async function LoanReportsPage() {
   const loans = await prisma.loan.findMany({
-    include: { repayments: true, installments: true }
+    include: { repayments: true }
   })
 
   const totalLoans = loans.length

@@ -13,7 +13,7 @@ export async function getLoans() {
       beneficiary: true,
       allocations: { include: { fund: { include: { group: true } } } },
       repayments: true,
-      installments: true,
+
     }
   })
 }
@@ -24,52 +24,89 @@ export async function getLoan(id: string) {
     include: {
       beneficiary: true,
       allocations: { include: { fund: { include: { group: true } } } },
-      installments: { orderBy: { dueDate: 'asc' } },
+
       repayments: { include: { ledgerTransaction: true }, orderBy: { date: 'desc' } }
     }
   })
 }
 
-async function generateLoanNumber() {
-  const count = await prisma.loan.count()
+async function generateLoanNumber(tx: any = prisma) {
+  const count = await tx.loan.count()
   const year = new Date().getFullYear()
   return `L-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
+
 export async function createLoanRequest(data: LoanFormValues) {
   const parsed = loanSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   const pd = parsed.data
 
-  const loanNumber = await generateLoanNumber()
-  const installmentCount = 1
-  const installmentAmount = pd.amount
-
   try {
-    const loan = await prisma.loan.create({
-      data: {
-        loanNumber,
-        beneficiaryId: pd.beneficiaryId,
-        loanType: pd.loanType,
-        businessType: pd.loanType === "BUSINESS" ? pd.businessType : null,
-        amount: pd.amount,
-        purpose: pd.purpose || "",
-        installmentCount,
-        installmentAmount,
-        notes: pd.notes,
-        status: "PENDING",
+    const loan = await prisma.$transaction(async (tx) => {
+      const loanNumber = await generateLoanNumber(tx)
+
+
+      const newLoan = await tx.loan.create({
+        data: {
+          loanNumber,
+          beneficiaryId: pd.beneficiaryId,
+          loanType: pd.loanType,
+          businessType: pd.loanType === "BUSINESS" ? pd.businessType : null,
+          amount: pd.amount,
+          purpose: pd.purpose || "",
+
+          notes: pd.notes,
+          status: "ACTIVE",
+          disbursedDate: new Date(),
+        }
+      })
+      
+
+      // Fetch General Fund
+      const generalFund = await tx.fund.findFirst({ where: { groupId: null } })
+      if (!generalFund) throw new Error("General fund not found")
+
+      // Fetch Group Funds
+      const groupFunds = await tx.fund.findMany({ where: { groupId: { not: null } } })
+      if (groupFunds.length === 0) throw new Error("No group funds available for allocation")
+
+      // Calculate automatic allocations
+      const amountPerGroup = Math.floor(pd.amount / groupFunds.length)
+      const allocations = groupFunds.map(f => ({ fundId: f.id, amount: amountPerGroup }))
+      const sum = allocations.reduce((s, a) => s + a.amount, 0)
+      const diff = pd.amount - sum
+      if (diff > 0) {
+        allocations[allocations.length - 1].amount += diff
       }
-    })
-    
-    // Create Installment Schedule (Draft)
-    const dueDate = new Date()
-    dueDate.setMonth(dueDate.getMonth() + 1)
-    
-    await prisma.loanInstallment.create({
-      data: {
-        loanId: loan.id,
-        amount: installmentAmount,
-        dueDate,
+
+      // Construct Ledger Entries
+      const entries = [
+        { fundId: generalFund.id, isCredit: true, amount: pd.amount }
+      ]
+      for (const alloc of allocations) {
+        entries.push({ fundId: alloc.fundId, isCredit: false, amount: alloc.amount })
       }
+
+      // Create Ledger Transaction
+      await LedgerEngine.createTransaction({
+        date: new Date(),
+        type: "LOAN",
+        referenceId: newLoan.loanNumber,
+        notes: `Loan Disbursed: ${newLoan.loanNumber}`,
+        entries
+      }, tx)
+
+      // Create Allocations
+      await tx.fundAllocation.createMany({
+        data: allocations.map(a => ({
+          fundId: a.fundId,
+          targetType: "LOAN",
+          loanId: newLoan.id,
+          amount: a.amount
+        }))
+      })
+
+      return newLoan
     })
 
     revalidatePath("/loans")
@@ -102,71 +139,6 @@ export async function editLoanRequest(id: string, data: LoanFormValues) {
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to update loan" }
   }
-}
-
-export async function approveLoan(id: string) {
-  await prisma.loan.update({
-    where: { id },
-    data: { status: "APPROVED", dateApproved: new Date() }
-  })
-  revalidatePath(`/loans/${id}`)
-  revalidatePath("/loans")
-  return { success: true }
-}
-
-export async function disburseLoan(id: string, allocations: { fundId: string; amount: number }[]) {
-  return await prisma.$transaction(async (tx) => {
-    const loan = await tx.loan.findUnique({ where: { id } })
-    if (!loan) throw new Error("Loan not found")
-    if (loan.status !== "APPROVED") throw new Error("Loan must be approved before disbursement")
-
-    const totalAllocated = allocations.reduce((sum, a) => sum + a.amount, 0)
-    if (totalAllocated !== loan.amount) throw new Error("Total allocations must exactly match the loan amount")
-
-    // Fetch General Fund
-    const generalFund = await tx.fund.findFirst({ where: { groupId: null } })
-    if (!generalFund) throw new Error("General fund not found")
-
-    // Construct Ledger Entries
-    const entries = [
-      // Credit Cash (General Fund) - Asset reduction
-      { fundId: generalFund.id, isCredit: true, amount: loan.amount }
-    ]
-
-    // Debit Group Funds - Equity reduction
-    for (const alloc of allocations) {
-      entries.push({ fundId: alloc.fundId, isCredit: false, amount: alloc.amount })
-    }
-
-    // Create Ledger Transaction
-    const ledgerTx = await LedgerEngine.createTransaction({
-      date: new Date(),
-      type: "LOAN",
-      referenceId: loan.loanNumber,
-      notes: `Disbursement for Loan ${loan.loanNumber}`,
-      entries
-    }, tx)
-
-    // Create Allocations
-    await tx.fundAllocation.createMany({
-      data: allocations.map(a => ({
-        fundId: a.fundId,
-        targetType: "LOAN",
-        loanId: loan.id,
-        amount: a.amount
-      }))
-    })
-
-    // Update Loan Status
-    await tx.loan.update({
-      where: { id },
-      data: { status: "ACTIVE", disbursedDate: new Date() }
-    })
-
-    revalidatePath(`/loans/${id}`)
-    revalidatePath("/loans")
-    return { success: true }
-  })
 }
 
 export async function repayLoan(loanId: string, amount: number, paymentMethod: string, referenceNumber: string) {

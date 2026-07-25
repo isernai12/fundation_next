@@ -24,42 +24,17 @@ export async function getDashboardStats() {
     prisma.loan.findMany({ where: { status: { in: ["ACTIVE", "DEFAULTED"] } }, include: { repayments: true } })
   ])
 
-  let currentCashBalance = 0
-  let foundationTotalFund = 0
-  let totalGroupFunds = 0
-
-  const groupFundDistribution: { name: string, value: number }[] = []
-
-  for (const fund of funds) {
-    let balance = 0
-    for (const entry of fund.ledgerLines) {
-      // Logic from ledger service: 
-      // If it's a general fund (no group), it's Cash (Asset). Debits increase it, Credits decrease it. Wait, the ledger service logic was:
-      // Foundation Fund (Cash): Credit -> Reduces Asset. Debit -> Increases Asset.
-      // Wait, let's re-read what Ledger service did:
-      // In Contribution: Debit Cash, Credit Group Fund
-      // Debit Cash = IsCredit: false -> Increases Cash.
-      // So IsCredit: false => + amount, IsCredit: true => - amount.
-      if (!entry.isCredit) balance += entry.amount
-      else balance -= entry.amount
-    }
-
-    if (!fund.groupId) {
-      foundationTotalFund = balance
-      currentCashBalance = balance
-    } else {
-      // For Group funds (Equity), Credit increases, Debit decreases.
-      // Wait, in Contribution: Credit Group Fund (IsCredit: true).
-      // So for Equity: IsCredit: true => + amount, IsCredit: false => - amount.
-      let equityBalance = 0
-      for (const entry of fund.ledgerLines) {
-        if (entry.isCredit) equityBalance += entry.amount
-        else equityBalance -= entry.amount
-      }
-      totalGroupFunds += equityBalance
-      groupFundDistribution.push({ name: fund.group?.name || "Unknown", value: equityBalance })
-    }
-  }
+  const { FinancialService } = require("@/services/finance")
+  const { cashBalance: currentCashBalance } = await FinancialService.getFoundationSummary()
+  const foundationTotalFund = currentCashBalance // In basic model, cash = foundation fund
+  
+  const groupSummaries = await FinancialService.getAllGroupSummaries()
+  const totalGroupFunds = groupSummaries.reduce((sum: number, s: any) => sum + s.currentBalance, 0)
+  
+  const groupFundDistribution = groupSummaries.map((s: any) => ({
+    name: s.groupName,
+    value: s.currentBalance
+  }))
 
   let outstandingLoanAmount = 0
   for (const loan of loans) {

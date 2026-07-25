@@ -1,0 +1,18 @@
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e12]: Foundation ERP
+        - generic [ref=e13]: Enter your credentials to access your account
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - text: Username or Email
+          - textbox "Username or Email" [ref=e17]:
+            - /placeholder: Enter username or email
+        - generic [ref=e18]:
+          - text: Password
+          - textbox "Password" [ref=e19]:
+            - /placeholder: Enter password
+        - button "Sign In" [ref=e20]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e26] [cursor=pointer]

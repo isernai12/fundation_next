@@ -1,185 +1,191 @@
-import { formatCurrency, formatDate } from "@/lib/format"
-import { getLoan, approveLoan } from "@/features/loans/actions"
-import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
+import { getLoan } from "@/features/loans/actions"
+import { getDocumentsByEntity } from "@/features/documents/actions"
 import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, CheckCircle, Edit, CreditCard, Printer, BookOpen, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { formatDate } from "@/lib/format"
 import { Badge } from "@/components/ui/badge"
-import { DocumentList } from "@/features/documents/components/document-list"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, FileText } from "lucide-react"
+import Link from "next/link"
 import { LoanProfileActions } from "@/features/loans/components/loan-profile-actions"
-import { prisma } from "@/lib/prisma"
-import { LoanDisbursementDialog } from "@/features/loans/components/loan-disbursement-dialog"
 
 export default async function LoanDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
+  const resolvedParams = await params
   const loan = await getLoan(resolvedParams.id)
-
+  
   if (!loan) return notFound()
 
-  const funds = await prisma.fund.findMany({ include: { group: true } })
   const documents = await getDocumentsByEntity("LOAN", loan.id)
-  const categories = await getDocumentCategories()
 
   const totalRepaid = loan.repayments.reduce((sum, r) => sum + r.amount, 0)
   const outstanding = loan.amount - totalRepaid
+
+  // Due logic
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
   
-  const installments = loan.installments || []
-  const nextInstallment = installments.find((i) => i.status === "PENDING")
-  const paidInstallments = installments.filter((i) => i.status === "PAID").length
-  const remainingInstallments = installments.length - paidInstallments
+  let dueStatus = "No Due"
+  let nextDueDate: Date | null = null
+  
+  if (loan.status === "COMPLETED" || outstanding <= 0) {
+    dueStatus = "Completed"
+  } else {
+    const disbursedDate = loan.disbursedDate || loan.requestedDate
+    const lastRepayment = loan.repayments.length > 0 ? loan.repayments[0].date : disbursedDate
+    nextDueDate = new Date(lastRepayment)
+    nextDueDate.setMonth(nextDueDate.getMonth() + 1)
+    nextDueDate.setHours(0, 0, 0, 0)
+    
+    if (nextDueDate < today) {
+      dueStatus = "Overdue"
+    } else if (nextDueDate.getTime() === today.getTime()) {
+      dueStatus = "Due Today"
+    } else {
+      dueStatus = "Upcoming Due"
+    }
+  }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
-      {/* Top Navigation & Actions */}
-      <div className="flex items-center justify-between pb-4 border-b print:hidden">
-        <div className="flex items-center gap-4">
-          <Link href="/loans" className="text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-xl font-bold">ঋণের বিস্তারিত তথ্য</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/loans" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold tracking-tight">ঋণ বিস্তারিত (Loan Details)</h1>
         </div>
         <div className="flex items-center gap-2">
-          {loan.status === "PENDING" && (
-            <form action={async () => {
-              "use server"
-              await approveLoan(loan.id)
-            }}>
-              <Button type="submit"><CheckCircle className="mr-2 h-4 w-4" /> ঋণ অনুমোদন</Button>
-            </form>
-          )}
-          {loan.status === "APPROVED" && (
-            <LoanDisbursementDialog loanId={loan.id} loanAmount={loan.amount} funds={funds} />
-          )}
           <LoanProfileActions loan={loan} outstanding={outstanding} />
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="flex-1 space-y-6">
-          
-          <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3">১. ঋণের সারসংক্ষেপ</h2>
-            <table className="w-full text-sm border-collapse">
-              <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">ঋণ নম্বর</td><td className="py-2 font-medium">{loan.loanNumber}</td></tr>
-                <tr className="border-b">
-                  <td className="py-2 text-muted-foreground font-medium">অবস্থা</td>
-                  <td className="py-2">
-                    <Badge variant={loan.status === "ACTIVE" ? "default" : loan.status === "COMPLETED" ? "secondary" : loan.status === "PENDING" ? "outline" : "destructive"}>
-                      {loan.status}
-                    </Badge>
-                  </td>
-                </tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">আবেদন তারিখ</td><td className="py-2">{formatDate(loan.requestedDate)}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">অনুমোদন তারিখ</td><td className="py-2">{loan.dateApproved ? formatDate(loan.dateApproved) : 'N/A'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বিতরণের তারিখ</td><td className="py-2">{loan.disbursedDate ? formatDate(loan.disbursedDate) : 'N/A'}</td></tr>
-              </tbody>
-            </table>
-          </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>সাধারণ তথ্য (General Info)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">ঋণ নম্বর</td><td className="py-2 font-medium">{loan.loanNumber}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঋণের পরিমাণ</td><td className="py-2 font-bold text-lg">৳{loan.amount}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">অবস্থা (Status)</td>
+                    <td className="py-2">
+                      <Badge variant={loan.status === "ACTIVE" ? "default" : loan.status === "COMPLETED" ? "secondary" : "destructive"}>
+                        {loan.status}
+                      </Badge>
+                    </td>
+                  </tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">আবেদন তারিখ</td><td className="py-2">{formatDate(loan.requestedDate)}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বিতরণের তারিখ</td><td className="py-2">{loan.disbursedDate ? formatDate(loan.disbursedDate) : 'N/A'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঋণের ধরন</td><td className="py-2">{loan.loanType === "BUSINESS" ? `ব্যবসা (${loan.businessType})` : "অন্যান্য"}</td></tr>
+                  <tr><td className="py-2 text-muted-foreground font-medium">উদ্দেশ্য</td><td className="py-2">{loan.purpose}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
-          <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">২. সুবিধাভোগীর তথ্য</h2>
-            <table className="w-full text-sm border-collapse">
-              <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">নাম</td><td className="py-2">{loan.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সুবিধাভোগী আইডি</td><td className="py-2">{loan.beneficiary?.beneficiaryId || '-'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{loan.beneficiary?.phone || '-'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">জাতীয় পরিচয়পত্র</td><td className="py-2">{loan.beneficiary?.nationalId || '-'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঠিকানা</td><td className="py-2">{loan.beneficiary?.address || '-'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পেশা</td><td className="py-2">{loan.beneficiary?.occupation || '-'}</td></tr>
-              </tbody>
-            </table>
-          </section>
+        <Card>
+          <CardHeader>
+            <CardTitle>বকেয়া তথ্য (Due Info)</CardTitle>
+          </CardHeader>
+          <CardContent>
+             <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">পরিশোধিত</td><td className="py-2 text-green-600 font-bold">৳{totalRepaid}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বাকি ঋণ (Remaining)</td><td className="py-2 text-red-600 font-bold">৳{outstanding}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পরবর্তী কিস্তি (Next Due)</td><td className="py-2">{nextDueDate ? formatDate(nextDueDate) : '-'}</td></tr>
+                  <tr><td className="py-2 text-muted-foreground font-medium">বকেয়া অবস্থা</td>
+                    <td className="py-2">
+                      <Badge variant={dueStatus === "Due Today" ? "default" : dueStatus === "Overdue" ? "destructive" : dueStatus === "Completed" ? "secondary" : "outline"}>
+                        {dueStatus}
+                      </Badge>
+                    </td>
+                  </tr>
+                </tbody>
+             </table>
+          </CardContent>
+        </Card>
 
-          <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৩. ঋণের বিবরণ</h2>
-            <table className="w-full text-sm border-collapse">
-              <tbody>
-                <tr className="border-b">
-                  <td className="py-2 w-1/3 text-muted-foreground font-medium">ঋণের ধরন</td>
-                  <td className="py-2">{loan.loanType === "BUSINESS" ? "ব্যবসায়িক" : "অন্যান্য"}</td>
-                </tr>
-                {loan.loanType === "BUSINESS" ? (
-                  <>
-                    <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ব্যবসার ধরন</td><td className="py-2">{loan.businessType}</td></tr>
-                    <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঋণ গ্রহণের উদ্দেশ্য</td><td className="py-2">{loan.purpose}</td></tr>
-                  </>
-                ) : (
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">কারণ</td><td className="py-2">{loan.purpose}</td></tr>
-                )}
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঋণের পরিমাণ</td><td className="py-2 font-bold">৳{formatCurrency(loan.amount)}</td></tr>
-                {loan.notes && (
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মন্তব্য</td><td className="py-2 whitespace-pre-wrap">{loan.notes}</td></tr>
-                )}
-              </tbody>
-            </table>
-          </section>
+        <Card>
+          <CardHeader>
+            <CardTitle>সুবিধাভোগীর তথ্য (Beneficiary)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">নাম</td><td className="py-2">{loan.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সুবিধাভোগী আইডি</td><td className="py-2">{loan.beneficiary?.beneficiaryId || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{loan.beneficiary?.phone || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">জাতীয় পরিচয়পত্র</td><td className="py-2">{loan.beneficiary?.nationalId || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">ঠিকানা</td><td className="py-2">{loan.beneficiary?.address || '-'}</td></tr>
+                  <tr><td className="py-2 text-muted-foreground font-medium">পেশা</td><td className="py-2">{loan.beneficiary?.occupation || '-'}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {loan.allocations && loan.allocations.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>তহবিল বরাদ্দ (Fund Allocation)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                {loan.allocations.map(a => (
+                  <div key={a.id} className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">{a.fund.group?.name || "General Fund"} ({a.fund.name})</span>
+                    <span className="font-medium">৳{a.amount}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-          <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৪. বর্তমান অবস্থা</h2>
-            <table className="w-full text-sm border-collapse">
-              <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">মোট পরিশোধিত</td><td className="py-2 font-bold text-green-600">৳{formatCurrency(totalRepaid)}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বাকি ঋণ</td><td className="py-2 font-bold text-red-500">৳{formatCurrency(outstanding)}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পরিশোধিত কিস্তি</td><td className="py-2">{paidInstallments} টি</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বাকি কিস্তি</td><td className="py-2">{remainingInstallments} টি</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পরবর্তী কিস্তির তারিখ</td><td className="py-2">{nextInstallment ? formatDate(nextInstallment.dueDate) : 'N/A'}</td></tr>
-              </tbody>
-            </table>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৫. উৎস তহবিল (Allocations)</h2>
-            <table className="w-full text-sm border-collapse">
-              <tbody>
-                {loan.allocations.length === 0 ? (
-                  <tr><td className="py-2 text-muted-foreground">কোনো তহবিল বরাদ্দ নেই।</td></tr>
-                ) : (
-                  loan.allocations.map(a => (
-                    <tr key={a.id} className="border-b">
-                      <td className="py-2 w-2/3">{a.fund.name} <span className="text-xs text-muted-foreground">({a.fund.group?.name || "Foundation"})</span></td>
-                      <td className="py-2 font-medium">৳{formatCurrency(a.amount)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </section>
-
-          <section id="history">
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৬. পরিশোধের ইতিহাস</h2>
-            <table className="w-full text-sm border-collapse">
+      <Card id="history">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>পরিশোধের ইতিহাস (Payment History)</CardTitle>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/loans/ledger?loanId=${loan.id}`}>
+              <FileText className="mr-2 h-4 w-4" /> ঋণের খতিয়ান (Ledger)
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loan.repayments.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground text-sm">
+              এখনও কোনো কিস্তি পরিশোধ করা হয়নি।
+            </div>
+          ) : (
+            <table className="w-full text-sm text-left">
               <thead>
-                <tr className="border-b bg-muted/20">
-                  <th className="py-2 text-left px-2 font-medium">তারিখ</th>
-                  <th className="py-2 text-left px-2 font-medium">রেফারেন্স</th>
-                  <th className="py-2 text-right px-2 font-medium">পরিমাণ</th>
+                <tr className="border-b text-muted-foreground">
+                  <th className="pb-2 font-medium">তারিখ</th>
+                  <th className="pb-2 font-medium">ট্রানজেকশন আইডি</th>
+                  <th className="pb-2 font-medium text-right">পরিমাণ</th>
                 </tr>
               </thead>
               <tbody>
-                {loan.repayments.length === 0 ? (
-                  <tr><td colSpan={3} className="py-4 text-center text-muted-foreground">কোনো পরিশোধ পাওয়া যায়নি।</td></tr>
-                ) : (
-                  loan.repayments.map(r => (
-                    <tr key={r.id} className="border-b">
-                      <td className="py-2 px-2">{formatDate(r.date)}</td>
-                      <td className="py-2 px-2 text-xs text-muted-foreground">{r.ledgerTransaction.id}</td>
-                      <td className="py-2 px-2 text-right font-medium text-green-600">+৳{formatCurrency(r.amount)}</td>
-                    </tr>
-                  ))
-                )}
+                {loan.repayments.map(r => (
+                  <tr key={r.id} className="border-b last:border-0">
+                    <td className="py-3">{formatDate(r.date)}</td>
+                    <td className="py-3 text-muted-foreground text-xs">{r.ledgerTransactionId}</td>
+                    <td className="py-3 text-right font-medium text-green-600">+৳{r.amount}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-          </section>
-
-        </div>
-      </div>
-
-      <div className="print:hidden">
-        <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-8">ডকুমেন্টস</h2>
-        <DocumentList targetType="LOAN" entityId={loan.id} documents={documents} categories={categories} />
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

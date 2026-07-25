@@ -20,7 +20,8 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
   const fundSummary = rawFundSummary || {
     currentBalance: 0,
     totalContributions: 0,
-    totalTransactions: 0
+    totalTransactions: 0,
+    totalDonations: 0
   }
   const documents = await getDocumentsByEntity("GROUP", resolvedParams.id)
   const categories = await getDocumentCategories()
@@ -50,7 +51,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
 
       {/* Group Fund Summary */}
       <h2 className="text-xl font-bold tracking-tight mt-8">Fund Overview</h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Fund</CardTitle>
@@ -70,6 +71,17 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
           <CardContent>
             <div className="text-2xl font-bold">৳{formatCurrency(fundSummary.totalContributions)}</div>
             <p className="text-xs text-muted-foreground">Lifetime</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Donations</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">৳{formatCurrency(fundSummary.totalDonations)}</div>
+            <p className="text-xs text-muted-foreground">External Donations</p>
           </CardContent>
         </Card>
 

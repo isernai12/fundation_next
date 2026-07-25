@@ -33,17 +33,17 @@ export default async function DueContributionsPage() {
     <div className="space-y-6">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
-          Contributions
+          মাসিক চাঁদা
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">Due Contributions</span>
+        <span className="font-medium text-foreground">বকেয়া চাঁদা</span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Due Contributions</h1>
+          <h1 className="text-3xl font-bold tracking-tight">বকেয়া চাঁদা</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Members who have not paid their contribution for {formatMonth(new Date().getUTCMonth())} {currentYear}.
+            যে সকল সদস্য {formatMonth(new Date().getUTCMonth())} {currentYear} এর চাঁদা পরিশোধ করেননি।
           </p>
         </div>
       </div>
@@ -52,11 +52,11 @@ export default async function DueContributionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Group</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Estimated Due</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead>সদস্য</TableHead>
+              <TableHead>গ্রুপ</TableHead>
+              <TableHead>স্ট্যাটাস</TableHead>
+              <TableHead>বকেয়া পরিমাণ</TableHead>
+              <TableHead>অ্যাকশন</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -67,13 +67,13 @@ export default async function DueContributionsPage() {
                   <TableCell>{member.group?.name || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="destructive" className="flex w-fit items-center gap-1">
-                      <AlertCircle className="h-3 w-3" /> Due
+                      <AlertCircle className="h-3 w-3" /> বকেয়া
                     </Badge>
                   </TableCell>
-                  <TableCell>৳50.00</TableCell>
+                  <TableCell>৳১০০.০০</TableCell>
                   <TableCell>
                     <Link href={`/contributions/new?memberId=${member.id}`} className="text-primary hover:underline text-sm font-medium">
-                      Collect Now
+                      চাঁদা নিন
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -81,7 +81,7 @@ export default async function DueContributionsPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  All active members have paid their contributions for this month!
+                  এই মাসের জন্য সকল সক্রিয় সদস্য তাদের চাঁদা পরিশোধ করেছেন!
                 </TableCell>
               </TableRow>
             )}

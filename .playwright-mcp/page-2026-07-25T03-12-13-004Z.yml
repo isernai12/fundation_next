@@ -1,0 +1,109 @@
+- generic [active] [ref=f9e1]:
+  - complementary [ref=f9e45]:
+    - heading "Foundation ERP" [level=2] [ref=f9e47]
+    - navigation [ref=f9e49]:
+      - link "ড্যাশবোর্ড" [ref=f9e50] [cursor=pointer]:
+        - /url: /
+      - button [ref=f9e57]
+      - button [ref=f9e67]
+      - button [ref=f9e77]
+      - button [ref=f9e87]
+      - button [ref=f9e95]
+      - button [ref=f9e103]
+      - button [ref=f9e110]
+      - button [ref=f9e118]
+      - button [ref=f9e127]
+      - link "ডকুমেন্টস" [ref=f9e133] [cursor=pointer]:
+        - /url: /documents
+      - link "রিপোর্ট" [ref=f9e136] [cursor=pointer]:
+        - /url: /reports
+      - link "সেটিংস" [ref=f9e140] [cursor=pointer]:
+        - /url: /settings
+  - generic [ref=f9e2]:
+    - banner [ref=f9e144]:
+      - generic [ref=f9e145]:
+        - button "Notifications" [ref=f9e146]
+        - button "Toggle theme" [ref=f9e151]
+        - button [ref=f9e159]
+    - main [ref=f9e3]:
+      - generic [ref=f9e163]:
+        - heading "Executive Dashboard" [level=1] [ref=f9e164]
+        - generic [ref=f9e165]:
+          - generic [ref=f9e166]:
+            - generic [ref=f9e167]: Total Cash Balance
+            - generic [ref=f9e172]:
+              - generic [ref=f9e173]: ৳400.00
+              - paragraph [ref=f9e174]: Across all ledgers
+          - generic [ref=f9e175]:
+            - generic [ref=f9e176]: Foundation Fund
+            - generic [ref=f9e180]:
+              - generic [ref=f9e181]: ৳400.00
+              - paragraph [ref=f9e182]: General Fund Equity
+          - generic [ref=f9e183]:
+            - generic [ref=f9e184]: Total Group Funds
+            - generic [ref=f9e188]:
+              - generic [ref=f9e189]: ৳400.00
+              - paragraph [ref=f9e190]: Combined equity across all groups
+          - generic [ref=f9e191]:
+            - generic [ref=f9e192]: Monthly Contributions
+            - generic [ref=f9e196]:
+              - generic [ref=f9e197]: ৳400.00
+              - paragraph [ref=f9e198]: Lifetime collected
+          - generic [ref=f9e199]:
+            - generic [ref=f9e200]: Members
+            - generic [ref=f9e207]:
+              - generic [ref=f9e208]: "11"
+              - paragraph [ref=f9e209]: 11 Active • 0 Inactive
+          - generic [ref=f9e210]:
+            - generic [ref=f9e211]: Groups / Beneficiaries
+            - generic [ref=f9e216]: 3 / 2
+          - generic [ref=f9e218]:
+            - generic [ref=f9e219]: Active Loans
+            - generic [ref=f9e224]:
+              - generic [ref=f9e225]: "0"
+              - paragraph [ref=f9e226]: ৳0.00 Outstanding
+          - generic [ref=f9e227]:
+            - generic [ref=f9e228]: Total Grants
+            - generic [ref=f9e234]:
+              - generic [ref=f9e235]: "0"
+              - paragraph [ref=f9e236]: Approved grants
+        - generic [ref=f9e237]:
+          - generic [ref=f9e238]:
+            - generic [ref=f9e239]: Monthly Financials Overview
+            - generic [ref=f9e243]:
+              - list [ref=f9e245]:
+                - listitem [ref=f9e246]:
+                  - img "Contributions legend icon" [ref=f9e247]
+                  - text: Contributions
+                - listitem [ref=f9e249]:
+                  - img "Grants legend icon" [ref=f9e250]
+                  - text: Grants
+                - listitem [ref=f9e252]:
+                  - img "Loans Disbursed legend icon" [ref=f9e253]
+                  - text: Loans Disbursed
+              - application [ref=f9e255]:
+                - generic [ref=f9e280]:
+                  - generic [ref=f9e281]:
+                    - generic [ref=f9e282]: Feb
+                    - generic [ref=f9e284]: Mar
+                    - generic [ref=f9e286]: Apr
+                    - generic [ref=f9e288]: May
+                    - generic [ref=f9e290]: Jun
+                    - generic [ref=f9e292]: Jul
+                  - generic [ref=f9e294]:
+                    - generic [ref=f9e295]: "0"
+                    - generic [ref=f9e297]: "100"
+                    - generic [ref=f9e299]: "200"
+                    - generic [ref=f9e301]: "300"
+                    - generic [ref=f9e303]: "400"
+          - generic [ref=f9e305]:
+            - generic [ref=f9e306]: Group Fund Distribution
+            - application [ref=f9e311]:
+              - generic [ref=f9e318]: Beta Group 100%
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=f9e31]:
+        - generic [ref=f9e35]: Login successful
+  - button "Open Next.js Dev Tools" [ref=f9e26] [cursor=pointer]
+  - alert [ref=f9e30]
+  - generic [ref=f9e321]: "0"

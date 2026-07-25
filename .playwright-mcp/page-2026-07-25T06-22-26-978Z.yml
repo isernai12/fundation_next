@@ -1,0 +1,115 @@
+- generic:
+  - complementary:
+    - generic:
+      - heading [level=2]: Foundation ERP
+    - generic:
+      - navigation:
+        - link:
+          - /url: /
+          - text: ড্যাশবোর্ড
+        - generic:
+          - button:
+            - generic: সদস্য
+        - generic:
+          - button:
+            - generic: সুবিধাভোগী
+        - generic:
+          - button [expanded]:
+            - generic: অনুদানদাতা
+          - generic:
+            - generic:
+              - link:
+                - /url: /donors/new
+                - text: নতুন অনুদানদাতা
+              - link:
+                - /url: /donors/manage
+                - text: অনুদানদাতা ব্যবস্থাপনা
+              - link:
+                - /url: /donors/receive
+                - text: অনুদান গ্রহণ
+              - link:
+                - /url: /donors/donations
+                - text: অনুদান গ্রহণ ব্যবস্থাপনা
+              - link:
+                - /url: /donors/ledger
+                - text: অনুদানদাতার লেজার
+        - generic:
+          - button:
+            - generic: তহবিল কার্যক্রম
+        - generic:
+          - button:
+            - generic: গ্রুপ
+        - generic:
+          - button:
+            - generic: তহবিল / চাঁদা
+        - generic:
+          - button:
+            - generic: ঋণ
+        - generic:
+          - button:
+            - generic: অনুদান
+        - generic:
+          - button:
+            - generic: খতিয়ান (Ledger)
+        - link:
+          - /url: /documents
+          - text: ডকুমেন্টস
+        - link:
+          - /url: /reports
+          - text: রিপোর্ট
+        - link:
+          - /url: /settings
+          - text: সেটিংস
+  - generic:
+    - banner:
+      - generic:
+        - button:
+          - generic: Notifications
+        - button:
+          - generic: Toggle theme
+        - button
+    - main:
+      - generic:
+        - generic:
+          - link:
+            - /url: /donors/manage
+            - text: অনুদানদাতা
+          - generic: অনুদান গ্রহণ
+        - generic:
+          - generic:
+            - heading [level=1]: অনুদান গ্রহণ
+            - paragraph: অনুদানদাতার কাছ থেকে সাধারণ তহবিল অথবা নির্দিষ্ট কার্যক্রমে অনুদান রেকর্ড করুন।
+        - generic:
+          - generic:
+            - generic: অনুদান গ্রহণ (Receive Donation)
+            - generic:
+              - generic:
+                - generic:
+                  - text: অনুদানদাতা (Donor) *
+                  - combobox:
+                    - generic: ভাই ভাই ইলেক্ট্রনিক্স (DNR-0001) - sfserfer
+                  - combobox
+                - generic:
+                  - text: তহবিল গন্তব্য (Foundation Group) *
+                  - combobox [expanded]:
+                    - generic: ফাউন্ডেশন গ্রুপ নির্বাচন করুন
+                  - combobox
+                - generic:
+                  - text: পরিমাণ (Amount) *
+                  - spinbutton: "0"
+                - generic:
+                  - text: তারিখ (Date) *
+                  - textbox: 2026-07-25
+                - generic:
+                  - text: মন্তব্য (Remarks)
+                  - textbox
+          - generic:
+            - button: বাতিল (Cancel)
+            - button: অনুদান গ্রহণ করুন
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e209] [cursor=pointer]
+  - alert: অনুদান গ্রহণ | Foundation ERP
+  - listbox [ref=e272]:
+    - option "Alpha Group" [active] [ref=e273]
+    - option "Beta Group" [ref=e276]
+    - option "Gamma Group" [ref=e279]

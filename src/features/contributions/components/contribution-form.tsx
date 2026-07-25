@@ -58,8 +58,8 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
   return (
     <Card className="max-w-5xl mx-auto shadow-sm border mt-4">
       <CardHeader className="border-b mb-6 pb-4">
-        <CardTitle className="text-xl font-bold">চাঁদা গ্রহণ</CardTitle>
-        <CardDescription>সদস্যের নতুন চাঁদার তথ্য এন্ট্রি করুন</CardDescription>
+        <CardTitle className="text-xl font-bold">মাসিক চাঁদা গ্রহণ</CardTitle>
+        <CardDescription>সদস্যের নতুন মাসিক চাঁদার তথ্য এন্ট্রি করুন</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

@@ -11,6 +11,7 @@ import { Building, Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Form,
   FormControl,
@@ -21,8 +22,9 @@ import {
 } from "@/components/ui/form"
 
 const formSchema = z.object({
-  username: z.string().min(1, "Username or email is required."),
-  password: z.string().min(1, "Password is required."),
+  username: z.string().min(1, "ব্যবহারকারীর নাম বা ইমেইল আবশ্যক।"),
+  password: z.string().min(1, "পাসওয়ার্ড আবশ্যক।"),
+  rememberMe: z.boolean(),
 })
 
 export function LoginForm() {
@@ -34,6 +36,7 @@ export function LoginForm() {
     defaultValues: {
       username: "",
       password: "",
+      rememberMe: false,
     },
   })
 
@@ -44,18 +47,19 @@ export function LoginForm() {
       const res = await signIn("credentials", {
         username: values.username,
         password: values.password,
+        rememberMe: values.rememberMe.toString(),
         redirect: false,
       })
 
       if (res?.error) {
         toast.error(res.error)
       } else if (res?.ok) {
-        toast.success("Login successful")
+        toast.success("সফলভাবে লগইন হয়েছে")
         router.push("/")
         router.refresh()
       }
     } catch (err) {
-      toast.error("An error occurred during login")
+      toast.error("লগইন করার সময় একটি ত্রুটি ঘটেছে")
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +75,7 @@ export function LoginForm() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Foundation ERP</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardDescription>আপনার অ্যাকাউন্টে প্রবেশ করুন</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -84,9 +88,9 @@ export function LoginForm() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username or Email</FormLabel>
+                    <FormLabel>ব্যবহারকারীর নাম বা ইমেইল</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter username or email" disabled={isLoading} {...field} />
+                      <Input placeholder="ব্যবহারকারীর নাম বা ইমেইল লিখুন" disabled={isLoading} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -97,17 +101,35 @@ export function LoginForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>পাসওয়ার্ড</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Enter password" disabled={isLoading} {...field} />
+                      <Input type="password" placeholder="পাসওয়ার্ড লিখুন" disabled={isLoading} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Remember me (আমাকে মনে রাখুন)</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "লগইন হচ্ছে..." : "লগইন করুন"}
               </Button>
             </form>
           </Form>
