@@ -139,20 +139,7 @@ const sidebarItems: MenuItem[] = [
       { name: "অনুদান রিপোর্ট", href: "/grants/reports" },
     ]
   },
-  { 
-    name: "খতিয়ান (Ledger)", 
-    href: "/ledger", 
-    icon: BookOpen,
-    submenu: [
-      { name: "সাধারণ খতিয়ান", href: "/ledger" },
-      { name: "গ্রুপ খতিয়ান", href: "/ledger/group" },
-      { name: "সদস্য লেজার", href: "/ledger/member" },
-      { name: "সুবিধাভোগী খতিয়ান", href: "/ledger/beneficiary" },
-      { name: "লেনদেন রেজিস্টার", href: "/ledger/transactions" },
-      { name: "তহবিল বরাদ্দ খতিয়ান", href: "/ledger/allocations" },
-      { name: "খতিয়ান রিপোর্ট", href: "/ledger/reports" },
-    ]
-  },
+
   { name: "সেটিংস", href: "/settings", icon: Settings },
 ]
 
