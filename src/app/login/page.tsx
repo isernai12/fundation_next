@@ -1,10 +1,10 @@
 import { LoginForm } from "./login-form"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 import { redirect } from "next/navigation"
 
 export default async function LoginPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   const user = session?.user as any
 
   if (user?.id) {

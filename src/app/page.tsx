@@ -3,12 +3,12 @@ import { getDashboardStats } from "@/features/dashboard/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts-dynamic"
 import { Users, Building, DollarSign, PiggyBank, Gift, Wallet, Activity } from "lucide-react"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 import { redirect } from "next/navigation"
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   const user = session?.user as any
   if (!user?.id) redirect("/login")
 

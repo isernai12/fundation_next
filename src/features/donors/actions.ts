@@ -2,8 +2,8 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 import { z } from "zod"
 // generateEntityId removed
 
@@ -28,7 +28,7 @@ export async function getDonor(id: string) {
 }
 
 export async function createDonor(data: any) {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
 
@@ -78,7 +78,7 @@ export async function createDonor(data: any) {
 }
 
 export async function updateDonor(id: string, data: any) {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
 
@@ -210,7 +210,7 @@ export async function receiveDonation(data: {
   date: string,
   remarks?: string
 }) {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
 
@@ -325,7 +325,7 @@ export async function updateDonationTransaction(transactionId: string, data: {
   date: string,
   remarks?: string
 }) {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id || null
 

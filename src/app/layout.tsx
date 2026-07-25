@@ -6,8 +6,8 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 import { SidebarProvider } from "@/components/layout/sidebar-provider"
 
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 import { AuthProvider } from "@/components/auth-provider"
 import { Toaster } from "sonner"
 
@@ -23,7 +23,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   const user = session?.user as any
   const isLoggedIn = !!user?.id
 

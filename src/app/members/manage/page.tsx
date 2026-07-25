@@ -2,13 +2,13 @@ import { getMembers } from "@/features/members/actions"
 import { getGroups } from "@/features/groups/actions"
 import { MembersTable } from "@/features/members/components/members-table"
 
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 
 export default async function ManageMembersPage() {
   const members = await getMembers()
   const groups = await getGroups()
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   
   // @ts-ignore
   const userRole = session?.user?.role;

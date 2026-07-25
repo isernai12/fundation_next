@@ -4,6 +4,11 @@ import { formatShortMonth } from "@/lib/format"
 import { prisma } from "@/lib/prisma"
 
 export async function getDashboardStats() {
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+  const { FinancialService } = require("@/services/finance")
+
   const [
     totalMembers,
     activeMembers,
@@ -11,8 +16,13 @@ export async function getDashboardStats() {
     totalBeneficiaries,
     totalActiveLoans,
     totalGrants,
-    funds,
-    loans
+    loans,
+    foundationSummary,
+    groupSummaries,
+    contributions,
+    recentContributions,
+    recentLoans,
+    recentGrants
   ] = await Promise.all([
     prisma.member.count(),
     prisma.member.count({ where: { status: "ACTIVE" } }),
@@ -20,15 +30,30 @@ export async function getDashboardStats() {
     prisma.beneficiary.count(),
     prisma.loan.count({ where: { status: "ACTIVE" } }),
     prisma.grant.count(),
-    prisma.fund.findMany({ include: { ledgerLines: true, group: true } }),
-    prisma.loan.findMany({ where: { status: { in: ["ACTIVE", "DEFAULTED"] } }, include: { repayments: true } })
+    prisma.loan.findMany({ where: { status: { in: ["ACTIVE", "DEFAULTED"] } }, include: { repayments: true } }),
+    FinancialService.getFoundationSummary(),
+    FinancialService.getAllGroupSummaries(),
+    prisma.monthlyContribution.aggregate({
+      _sum: { expectedAmount: true },
+      where: { status: "PAID" }
+    }),
+    prisma.monthlyContribution.findMany({
+      where: { status: "PAID", createdAt: { gte: sixMonthsAgo } },
+      select: { expectedAmount: true, createdAt: true }
+    }),
+    prisma.loan.findMany({
+      where: { createdAt: { gte: sixMonthsAgo } },
+      select: { amount: true, createdAt: true }
+    }),
+    prisma.grant.findMany({
+      where: { createdAt: { gte: sixMonthsAgo } },
+      select: { amount: true, createdAt: true }
+    })
   ])
 
-  const { FinancialService } = require("@/services/finance")
-  const { cashBalance: currentCashBalance } = await FinancialService.getFoundationSummary()
-  const foundationTotalFund = currentCashBalance // In basic model, cash = foundation fund
-  
-  const groupSummaries = await FinancialService.getAllGroupSummaries()
+  const currentCashBalance = foundationSummary.cashBalance
+  const foundationTotalFund = currentCashBalance
+
   const totalGroupFunds = groupSummaries.reduce((sum: number, s: any) => sum + s.currentBalance, 0)
   
   const groupFundDistribution = groupSummaries.map((s: any) => ({
@@ -38,34 +63,9 @@ export async function getDashboardStats() {
 
   let outstandingLoanAmount = 0
   for (const loan of loans) {
-    const repaid = loan.repayments.reduce((s, r) => s + r.amount, 0)
+    const repaid = loan.repayments.reduce((s: any, r: any) => s + r.amount, 0)
     outstandingLoanAmount += (loan.amount - repaid)
   }
-
-  const contributions = await prisma.monthlyContribution.aggregate({
-    _sum: { expectedAmount: true },
-    where: { status: "PAID" }
-  })
-
-  // Monthly data for charts (last 6 months)
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-
-  const recentContributions = await prisma.monthlyContribution.findMany({
-    where: { status: "PAID", createdAt: { gte: sixMonthsAgo } },
-    select: { expectedAmount: true, createdAt: true }
-  })
-
-  const recentLoans = await prisma.loan.findMany({
-    where: { createdAt: { gte: sixMonthsAgo } },
-    select: { amount: true, createdAt: true }
-  })
-
-  const recentGrants = await prisma.grant.findMany({
-    where: { createdAt: { gte: sixMonthsAgo } },
-    select: { amount: true, createdAt: true }
-  })
-
   // Group by month
   const monthMap = new Map<string, { month: string, contributions: number, loans: number, grants: number }>()
   

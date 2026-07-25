@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 
 export default async function EditBeneficiaryPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   // @ts-ignore
   const userRole = session?.user?.role;
   const isManage = userRole === "ADMIN" || userRole === "MANAGER" || userRole === "SUPER_ADMIN";

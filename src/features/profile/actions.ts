@@ -1,8 +1,8 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
+
 import bcrypt from "bcryptjs"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
@@ -12,7 +12,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 async function getSessionUser() {
-  const session = await getServerSession(authOptions)
+  const session = await getAuthSession()
   const user = session?.user as any
   if (!user?.id) redirect("/login")
   return { ...session, user } as any

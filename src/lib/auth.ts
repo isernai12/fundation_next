@@ -3,6 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import crypto from "crypto"
+import { getServerSession } from "next-auth/next"
+import { cache } from "react"
+
+export const getAuthSession = cache(() => getServerSession(authOptions))
+
 
 function parseUserAgent(ua: string) {
   let browser = "Unknown Browser"
