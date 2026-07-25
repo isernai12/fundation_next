@@ -1,4 +1,5 @@
 "use server"
+import { FinancialService } from "@/services/finance"
 import { formatShortMonth } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
@@ -7,7 +8,7 @@ export async function getDashboardStats() {
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
-  const { FinancialService } = require("@/services/finance")
+  
 
   // Batch 1: Core counts and active loans (5 concurrent queries)
   const [

@@ -1,4 +1,5 @@
 "use server"
+import { LedgerEngine } from "@/services/ledger"
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
@@ -216,7 +217,7 @@ export async function receiveDonation(data: {
 
   try {
     return await prisma.$transaction(async (tx) => {
-      const { LedgerEngine } = require("@/services/ledger")
+      
       
       const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(data.groupId, tx)
 
@@ -340,7 +341,7 @@ export async function updateDonationTransaction(transactionId: string, data: {
         throw new Error("Donation transaction not found or invalid type.")
       }
 
-      const { LedgerEngine } = require("@/services/ledger")
+      
       const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(data.groupId, tx)
       const group = await tx.group.findUnique({ where: { id: data.groupId } })
 

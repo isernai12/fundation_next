@@ -1,4 +1,5 @@
 "use server"
+import { FinancialService } from "@/services/finance"
 
 import { prisma } from "@/lib/prisma"
 import { groupSchema, type GroupFormValues } from "./schema"
@@ -16,7 +17,7 @@ export async function getGroups() {
 
   if (groups.length === 0) return []
 
-  const { FinancialService } = require("@/services/finance")
+  
   const summaries = await FinancialService.getAllGroupSummaries()
   const summaryMap = new Map(summaries.map((s: any) => [s.groupId, s.currentBalance]))
 
@@ -174,7 +175,7 @@ export async function removeMemberFromGroup(memberId: string) {
 }
 
 export async function getGroupFundSummary(groupId: string) {
-  const { FinancialService } = require("@/services/finance")
+  
   return await FinancialService.getGroupFundSummary(groupId)
 }
 
