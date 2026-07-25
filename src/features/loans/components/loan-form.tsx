@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loanSchema, type LoanFormValues } from "../schema"
@@ -34,14 +34,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Beneficiary } from "@prisma/client"
 import { MemberCombobox } from "@/components/member-combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface LoanFormProps {
   beneficiaries: Beneficiary[]
+  groups?: any[]
   initialData?: LoanFormValues & { id: string }
   initialDocuments?: any[]
 }
 
-export function LoanForm({ beneficiaries, initialData, initialDocuments = [] }: LoanFormProps) {
+export function LoanForm({ beneficiaries, groups, initialData, initialDocuments = [] }: LoanFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   
@@ -61,7 +63,18 @@ export function LoanForm({ beneficiaries, initialData, initialDocuments = [] }: 
       purpose: "",
       businessType: "",
       notes: "",
+      installmentType: "MONTHLY",
+      installmentAmount: 0,
+      totalInstallments: 0,
+      firstInstallmentDate: new Date(),
+      isMultiGroup: false,
+      fundAllocations: [{ groupId: "", amount: 0 }]
     },
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "fundAllocations"
   })
 
   const watchedLoanType = form.watch("loanType")
@@ -278,6 +291,90 @@ export function LoanForm({ beneficiaries, initialData, initialDocuments = [] }: 
               />
             </div>
 
+            {/* Installment Schedule Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="installmentType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>কিস্তির ধরন</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="কিস্তির ধরন নির্বাচন করুন" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="DAILY">দৈনিক</SelectItem>
+                        <SelectItem value="WEEKLY">সাপ্তাহিক</SelectItem>
+                        <SelectItem value="MONTHLY">মাসিক</SelectItem>
+                        <SelectItem value="CUSTOM">কাস্টম</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="installmentAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>কিস্তির পরিমাণ (৳)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="totalInstallments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>মোট কিস্তির সংখ্যা</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="firstInstallmentDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>প্রথম কিস্তির তারিখ</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
+                        onChange={e => { field.onChange(e.target.value ? new Date(e.target.value) : undefined); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="notes"
@@ -294,10 +391,132 @@ export function LoanForm({ beneficiaries, initialData, initialDocuments = [] }: 
           </CardContent>
         </Card>
 
-        {/* ৩. ডকুমেন্ট (ঐচ্ছিক) */}
+        {/* ৪. ঋণের অর্থের উৎস */}
         <Card>
           <CardHeader>
-            <CardTitle>৩. ডকুমেন্ট (ঐচ্ছিক)</CardTitle>
+            <CardTitle>৪. ঋণের অর্থের উৎস (Funding Source)</CardTitle>
+            <CardDescription>ঋণের জন্য ফান্ডের উৎস নির্বাচন করুন।</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <FormField
+              control={form.control}
+              name="isMultiGroup"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked)
+                        if (!checked) {
+                          // keep only the first element
+                          if (fields.length > 1) {
+                            form.setValue("fundAllocations", [form.getValues().fundAllocations[0]])
+                          }
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>একাধিক গ্রুপ থেকে অর্থ প্রদান</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      একটি গ্রুপে পর্যাপ্ত ফান্ড না থাকলে একাধিক গ্রুপ ব্যবহার করুন।
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-4">
+              {fields.map((field, index) => {
+                const groupId = form.watch(`fundAllocations.${index}.groupId`)
+                const group = groups?.find(g => g.id === groupId)
+                const currentBalance = group?.currentFund || 0
+                const allocAmount = form.watch(`fundAllocations.${index}.amount`) || 0
+                const remaining = currentBalance - allocAmount
+
+                return (
+                  <div key={field.id} className="flex gap-4 items-start p-4 border rounded-md relative">
+                    <div className="flex-1 space-y-4">
+                      <FormField
+                        control={form.control}
+                        name={`fundAllocations.${index}.groupId`}
+                        render={({ field: selectField }) => (
+                          <FormItem>
+                            <FormLabel>গ্রুপ (Group)</FormLabel>
+                            <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="গ্রুপ নির্বাচন করুন" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {groups?.map(g => (
+                                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      {group && (
+                        <div className="flex justify-between text-sm bg-muted p-2 rounded">
+                          <div><span className="text-muted-foreground">Available Balance:</span> ৳{currentBalance}</div>
+                          <div><span className="text-muted-foreground">Remaining After Loan:</span> <span className={remaining < 0 ? "text-red-500 font-bold" : "text-green-600 font-bold"}>৳{remaining}</span></div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-1/3 mt-0">
+                      <FormField
+                        control={form.control}
+                        name={`fundAllocations.${index}.amount`}
+                        render={({ field: inputField }) => (
+                          <FormItem>
+                            <FormLabel>পরিমাণ (৳)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                {...inputField}
+                                value={inputField.value ?? ""}
+                                onChange={e => { const v = parseInt(e.target.value); inputField.onChange(isNaN(v) ? "" : v); }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    {form.watch("isMultiGroup") && index > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-2"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                )
+              })}
+              {form.watch("isMultiGroup") && (
+                <Button type="button" variant="outline" onClick={() => append({ groupId: "", amount: 0 })}>
+                  + নতুন সারি যুক্ত করুন
+                </Button>
+              )}
+              {form.formState.errors.fundAllocations?.root?.message && (
+                <p className="text-sm font-medium text-destructive">{form.formState.errors.fundAllocations.root.message}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ৫. ডকুমেন্ট (ঐচ্ছিক) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>৫. ডকুমেন্ট (ঐচ্ছিক)</CardTitle>
             <CardDescription>প্রয়োজনীয় ফাইল আপলোড করুন (PDF, JPG, PNG)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

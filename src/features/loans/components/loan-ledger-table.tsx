@@ -27,7 +27,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, Printer, Search } from "lucide-react"
 
 export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -40,14 +40,43 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     },
     {
       accessorKey: "referenceId",
-      header: "Reference",
+      header: "Loan #",
+    },
+    {
+      accessorKey: "beneficiaryName",
+      header: "Beneficiary",
     },
     {
       accessorKey: "type",
       header: "Type",
-      cell: ({ row }) => (
-        <Badge variant="outline">{row.getValue("type") as string}</Badge>
-      )
+      cell: ({ row }) => {
+        const type = row.getValue("type") as string
+        return <Badge variant={type === "LOAN" ? "destructive" : "default"}>{type}</Badge>
+      }
+    },
+    {
+      accessorKey: "debit",
+      header: () => <div className="text-right">Debit (Disbursed)</div>,
+      cell: ({ row }) => {
+        const amount = row.getValue("debit") as number
+        return <div className="text-right text-red-600 font-medium">{amount > 0 ? `৳${amount}` : "-"}</div>
+      }
+    },
+    {
+      accessorKey: "credit",
+      header: () => <div className="text-right">Credit (Repaid)</div>,
+      cell: ({ row }) => {
+        const amount = row.getValue("credit") as number
+        return <div className="text-right text-green-600 font-medium">{amount > 0 ? `৳${amount}` : "-"}</div>
+      }
+    },
+    {
+      accessorKey: "balance",
+      header: () => <div className="text-right">Balance</div>,
+      cell: ({ row }) => {
+        const amount = row.getValue("balance") as number
+        return <div className="text-right font-bold">৳{amount}</div>
+      }
     },
     {
       accessorKey: "notes",
@@ -55,6 +84,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     },
     {
       id: "actions",
+      header: "Entries",
       cell: ({ row }) => {
         return (
           <Collapsible>
@@ -83,6 +113,8 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     }
   ]
 
+  const [globalFilter, setGlobalFilter] = useState("")
+
   const table = useReactTable({
     data: transactions,
     columns,
@@ -90,18 +122,27 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     getPaginationRowModel: getPaginationRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    state: { columnFilters },
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: "includesString",
+    state: { columnFilters, globalFilter },
   })
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Input
-          placeholder="Filter by Reference..."
-          value={(table.getColumn("referenceId")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn("referenceId")?.setFilterValue(event.target.value)}
-          className="max-w-sm"
-        />
+    <div className="space-y-4 print-section">
+      <div className="flex justify-between items-center no-print">
+        <div className="relative max-w-sm w-full">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search Loan #, Beneficiary, Date..."
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <Button variant="outline" onClick={() => window.print()}>
+          <Printer className="mr-2 h-4 w-4" />
+          Print Ledger
+        </Button>
       </div>
       
       <div className="rounded-md border bg-card">
@@ -138,7 +179,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2">
+      <div className="flex items-center justify-end space-x-2 no-print">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
           Previous
         </Button>
@@ -146,6 +187,25 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
           Next
         </Button>
       </div>
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-section, .print-section * {
+            visibility: visible;
+          }
+          .print-section {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

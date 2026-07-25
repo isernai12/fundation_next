@@ -9,7 +9,7 @@ export async function getLoans() {
   return prisma.loan.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      beneficiary: true,
+      beneficiary: { include: { member: { include: { group: true } } } },
       allocations: { include: { fund: { include: { group: true } } } },
       repayments: true,
 
@@ -52,7 +52,15 @@ export async function createLoanRequest(data: LoanFormValues) {
           loanType: pd.loanType,
           businessType: pd.loanType === "BUSINESS" ? pd.businessType : null,
           amount: pd.amount,
+          remainingBalance: pd.amount,
+          totalPaidAmount: 0,
           purpose: pd.purpose || "",
+
+          installmentType: pd.installmentType,
+          installmentAmount: pd.installmentAmount,
+          totalInstallments: pd.totalInstallments,
+          firstInstallmentDate: pd.firstInstallmentDate,
+          nextDueDate: pd.firstInstallmentDate,
 
           notes: pd.notes,
           status: "ACTIVE",
@@ -65,20 +73,48 @@ export async function createLoanRequest(data: LoanFormValues) {
       const generalFund = await tx.fund.findFirst({ where: { groupId: null } })
       if (!generalFund) throw new Error("General fund not found")
 
-      // Fetch Group Funds
-      const groupFunds = await tx.fund.findMany({ where: { groupId: { not: null } } })
-      if (groupFunds.length === 0) throw new Error("No group funds available for allocation")
+      // Fetch or Create Group Funds from allocations
+      const allocations = []
+      for (const alloc of pd.fundAllocations) {
+        // Find group fund
+        let groupFund = await tx.fund.findFirst({ where: { groupId: alloc.groupId } })
+        if (!groupFund) {
+          const group = await tx.group.findUnique({ where: { id: alloc.groupId } })
+          if (!group) throw new Error(`Group not found for ID: ${alloc.groupId}`)
+          groupFund = await tx.fund.create({
+            data: {
+              groupId: group.id,
+              name: `${group.name} Fund`,
+              description: `Auto-generated fund for ${group.name}`
+            }
+          })
+        }
+        
+        // Validation for insufficient balance
+        // We need to know current balance of the group fund
+        // Let's compute from LedgerEntry, but in a transaction it's tricky.
+        // Assuming LedgerEngine calculates balance as Sum(Credit) - Sum(Debit)
+        const entries = await tx.ledgerEntry.aggregate({
+          where: { fundId: groupFund.id },
+          _sum: {
+            amount: true
+          }
+        })
+        const credits = await tx.ledgerEntry.aggregate({ where: { fundId: groupFund.id, isCredit: true }, _sum: { amount: true } })
+        const debits = await tx.ledgerEntry.aggregate({ where: { fundId: groupFund.id, isCredit: false }, _sum: { amount: true } })
+        const balance = (credits._sum.amount || 0) - (debits._sum.amount || 0)
+        
+        if (alloc.amount > balance) {
+          throw new Error(`Insufficient balance in ${groupFund.name}. Available: ${balance}, Requested: ${alloc.amount}`)
+        }
 
-      // Calculate automatic allocations
-      const amountPerGroup = Math.floor(pd.amount / groupFunds.length)
-      const allocations = groupFunds.map(f => ({ fundId: f.id, amount: amountPerGroup }))
-      const sum = allocations.reduce((s, a) => s + a.amount, 0)
-      const diff = pd.amount - sum
-      if (diff > 0) {
-        allocations[allocations.length - 1].amount += diff
+        allocations.push({ fundId: groupFund.id, amount: alloc.amount })
       }
 
       // Construct Ledger Entries
+      // Debit General Fund? No, Loan disbursement means Cash goes OUT of General Fund, which is an asset.
+      // Wait, let's stick to existing logic for ledger entry:
+      // In old code: General fund isCredit: true (asset down), Group Fund isCredit: false (equity down).
       const entries = [
         { fundId: generalFund.id, isCredit: true, amount: pd.amount }
       ]
@@ -128,6 +164,11 @@ export async function editLoanRequest(id: string, data: LoanFormValues) {
         loanType: pd.loanType,
         businessType: pd.loanType === "BUSINESS" ? pd.businessType : null,
         amount: pd.amount,
+        // We only update these fields. For remainingBalance, we should probably calculate it if amount changes but keep it simple for now or forbid editing amount if repayments exist.
+        installmentType: pd.installmentType,
+        installmentAmount: pd.installmentAmount,
+        totalInstallments: pd.totalInstallments,
+        firstInstallmentDate: pd.firstInstallmentDate,
         purpose: pd.purpose || "",
         notes: pd.notes,
       }
@@ -140,69 +181,108 @@ export async function editLoanRequest(id: string, data: LoanFormValues) {
   }
 }
 
-export async function repayLoan(loanId: string, amount: number, paymentMethod: string, referenceNumber: string) {
-  return await prisma.$transaction(async (tx) => {
-    const loan = await tx.loan.findUnique({
-      where: { id: loanId },
-      include: { allocations: true, repayments: true }
-    })
-    if (!loan) throw new Error("Loan not found")
-    if (loan.status !== "ACTIVE" && loan.status !== "DEFAULTED") throw new Error("Loan is not active")
+export async function repayLoan(
+  loanId: string, 
+  amount: number, 
+  paymentMethod: string, 
+  referenceNumber: string,
+  installmentNo?: number,
+  notes?: string,
+  collectedBy?: string,
+  paymentDate?: Date,
+  receiptUrl?: string
+) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      const loan = await tx.loan.findUnique({
+        where: { id: loanId },
+        include: { allocations: true, repayments: true }
+      })
+      if (!loan) throw new Error("Loan not found")
+      if (loan.status !== "ACTIVE" && loan.status !== "DEFAULTED") throw new Error("Loan is not active")
 
-    const totalRepaid = loan.repayments.reduce((sum, r) => sum + r.amount, 0)
-    const outstanding = loan.amount - totalRepaid
+      const outstanding = loan.remainingBalance
 
-    if (amount > outstanding) throw new Error("Repayment amount exceeds outstanding balance")
+      if (amount > outstanding) throw new Error("Repayment amount exceeds outstanding balance")
 
-    const generalFund = await tx.fund.findFirst({ where: { groupId: null } })
-    if (!generalFund) throw new Error("General fund not found")
+      const generalFund = await tx.fund.findFirst({ where: { groupId: null } })
+      if (!generalFund) throw new Error("General fund not found")
 
-    // Repayment Logic: Pro-rata back to allocated funds
-    const entries = [
-      // Debit Cash (General Fund) - Asset increases
-      { fundId: generalFund.id, isCredit: false, amount }
-    ]
+      // Repayment Logic: Pro-rata back to allocated funds
+      const entries = [
+        // Debit Cash (General Fund) - Asset increases
+        { fundId: generalFund.id, isCredit: false, amount }
+      ]
 
-    for (const alloc of loan.allocations) {
-      // ratio of allocation to total loan amount
-      const ratio = alloc.amount / loan.amount
-      const returnAmount = Math.round(amount * ratio)
-      // Credit Group Fund - Equity increases
-      entries.push({ fundId: alloc.fundId, isCredit: true, amount: returnAmount })
-    }
-
-    // Edge case: rounding errors in prorata. Adjust the last entry to make it balance perfectly.
-    const totalGroupCredits = entries.slice(1).reduce((sum, e) => sum + e.amount, 0)
-    if (totalGroupCredits !== amount) {
-      const diff = amount - totalGroupCredits
-      entries[entries.length - 1].amount += diff
-    }
-
-    const ledgerTx = await LedgerEngine.createTransaction({
-      date: new Date(),
-      type: "REPAYMENT",
-      referenceId: loan.loanNumber,
-      notes: `Repayment for Loan ${loan.loanNumber}`,
-      entries
-    }, tx)
-
-    await tx.loanRepayment.create({
-      data: {
-        loanId,
-        ledgerTransactionId: ledgerTx.id,
-        amount,
-        date: new Date(),
+      for (const alloc of loan.allocations) {
+        // ratio of allocation to total loan amount
+        const ratio = alloc.amount / loan.amount
+        const returnAmount = Math.round(amount * ratio)
+        // Credit Group Fund - Equity increases
+        entries.push({ fundId: alloc.fundId, isCredit: true, amount: returnAmount })
       }
-    })
 
-    // Update Loan Status if fully repaid
-    if (amount === outstanding) {
-      await tx.loan.update({ where: { id: loanId }, data: { status: "COMPLETED" } })
-    }
+      // Edge case: rounding errors in prorata. Adjust the last entry to make it balance perfectly.
+      const totalGroupCredits = entries.slice(1).reduce((sum, e) => sum + e.amount, 0)
+      if (totalGroupCredits !== amount) {
+        const diff = amount - totalGroupCredits
+        entries[entries.length - 1].amount += diff
+      }
+
+      const ledgerTx = await LedgerEngine.createTransaction({
+        date: paymentDate || new Date(),
+        type: "REPAYMENT",
+        referenceId: loan.loanNumber,
+        notes: notes || `Repayment for Loan ${loan.loanNumber}`,
+        entries
+      }, tx)
+
+      await tx.loanRepayment.create({
+        data: {
+          loanId,
+          ledgerTransactionId: ledgerTx.id,
+          amount,
+          date: paymentDate || new Date(),
+          installmentNo,
+          paymentMethod,
+          referenceNumber,
+          notes,
+          collectedBy,
+          receiptUrl
+        }
+      })
+
+      const newRemainingBalance = loan.remainingBalance - amount
+      const newTotalPaid = loan.totalPaidAmount + amount
+
+      // Calculate next due date simply by adding a week/month depending on type (if available)
+      let nextDue = loan.nextDueDate
+      if (newRemainingBalance > 0 && loan.installmentType) {
+        if (!nextDue) nextDue = new Date()
+        if (loan.installmentType === "DAILY") nextDue = new Date(nextDue.getTime() + 24 * 60 * 60 * 1000)
+        if (loan.installmentType === "WEEKLY") nextDue = new Date(nextDue.getTime() + 7 * 24 * 60 * 60 * 1000)
+        if (loan.installmentType === "MONTHLY") nextDue = new Date(nextDue.setMonth(nextDue.getMonth() + 1))
+      } else if (newRemainingBalance === 0) {
+        nextDue = null
+      }
+
+      // Update Loan Balances and Status
+      await tx.loan.update({ 
+        where: { id: loanId }, 
+        data: { 
+          status: newRemainingBalance === 0 ? "COMPLETED" : loan.status,
+          remainingBalance: newRemainingBalance,
+          totalPaidAmount: newTotalPaid,
+          nextDueDate: nextDue
+        } 
+      })
+    })
 
     revalidatePath(`/loans/${loanId}`)
     return { success: true }
-  })
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to process repayment" }
+  }
 }
 
 export async function deleteLoanAction(id: string) {

@@ -244,3 +244,55 @@ export async function getGroupTransactions(groupId: string) {
   }))
 }
 
+export async function getGroupLoans(groupId: string) {
+  if (!groupId) return []
+  
+  const fund = await prisma.fund.findFirst({ where: { groupId } })
+  if (!fund) return []
+
+  const allocations = await prisma.fundAllocation.findMany({
+    where: { fundId: fund.id, targetType: "LOAN", loanId: { not: null } },
+    include: {
+      loan: {
+        include: { beneficiary: true }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  return allocations
+}
+
+export async function getGroupLoanSummary(groupId: string) {
+  if (!groupId) return { totalLent: 0, totalOutstanding: 0, activeLoans: 0 }
+  
+  const fund = await prisma.fund.findFirst({ where: { groupId } })
+  if (!fund) return { totalLent: 0, totalOutstanding: 0, activeLoans: 0 }
+
+  const allocations = await prisma.fundAllocation.findMany({
+    where: { fundId: fund.id, targetType: "LOAN", loanId: { not: null } },
+    include: {
+      loan: true
+    }
+  })
+
+  let totalLent = 0
+  let totalOutstanding = 0
+  let activeLoans = 0
+
+  for (const alloc of allocations) {
+    if (!alloc.loan) continue;
+    
+    totalLent += alloc.amount
+    
+    if (alloc.loan.status === "ACTIVE" || alloc.loan.status === "DEFAULTED") {
+      activeLoans++;
+      if (alloc.loan.amount > 0) {
+        const ratio = alloc.amount / alloc.loan.amount
+        totalOutstanding += Math.round(alloc.loan.remainingBalance * ratio)
+      }
+    }
+  }
+
+  return { totalLent, totalOutstanding, activeLoans }
+}

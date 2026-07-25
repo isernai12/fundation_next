@@ -306,6 +306,16 @@ model Loan {
 
   status            String @default("ACTIVE")
   notes             String?
+  
+  // New Fields for Installment Schedule & Balance
+  installmentType      String?  // DAILY, WEEKLY, MONTHLY, CUSTOM
+  installmentAmount    Int?
+  totalInstallments    Int?
+  firstInstallmentDate DateTime?
+  nextDueDate          DateTime?
+  totalPaidAmount      Int      @default(0)
+  remainingBalance     Int      @default(0)
+
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   createdBy         String?
@@ -330,6 +340,15 @@ model LoanRepayment {
   amount              Int
   date                DateTime
   status              String   @default("COMPLETED")
+  
+  // New Fields for Repayment
+  installmentNo       Int?
+  paymentMethod       String   @default("CASH") // CASH, BANK, MOBILE
+  referenceNumber     String?
+  notes               String?
+  collectedBy         String?
+  receiptUrl          String?
+  
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   createdBy           String?

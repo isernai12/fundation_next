@@ -114,8 +114,8 @@ export function LoansTable({ data }: { data: any[] }) {
       completedLoans: data.filter(d => d.status === "COMPLETED").length,
       dueToday: data.filter(d => d.dueStatus === "Due Today").length,
       overdueLoans: data.filter(d => d.dueStatus === "Overdue").length,
-      totalOutstanding: data.reduce((acc, d) => acc + (d.outstanding || 0), 0),
-      totalRecovered: data.reduce((acc, d) => acc + (d.totalRepaid || 0), 0),
+      totalOutstanding: data.reduce((acc, d) => acc + (d.remainingBalance || 0), 0),
+      totalRecovered: data.reduce((acc, d) => acc + (d.totalPaidAmount || 0), 0),
     }
   }, [data])
 
@@ -147,7 +147,7 @@ export function LoansTable({ data }: { data: any[] }) {
     {
       id: "remaining",
       header: "বাকি ঋণ",
-      cell: ({ row }) => `৳${row.original.outstanding}`,
+      cell: ({ row }) => `৳${row.original.remainingBalance}`,
     },
     {
       id: "nextDueDate",
@@ -205,20 +205,22 @@ export function LoansTable({ data }: { data: any[] }) {
                   <Edit className="mr-2 h-4 w-4" /> ঋণ সংশোধন করুন
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/loans/${loan.id}?action=repay`}>
-                  <CreditCard className="mr-2 h-4 w-4" /> কিস্তি গ্রহণ করুন
-                </Link>
-              </DropdownMenuItem>
+              {isEligibleForCompletion && loan.remainingBalance > 0 && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/loans/repayments?loanId=${loan.id}`}>
+                    <CreditCard className="mr-2 h-4 w-4" /> কিস্তি গ্রহণ করুন
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/loans/ledger?loanId=${loan.id}`}>
-                  <BookOpen className="mr-2 h-4 w-4" /> ঋণের খতিয়ান
-                </Link>
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/loans/${loan.id}#history`}>
                   <FileText className="mr-2 h-4 w-4" /> পরিশোধের ইতিহাস
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/loans/ledger?loanId=${loan.id}`}>
+                  <BookOpen className="mr-2 h-4 w-4" /> ঋণের খতিয়ান
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => window.print()}>

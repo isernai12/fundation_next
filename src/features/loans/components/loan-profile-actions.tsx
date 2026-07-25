@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Printer, Edit, CreditCard, BookOpen, FileText } from "lucide-react"
 import Link from "next/link"
-import { LoanRepaymentDialog } from "./loan-repayment-dialog"
+
 
 interface LoanProfileActionsProps {
   loan: any
@@ -20,17 +20,13 @@ export function LoanProfileActions({ loan, outstanding }: LoanProfileActionsProp
         </Link>
       </Button>
 
-      {loan.status === "ACTIVE" && outstanding > 0 && (
-        <LoanRepaymentDialog 
-          loanId={loan.id} 
-          outstandingBalance={outstanding}
-          trigger={
-            <Button variant="outline" size="sm">
-              <CreditCard className="h-4 w-4 mr-2" />
-              কিস্তি গ্রহণ
-            </Button>
-          }
-        />
+      {loan.status === "ACTIVE" && loan.remainingBalance > 0 && (
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/loans/repayments?loanId=${loan.id}`}>
+            <CreditCard className="h-4 w-4 mr-2" />
+            কিস্তি গ্রহণ
+          </Link>
+        </Button>
       )}
 
       <Button variant="outline" size="sm" asChild>

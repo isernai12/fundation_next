@@ -1,13 +1,14 @@
 import { LoanForm } from "@/features/loans/components/loan-form"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import { getGroups } from "@/features/groups/actions"
 
 export default async function EditLoanPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   
   const loan = await prisma.loan.findUnique({
     where: { id: resolvedParams.id },
-    include: { documents: true }
+    include: { documents: true, allocations: { include: { fund: true } } }
   })
 
   if (!loan) {
@@ -19,6 +20,8 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
     orderBy: { fullName: "asc" }
   })
 
+  const groups = await getGroups()
+
   const initialData = {
     id: loan.id,
     beneficiaryId: loan.beneficiaryId || "",
@@ -27,6 +30,10 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
     purpose: loan.purpose,
     amount: loan.amount,
     notes: loan.notes || "",
+    isMultiGroup: loan.allocations.length > 1,
+    fundAllocations: loan.allocations.length > 0 
+      ? loan.allocations.map(a => ({ groupId: a.fund.groupId || "", amount: a.amount }))
+      : [{ groupId: "", amount: loan.amount }]
   }
 
   return (
@@ -39,7 +46,7 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
               বিদ্যমান ঋণের তথ্য পরিবর্তন করুন।
             </p>
           </div>
-          <LoanForm beneficiaries={beneficiaries} initialData={initialData} initialDocuments={loan.documents} />
+          <LoanForm beneficiaries={beneficiaries} groups={groups} initialData={initialData} initialDocuments={loan.documents} />
         </div>
       </div>
     </div>

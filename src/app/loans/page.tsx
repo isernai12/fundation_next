@@ -14,24 +14,17 @@ export default async function LoansPage() {
   today.setHours(0, 0, 0, 0)
   
   const loans = rawLoans.map(loan => {
-    const totalRepaid = loan.repayments.reduce((sum, r) => sum + r.amount, 0)
-    const outstanding = loan.amount - totalRepaid
-    
     let dueStatus = "No Due"
-    let nextDueDate: Date | null = null
     
-    if (loan.status === "COMPLETED" || outstanding <= 0) {
+    if (loan.status === "COMPLETED" || loan.remainingBalance <= 0) {
       dueStatus = "Completed"
-    } else {
-      const disbursedDate = loan.disbursedDate || loan.requestedDate
-      const lastRepayment = loan.repayments.length > 0 ? loan.repayments[0].date : disbursedDate
-      nextDueDate = new Date(lastRepayment)
-      nextDueDate.setMonth(nextDueDate.getMonth() + 1)
-      nextDueDate.setHours(0, 0, 0, 0)
+    } else if (loan.nextDueDate) {
+      const nextDue = new Date(loan.nextDueDate)
+      nextDue.setHours(0, 0, 0, 0)
       
-      if (nextDueDate < today) {
+      if (nextDue < today) {
         dueStatus = "Overdue"
-      } else if (nextDueDate.getTime() === today.getTime()) {
+      } else if (nextDue.getTime() === today.getTime()) {
         dueStatus = "Due Today"
       } else {
         dueStatus = "Upcoming Due"
@@ -40,10 +33,9 @@ export default async function LoansPage() {
     
     return {
       ...loan,
-      totalRepaid,
-      outstanding,
+      totalRepaid: loan.totalPaidAmount,
+      outstanding: loan.remainingBalance,
       dueStatus,
-      nextDueDate
     }
   })
 

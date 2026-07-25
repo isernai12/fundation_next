@@ -3,9 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { BarChart3, Download, Printer, FileSpreadsheet, FileText, PieChart } from "lucide-react"
 
+import { getGroupLoanSummary } from "@/features/groups/actions"
+import { formatCurrency } from "@/lib/format"
+
 export default async function GroupReportsPage({ searchParams }: { searchParams: Promise<{ groupId?: string }> }) {
   const resolvedParams = await searchParams
   const groupId = resolvedParams.groupId
+
+  let loanSummary = { totalLent: 0, totalOutstanding: 0, activeLoans: 0 }
+  if (groupId) {
+    loanSummary = await getGroupLoanSummary(groupId)
+  }
 
   return (
     <div className="space-y-6">
@@ -58,7 +66,7 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Members:</span> <span>0</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Active Loans:</span> <span>0</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Active Loans:</span> <span>{loanSummary.activeLoans}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Status:</span> <span>Active</span></div>
               </CardContent>
             </Card>
@@ -94,10 +102,18 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
                 <CardTitle className="text-lg">Loan Summary</CardTitle>
                 <CardDescription>Loan disbursement vs recovery</CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-1 items-center justify-center text-muted-foreground">
-                <div className="flex flex-col items-center space-y-2">
-                  <PieChart className="h-8 w-8" />
-                  <span>Chart Placeholder</span>
+              <CardContent className="flex flex-col justify-center space-y-4">
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-muted-foreground font-medium">Loans by Group (Count):</span> 
+                  <span className="font-bold text-lg">{loanSummary.activeLoans}</span>
+                </div>
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-muted-foreground font-medium">Total Money Lent by Group:</span> 
+                  <span className="font-bold text-lg text-primary">৳{formatCurrency(loanSummary.totalLent)}</span>
+                </div>
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-muted-foreground font-medium">Outstanding Loan by Group:</span> 
+                  <span className="font-bold text-lg text-destructive">৳{formatCurrency(loanSummary.totalOutstanding)}</span>
                 </div>
               </CardContent>
             </Card>

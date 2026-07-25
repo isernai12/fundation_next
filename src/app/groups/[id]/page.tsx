@@ -1,5 +1,5 @@
 import { formatCurrency, formatDate } from "@/lib/format"
-import { getGroup, getGroupFundSummary } from "@/features/groups/actions"
+import { getGroup, getGroupFundSummary, getGroupLoans } from "@/features/groups/actions"
 import { getDocumentsByEntity, getDocumentCategories } from "@/features/documents/actions"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +23,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
     totalTransactions: 0,
     totalDonations: 0
   }
+  const loans = await getGroupLoans(resolvedParams.id)
   const documents = await getDocumentsByEntity("GROUP", resolvedParams.id)
   const categories = await getDocumentCategories()
 
@@ -138,6 +139,56 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
           <div>
             <span className="font-semibold text-sm">Created Date</span>
             <p className="text-muted-foreground">{formatDate(group.createdAt)}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <h2 className="text-xl font-bold tracking-tight">Financed Loans</h2>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium">Loan No</th>
+                  <th className="px-4 py-2 text-left font-medium">Beneficiary</th>
+                  <th className="px-4 py-2 text-right font-medium">Total Loan</th>
+                  <th className="px-4 py-2 text-right font-medium">Group Financed</th>
+                  <th className="px-4 py-2 text-center font-medium">Status</th>
+                  <th className="px-4 py-2 text-center font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loans.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                      No loans financed by this group yet.
+                    </td>
+                  </tr>
+                ) : (
+                  loans.map((alloc) => (
+                    <tr key={alloc.id} className="border-b last:border-0 hover:bg-muted/50">
+                      <td className="px-4 py-2">{alloc.loan?.loanNumber}</td>
+                      <td className="px-4 py-2">{alloc.loan?.beneficiary?.fullName || "-"}</td>
+                      <td className="px-4 py-2 text-right">৳{formatCurrency(alloc.loan?.amount || 0)}</td>
+                      <td className="px-4 py-2 text-right font-bold text-primary">৳{formatCurrency(alloc.amount)}</td>
+                      <td className="px-4 py-2 text-center">
+                        <Badge variant={alloc.loan?.status === "ACTIVE" ? "default" : alloc.loan?.status === "COMPLETED" ? "secondary" : "destructive"}>
+                          {alloc.loan?.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/loans/${alloc.loanId}`}>View</Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>

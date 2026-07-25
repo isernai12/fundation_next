@@ -1,40 +1,24 @@
+import { getLoans } from "@/features/loans/actions"
+import { ReceiveLoanPaymentForm } from "@/features/loans/components/receive-loan-payment-form"
 
-import { prisma } from "@/lib/prisma"
-import { RepaymentsTable } from "@/features/loans/components/repayments-table"
-
-export default async function LoanRepaymentsPage() {
-  const repayments = await prisma.loanRepayment.findMany({
-    orderBy: { date: 'desc' },
-    include: {
-      loan: {
-        include: { beneficiary: true, repayments: true }
-      },
-      ledgerTransaction: true
-    }
-  })
-
-  // get active loans for new repayment
-  const activeLoans = await prisma.loan.findMany({
-    where: { status: { in: ["ACTIVE", "DEFAULTED"] } },
-    include: { beneficiary: true, repayments: true }
-  })
-
+export default async function ReceiveLoanPaymentPage({
+  searchParams
+}: {
+  searchParams: Promise<{ loanId?: string }>
+}) {
+  const resolvedParams = await searchParams
+  const allLoans = await getLoans()
+  const activeLoans = allLoans.filter(l => l.status === "ACTIVE" || l.status === "DEFAULTED")
+  
   return (
-    <div className="flex flex-col h-full">
-
-      <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Loan Repayments</h1>
-              <p className="text-muted-foreground">
-                View repayment history and record new payments.
-              </p>
-            </div>
-          </div>
-          <RepaymentsTable repayments={repayments} activeLoans={activeLoans} />
-        </div>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">কিস্তি গ্রহণ (Receive Loan Payment)</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Select a loan to view details and securely record a new repayment.
+        </p>
       </div>
+      <ReceiveLoanPaymentForm loans={activeLoans} initialLoanId={resolvedParams.loanId} />
     </div>
   )
 }

@@ -17,28 +17,21 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
 
   const documents = await getDocumentsByEntity("LOAN", loan.id)
 
-  const totalRepaid = loan.repayments.reduce((sum, r) => sum + r.amount, 0)
-  const outstanding = loan.amount - totalRepaid
-
   // Due logic
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
   let dueStatus = "No Due"
-  let nextDueDate: Date | null = null
   
-  if (loan.status === "COMPLETED" || outstanding <= 0) {
+  if (loan.status === "COMPLETED" || loan.remainingBalance <= 0) {
     dueStatus = "Completed"
-  } else {
-    const disbursedDate = loan.disbursedDate || loan.requestedDate
-    const lastRepayment = loan.repayments.length > 0 ? loan.repayments[0].date : disbursedDate
-    nextDueDate = new Date(lastRepayment)
-    nextDueDate.setMonth(nextDueDate.getMonth() + 1)
-    nextDueDate.setHours(0, 0, 0, 0)
+  } else if (loan.nextDueDate) {
+    const nextDue = new Date(loan.nextDueDate)
+    nextDue.setHours(0, 0, 0, 0)
     
-    if (nextDueDate < today) {
+    if (nextDue < today) {
       dueStatus = "Overdue"
-    } else if (nextDueDate.getTime() === today.getTime()) {
+    } else if (nextDue.getTime() === today.getTime()) {
       dueStatus = "Due Today"
     } else {
       dueStatus = "Upcoming Due"
@@ -57,7 +50,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
           <h1 className="text-2xl font-bold tracking-tight">ঋণ বিস্তারিত (Loan Details)</h1>
         </div>
         <div className="flex items-center gap-2">
-          <LoanProfileActions loan={loan} outstanding={outstanding} />
+          <LoanProfileActions loan={loan} outstanding={loan.remainingBalance} />
         </div>
       </div>
 
@@ -96,9 +89,9 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
           <CardContent>
              <table className="w-full text-sm">
                 <tbody>
-                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">পরিশোধিত</td><td className="py-2 text-green-600 font-bold">৳{totalRepaid}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বাকি ঋণ (Remaining)</td><td className="py-2 text-red-600 font-bold">৳{outstanding}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পরবর্তী কিস্তি (Next Due)</td><td className="py-2">{nextDueDate ? formatDate(nextDueDate) : '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">পরিশোধিত</td><td className="py-2 text-green-600 font-bold">৳{loan.totalPaidAmount}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">বাকি ঋণ (Remaining)</td><td className="py-2 text-red-600 font-bold">৳{loan.remainingBalance}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">পরবর্তী কিস্তি (Next Due)</td><td className="py-2">{loan.nextDueDate ? formatDate(loan.nextDueDate) : '-'}</td></tr>
                   <tr><td className="py-2 text-muted-foreground font-medium">বকেয়া অবস্থা</td>
                     <td className="py-2">
                       <Badge variant={dueStatus === "Due Today" ? "default" : dueStatus === "Overdue" ? "destructive" : dueStatus === "Completed" ? "secondary" : "outline"}>
@@ -134,7 +127,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
         {loan.allocations && loan.allocations.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>তহবিল বরাদ্দ (Fund Allocation)</CardTitle>
+              <CardTitle>ঋণের অর্থের উৎস (Funding Source)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">

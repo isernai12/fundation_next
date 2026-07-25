@@ -2,6 +2,7 @@ import { formatCurrency } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { PrintButton } from "@/components/shared/print-button"
 
 export default async function LoanReportsPage() {
   const loans = await prisma.loan.findMany({
@@ -14,10 +15,24 @@ export default async function LoanReportsPage() {
   const defaultedLoans = loans.filter(l => l.status === "DEFAULTED").length
 
   const totalAmount = loans.reduce((s, l) => s + l.amount, 0)
-  const totalRepaid = loans.reduce((s, l) => s + l.repayments.reduce((rs, r) => rs + r.amount, 0), 0)
-  const totalOutstanding = totalAmount - totalRepaid
+  const totalRepaid = loans.reduce((s, l) => s + l.totalPaidAmount, 0)
+  const totalOutstanding = loans.reduce((s, l) => s + l.remainingBalance, 0)
 
   const repaymentPercentage = totalAmount > 0 ? (totalRepaid / totalAmount) * 100 : 0
+  
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+  const allRepayments = loans.flatMap(l => l.repayments)
+  const todaysCollection = allRepayments
+    .filter(r => { const d = new Date(r.date); d.setHours(0,0,0,0); return d.getTime() === today.getTime() })
+    .reduce((s, r) => s + r.amount, 0)
+    
+  const monthlyCollection = allRepayments
+    .filter(r => new Date(r.date) >= firstDayOfMonth)
+    .reduce((s, r) => s + r.amount, 0)
 
   return (
     <div className="flex flex-col h-full">
@@ -92,6 +107,15 @@ export default async function LoanReportsPage() {
                   </div>
                   <div className="w-full bg-muted rounded-full h-2.5"><div className="bg-primary h-2.5 rounded-full" style={{ width: `${repaymentPercentage}%` }}></div></div>
                 </div>
+                
+                <div className="flex justify-between items-center text-sm pt-4 border-t">
+                  <span className="text-muted-foreground">Today's Collection</span>
+                  <span className="font-semibold text-emerald-600">৳{formatCurrency(todaysCollection)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">This Month's Collection</span>
+                  <span className="font-semibold text-emerald-600">৳{formatCurrency(monthlyCollection)}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -104,7 +128,9 @@ export default async function LoanReportsPage() {
                 <p className="text-sm text-muted-foreground">
                   View detailed activity in the Ledger and Repayments tabs.
                 </p>
-                {/* Could add a mini list of recent repayments here if needed */}
+                <div className="mt-4 flex gap-2">
+                  <PrintButton />
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -1,11 +1,14 @@
 import { LoanForm } from "@/features/loans/components/loan-form"
 import { prisma } from "@/lib/prisma"
+import { getGroups } from "@/features/groups/actions"
 
 export default async function NewLoanPage() {
   const beneficiaries = await prisma.beneficiary.findMany({
     where: { status: "ACTIVE" },
     orderBy: { fullName: "asc" }
   })
+
+  const groups = await getGroups()
 
   return (
     <div className="flex flex-col h-full">
@@ -17,7 +20,7 @@ export default async function NewLoanPage() {
               সুবিধাভোগীর জন্য নতুন ঋণের আবেদন করুন।
             </p>
           </div>
-          <LoanForm beneficiaries={beneficiaries} />
+          <LoanForm beneficiaries={beneficiaries} groups={groups} />
         </div>
       </div>
     </div>
