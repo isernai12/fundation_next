@@ -1,22 +1,25 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
 
 async function main() {
   console.log('Seeding database...')
 
   // Create foundation
-  const foundation = await prisma.foundation.create({
-    data: {
+  const foundation = await prisma.foundation.upsert({
+    where: { id: 'default-foundation' },
+    update: {},
+    create: {
+      id: 'default-foundation',
       name: 'Global Foundation',
       description: 'Main Foundation ERP instance',
     },
   })
 
   // Create basic groups
-  await prisma.group.create({
-    data: {
+  await prisma.group.upsert({
+    where: { code: 'G-ALPHA' },
+    update: {},
+    create: {
       foundationId: foundation.id,
       name: 'Alpha Group',
       code: 'G-ALPHA',
@@ -24,8 +27,10 @@ async function main() {
     },
   })
 
-  await prisma.group.create({
-    data: {
+  await prisma.group.upsert({
+    where: { code: 'G-BETA' },
+    update: {},
+    create: {
       foundationId: foundation.id,
       name: 'Beta Group',
       code: 'G-BETA',
@@ -33,8 +38,10 @@ async function main() {
     },
   })
 
-  await prisma.group.create({
-    data: {
+  await prisma.group.upsert({
+    where: { code: 'G-GAMMA' },
+    update: {},
+    create: {
       foundationId: foundation.id,
       name: 'Gamma Group',
       code: 'G-GAMMA',
@@ -43,16 +50,21 @@ async function main() {
   })
 
   // Create foundation general fund
-  await prisma.fund.create({
-    data: {
-      name: 'General Fund',
-      description: 'Main foundation unrestricted fund',
-    },
-  })
+  const funds = await prisma.fund.findMany({ where: { name: 'General Fund' } })
+  if (funds.length === 0) {
+    await prisma.fund.create({
+      data: {
+        name: 'General Fund',
+        description: 'Main foundation unrestricted fund',
+      },
+    })
+  }
 
   // Basic settings
-  await prisma.settings.create({
-    data: {
+  await prisma.settings.upsert({
+    where: { key: 'SYSTEM_CURRENCY' },
+    update: {},
+    create: {
       key: 'SYSTEM_CURRENCY',
       value: 'USD',
       description: 'Default system currency',

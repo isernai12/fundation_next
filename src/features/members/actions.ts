@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma"
 import { memberSchema, type MemberFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
-import { MemberStatus } from "@prisma/client"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
 
 export async function getMembers() {
@@ -286,7 +285,7 @@ export async function deleteMemberDocument(memberId: string, title: string) {
   }
 }
 
-export async function toggleMemberStatus(id: string, newStatus: MemberStatus) {
+export async function toggleMemberStatus(id: string, newStatus: string) {
   try {
     await prisma.member.update({
       where: { id },

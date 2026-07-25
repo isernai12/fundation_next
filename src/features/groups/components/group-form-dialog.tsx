@@ -43,7 +43,7 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
       code: group?.code || "",
       shortName: group?.shortName || "",
       description: group?.description || "",
-      status: group?.status || "ACTIVE",
+      status: (group?.status as "ACTIVE" | "INACTIVE") || "ACTIVE",
       openingBalance: 0,
       remarks: group?.remarks || "",
     },

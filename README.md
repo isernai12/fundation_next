@@ -19,7 +19,7 @@ Foundation ERP is a comprehensive, modern enterprise resource planning applicati
 - **Framework**: Next.js (App Router)
 - **Language**: TypeScript
 - **Database ORM**: Prisma
-- **Database Engine**: Supabase PostgreSQL
+- **Database Engine**: Turso (libSQL)
 - **Authentication**: NextAuth.js
 - **Styling**: Tailwind CSS & shadcn/ui components
 
@@ -49,7 +49,7 @@ cp .env.example .env
 # 4. Generate the Prisma Client
 npx prisma generate
 
-# 5. Run migrations to initialize your Supabase PostgreSQL database
+# 5. Run migrations to initialize your Turso (libSQL) database
 npx prisma migrate dev
 
 # 6. Seed the default System Administrator account
@@ -63,8 +63,9 @@ npm run dev
 You must configure the following variables in your `.env` file for the application to function correctly.
 
 ```env
-DATABASE_URL="postgresql://postgres.xxx:password@aws-0-xx.pooler.supabase.com:5432/postgres"
-DIRECT_URL="postgresql://postgres.xxx:password@aws-0-xx.pooler.supabase.com:5432/postgres"
+TURSO_DATABASE_URL="libsql://your-database-name.turso.io"
+TURSO_AUTH_TOKEN="your-turso-auth-token"
+DATABASE_URL="file:./dev.db"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-super-secret-key-here"
 CLOUDINARY_CLOUD_NAME="your-cloud-name"
@@ -72,23 +73,23 @@ CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
 ```
 
-- **`DATABASE_URL`**: The connection pool string for your Supabase PostgreSQL database. Used by Prisma for standard queries.
-- **`DIRECT_URL`**: The direct connection string for Supabase PostgreSQL. Used by Prisma specifically for running schema migrations.
+- **`TURSO_DATABASE_URL`**: The connection string for your Turso database.
+- **`TURSO_AUTH_TOKEN`**: The authentication token for your Turso database.
+- **`DATABASE_URL`**: Set this to "file:./dev.db" to pass Prisma validation.
 - **`NEXTAUTH_URL`**: The canonical URL of your site (use `http://localhost:3000` for local development).
 - **`NEXTAUTH_SECRET`**: A random 32+ character string used to encrypt NextAuth JWT session cookies. (Generate via `openssl rand -base64 32`).
 - **`CLOUDINARY_*`**: Credentials for the Cloudinary API, used to upload and serve member photos and module documents.
 
-## 5. Supabase Setup
-To configure the PostgreSQL database from scratch:
+## 5. Turso Setup
+To configure the libSQL database from scratch:
 
-1. Log in to [Supabase](https://supabase.com/) and click **New Project**.
-2. Set a secure database password and select your region. Wait for the database to provision.
-3. Go to **Project Settings** -> **Database**.
-4. Scroll down to the **Connection String** section and select **URI**.
-5. Copy the connection string and paste it into `DATABASE_URL` and `DIRECT_URL` in your `.env` file. (Replace `[YOUR-PASSWORD]` with your actual database password).
-6. In your terminal, run `npx prisma migrate dev --name init_postgres`. This will push the foundation schema to Supabase.
+1. Log in to [Turso](https://turso.tech/) and create a new database.
+2. Copy the database URL and create an auth token using the Turso CLI: `turso db tokens create <db-name>`.
+3. Paste the URL into `TURSO_DATABASE_URL` and the token into `TURSO_AUTH_TOKEN` in your `.env` file.
+4. Set `DATABASE_URL="file:./dev.db"` in your `.env` file.
+5. Generate the migration SQL: `npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/schema.sql`
+6. Apply the schema to Turso: You can write a small Node script using `@libsql/client` to execute the SQL, or use the Turso CLI: `turso db shell <db-name> < prisma/schema.sql`.
 7. Run `npx prisma generate` to update your local Prisma Client.
-8. (Optional) Go to the **Table Editor** in your Supabase dashboard to verify all tables were created successfully.
 
 ## 6. Default Admin Account
 The system requires at least one System Administrator account to access the dashboard and configure settings.
@@ -147,15 +148,16 @@ Vercel is the recommended hosting provider for Next.js applications. Follow thes
 1. **Connect GitHub**: Log in to Vercel, click **Add New...** -> **Project**, and authorize Vercel to access your GitHub account.
 2. **Import Project**: Select the `foundation_next` repository and click **Import**.
 3. **Configure Environment Variables**: Expand the "Environment Variables" section before deploying and add:
-   - `DATABASE_URL`
-   - `DIRECT_URL`
+   - `TURSO_DATABASE_URL`
+   - `TURSO_AUTH_TOKEN`
+   - `DATABASE_URL="file:./dev.db"`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL` (Set this to your production Vercel domain, e.g., `https://my-foundation.vercel.app`)
    - `CLOUDINARY_CLOUD_NAME`
    - `CLOUDINARY_API_KEY`
    - `CLOUDINARY_API_SECRET`
 4. **Deploy**: Click the **Deploy** button. Vercel will build the Next.js application.
-5. **Run Production Migration**: To ensure the production Supabase database matches your schema, you must configure the build script in `package.json` to run migrations automatically during deployment:
+5. **Run Production Migration**: To ensure the production Turso database matches your schema, you must configure the build script in `package.json` to run migrations automatically during deployment:
    ```json
    "scripts": {
      "build": "prisma generate && prisma migrate deploy && next build"
@@ -180,19 +182,19 @@ Vercel is the recommended hosting provider for Next.js applications. Follow thes
 - **Session errors & NextAuth redirect issues**: 
   - *Cause*: Misconfigured `NEXTAUTH_URL` or an expired `NEXTAUTH_SECRET`. 
   - *Fix*: Clear browser cookies and ensure `NEXTAUTH_URL` perfectly matches your active domain.
-- **Supabase connection problems**: 
-  - *Cause*: Connection pool limits reached. 
-  - *Fix*: Ensure you are using the pooled connection string (port `5432` or `6543` depending on Supabase configuration) for `DATABASE_URL`, and the direct string for `DIRECT_URL`.
+- **Turso connection problems**: 
+  - *Cause*: Invalid URL or expired auth token. 
+  - *Fix*: Ensure your `TURSO_DATABASE_URL` starts with `libsql://` or `https://` and the `TURSO_AUTH_TOKEN` is correct and not expired.
 - **Hydration errors**: 
   - *Cause*: Server-rendered HTML doesn't match the Client HTML (e.g., rendering `Date.now()` directly in a component). 
   - *Fix*: Use `useEffect` to render client-specific data or suppress hydration warnings on specific tags.
 
 ## 12. Backup & Restore
-- **Backup**: The safest way to backup is directly via the Supabase Dashboard. Navigate to **Database** -> **Backups** to trigger manual snapshots or download a `.sql` logical dump using pg_dump:
+- **Backup**: The safest way to backup is using the Turso CLI to dump the database:
   ```bash
-  pg_dump -h aws-0-xx.pooler.supabase.com -U postgres -d postgres > backup.sql
+  turso db shell <db-name> .dump > backup.sql
   ```
-- **Restore**: To restore, use `psql` to execute the dump against a fresh Supabase instance.
+- **Restore**: To restore, use `turso db shell` to execute the dump against a fresh Turso instance.
 - **Safe Migration**: Never drop tables to fix schema issues in production. Always create incremental Prisma migrations (`prisma migrate dev`) to alter tables safely without destroying user data.
 
 ## 13. Project Structure
@@ -207,4 +209,4 @@ Vercel is the recommended hosting provider for Next.js applications. Follow thes
 ## 14. Future Development
 This application is designed to be highly extensible. As the foundation grows, the database schema will continue evolving as new ERP modules are added. 
 
-**Critical Rule:** All schema changes MUST be executed exclusively through Prisma migrations (`npx prisma migrate dev`). You must never manually alter the database schema using the Supabase Dashboard or direct SQL queries, as this will irreparably break Prisma's synchronization and deployment pipeline.
+**Critical Rule:** All schema changes MUST be executed exclusively through Prisma migrations (`npx prisma migrate dev`). You must never manually alter the database schema using the Turso Dashboard or direct SQL queries, as this will irreparably break Prisma's synchronization and deployment pipeline.

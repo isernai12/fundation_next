@@ -1,5 +1,4 @@
 import { z } from "zod"
-import { ContributionStatus } from "@prisma/client"
 
 export const contributionSchema = z.object({
   memberId: z.string().min(1, "সদস্য নির্বাচন করা আবশ্যক"),
@@ -10,7 +9,7 @@ export const contributionSchema = z.object({
   paymentMethod: z.string().min(1, "পরিশোধের মাধ্যম আবশ্যক"),
   referenceNumber: z.string().optional(),
   notes: z.string().optional(),
-  status: z.nativeEnum(ContributionStatus),
+  status: z.enum(["PENDING", "PAID", "CANCELLED"]),
   isAdditional: z.boolean(),
 })
 

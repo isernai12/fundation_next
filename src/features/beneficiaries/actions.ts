@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma"
 import { beneficiarySchema, type BeneficiaryFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
-import { BeneficiaryStatus } from "@prisma/client"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
 
 export async function getBeneficiaries() {
@@ -120,7 +119,7 @@ export async function createBeneficiary(data: BeneficiaryFormValues) {
         emergencyContactRelation: pd.emergencyContactRelation,
         emergencyContactMobile: pd.emergencyContactMobile,
         
-        status: (pd.status as BeneficiaryStatus) || BeneficiaryStatus.ACTIVE,
+        status: pd.status || "ACTIVE",
       }
     });
     
@@ -185,7 +184,7 @@ export async function updateBeneficiary(id: string, data: BeneficiaryFormValues)
         emergencyContactRelation: pd.emergencyContactRelation,
         emergencyContactMobile: pd.emergencyContactMobile,
         
-        status: (pd.status as BeneficiaryStatus) || BeneficiaryStatus.ACTIVE,
+        status: pd.status || "ACTIVE",
       }
     })
 

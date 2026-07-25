@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { ContributionStatus } from "@prisma/client"
 
 interface EditContributionSheetProps {
   isOpen: boolean
@@ -98,7 +97,7 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(ContributionStatus).map((status) => (
+                      {["PENDING", "PAID", "CANCELLED"].map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
                         </SelectItem>

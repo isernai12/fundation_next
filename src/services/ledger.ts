@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { LedgerType, Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 
 export type LedgerEntryInput = {
   fundId: string
@@ -9,7 +9,7 @@ export type LedgerEntryInput = {
 
 export type LedgerTransactionInput = {
   date: Date
-  type: LedgerType
+  type: string
   referenceId?: string
   notes?: string
   createdBy?: string

@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -11,71 +12,23 @@ datasource db {
 // ENUMS
 // -----------------------------------------------------------------------------
 
-enum MemberStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
 
-enum BeneficiaryStatus {
-  ACTIVE
-  INACTIVE
-}
 
-enum GroupStatus {
-  ACTIVE
-  INACTIVE
-}
 
-enum ContributionStatus {
-  PENDING
-  PAID
-  CANCELLED
-}
 
-enum LoanStatus {
-  ACTIVE
-  COMPLETED
-  OVERDUE
-  DEFAULTED
-}
 
-enum GrantStatus {
-  PENDING
-  APPROVED
-  PAID
-  CANCELLED
-}
 
-enum LedgerType {
-  CONTRIBUTION
-  LOAN
-  REPAYMENT
-  GRANT
-  TRANSFER
-  ADJUSTMENT
-  CORRECTION
-  DONATION
-  CAMPAIGN
-}
 
-enum DocumentType {
-  IMAGE
-  PDF
-  DOCUMENT
-  MULTIPLE
-}
 
-enum TargetType {
-  MEMBER
-  BENEFICIARY
-  LOAN
-  GRANT
-  FOUNDATION
-  GROUP
-  DONOR
-  CAMPAIGN
-}
+
+
+
+
+
+
+
+
+
 
 // -----------------------------------------------------------------------------
 // CORE ENTITIES
@@ -102,7 +55,7 @@ model Group {
   shortName    String?
   description  String?
   remarks      String?
-  status       GroupStatus @default(ACTIVE)
+  status       String @default("ACTIVE")
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   createdBy    String?
@@ -146,7 +99,7 @@ model Member {
 
   // Organization Information
   joinDate DateTime?
-  status   MemberStatus @default(ACTIVE)
+  status   String @default("ACTIVE")
   remarks  String?
 
   // Extended Information
@@ -205,7 +158,7 @@ model Beneficiary {
   emergencyContactName     String?
   emergencyContactRelation String?
   emergencyContactMobile   String?
-  status                   BeneficiaryStatus @default(ACTIVE)
+  status                   String @default("ACTIVE")
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
   createdBy                String?
@@ -261,7 +214,7 @@ model MonthlyContribution {
   year           Int
   expectedAmount Int
   isAdditional   Boolean            @default(false)
-  status         ContributionStatus @default(PENDING)
+  status         String @default("PENDING")
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   createdBy      String?
@@ -298,7 +251,7 @@ model ContributionPayment {
 model LedgerTransaction {
   id          String     @id @default(uuid())
   date        DateTime
-  type        LedgerType
+  type        String
   referenceId String? // Polymorphic link, handled in app logic (no explicit FK to keep generic)
   status      String     @default("COMPLETED")
   notes       String?
@@ -351,7 +304,7 @@ model Loan {
   requestedDate     DateTime   @default(now())
   disbursedDate     DateTime?
 
-  status            LoanStatus @default(ACTIVE)
+  status            String @default("ACTIVE")
   notes             String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
@@ -394,7 +347,7 @@ model Grant {
   purpose       String
   dateApproved  DateTime?
   disbursedDate DateTime?
-  status        GrantStatus @default(PENDING)
+  status        String @default("PENDING")
   notes         String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -409,7 +362,7 @@ model Grant {
 model FundAllocation {
   id         String     @id @default(uuid())
   fundId     String
-  targetType TargetType // Typically LOAN or GRANT
+  targetType String // Typically LOAN or GRANT
   loanId     String?
   grantId    String?
   amount     Int
@@ -445,14 +398,14 @@ model Document {
   documentNumber     String       @unique
   title              String
   categoryId         String?
-  type               DocumentType
+  type               String
   cloudinaryPublicId String
   secureUrl          String
   originalFilename   String
   mimeType           String
   sizeBytes          Int
   resourceType       String       @default("auto")
-  targetType         TargetType
+  targetType         String
   entityId           String? // Virtual ID for polymorphic relations if needed
 
   description String?

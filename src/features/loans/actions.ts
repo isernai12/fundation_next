@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma"
 import { loanSchema, type LoanFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { LedgerEngine } from "@/services/ledger"
-import { LoanStatus } from "@prisma/client"
 
 export async function getLoans() {
   return prisma.loan.findMany({

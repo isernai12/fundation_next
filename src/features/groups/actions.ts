@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma"
 import { groupSchema, type GroupFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
-import { GroupStatus } from "@prisma/client"
 
 export async function getGroups() {
   const groups = await prisma.group.findMany({
@@ -127,7 +126,7 @@ export async function archiveGroup(id: string) {
 
     await prisma.group.update({
       where: { id },
-      data: { status: GroupStatus.INACTIVE },
+      data: { status: "INACTIVE" },
     })
     
     revalidatePath("/groups")

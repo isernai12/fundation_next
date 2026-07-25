@@ -9,34 +9,41 @@ export async function getDashboardStats() {
 
   const { FinancialService } = require("@/services/finance")
 
+  // Batch 1: Core counts and active loans (5 concurrent queries)
   const [
-    totalMembers,
-    activeMembers,
+    memberCounts,
     totalGroups,
     totalBeneficiaries,
-    totalActiveLoans,
     totalGrants,
-    loans,
-    foundationSummary,
-    groupSummaries,
-    contributions,
-    recentContributions,
-    recentLoans,
-    recentGrants
+    loans
   ] = await Promise.all([
-    prisma.member.count(),
-    prisma.member.count({ where: { status: "ACTIVE" } }),
+    prisma.member.groupBy({ by: ['status'], _count: true }),
     prisma.group.count(),
     prisma.beneficiary.count(),
-    prisma.loan.count({ where: { status: "ACTIVE" } }),
     prisma.grant.count(),
-    prisma.loan.findMany({ where: { status: { in: ["ACTIVE", "DEFAULTED"] } }, include: { repayments: true } }),
+    prisma.loan.findMany({ where: { status: { in: ["ACTIVE", "DEFAULTED"] } }, include: { repayments: true } })
+  ])
+
+  // Batch 2: Financial aggregations (approx 5 concurrent queries)
+  const [
+    foundationSummary,
+    groupSummaries,
+    contributions
+  ] = await Promise.all([
     FinancialService.getFoundationSummary(),
     FinancialService.getAllGroupSummaries(),
     prisma.monthlyContribution.aggregate({
       _sum: { expectedAmount: true },
       where: { status: "PAID" }
-    }),
+    })
+  ])
+
+  // Batch 3: Chart recent data (3 concurrent queries)
+  const [
+    recentContributions,
+    recentLoans,
+    recentGrants
+  ] = await Promise.all([
     prisma.monthlyContribution.findMany({
       where: { status: "PAID", createdAt: { gte: sixMonthsAgo } },
       select: { expectedAmount: true, createdAt: true }
@@ -50,6 +57,15 @@ export async function getDashboardStats() {
       select: { amount: true, createdAt: true }
     })
   ])
+
+  let totalMembers = 0
+  let activeMembers = 0
+  for (const statusCount of memberCounts) {
+    totalMembers += statusCount._count
+    if (statusCount.status === "ACTIVE") activeMembers += statusCount._count
+  }
+
+  const totalActiveLoans = loans.filter((l: any) => l.status === "ACTIVE").length
 
   const currentCashBalance = foundationSummary.cashBalance
   const foundationTotalFund = currentCashBalance
