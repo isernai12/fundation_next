@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -33,7 +34,7 @@ export function CampaignForm() {
       purpose: "",
       description: "",
       targetAmount: 0,
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: getNow().toLocaleDateString('en-CA'),
       endDate: "",
       status: "ACTIVE",
       remarks: "",

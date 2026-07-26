@@ -3,9 +3,11 @@ import { FinancialService } from "@/services/finance"
 import { formatShortMonth } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
+import { getNow, toDhakaTime } from "@/lib/date"
 
 export async function getDashboardStats() {
-  const sixMonthsAgo = new Date()
+  const now = getNow()
+  const sixMonthsAgo = new Date(now)
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
   
@@ -87,22 +89,25 @@ export async function getDashboardStats() {
   const monthMap = new Map<string, { month: string, contributions: number, loans: number, grants: number }>()
   
   for (let i = 5; i >= 0; i--) {
-    const d = new Date()
+    const d = new Date(now)
     d.setMonth(d.getMonth() - i)
-    const monthStr = formatShortMonth(new Date(d).getUTCMonth())
+    const monthStr = formatShortMonth(d.getMonth())
     monthMap.set(monthStr, { month: monthStr, contributions: 0, loans: 0, grants: 0 })
   }
 
   for (const c of recentContributions) {
-    const m = formatShortMonth(new Date(c.createdAt).getUTCMonth())
+    const dhakaDate = toDhakaTime(c.createdAt)
+    const m = formatShortMonth(dhakaDate.getMonth())
     if (monthMap.has(m)) monthMap.get(m)!.contributions += (c.expectedAmount)
   }
   for (const l of recentLoans) {
-    const m = formatShortMonth(new Date(l.createdAt).getUTCMonth())
+    const dhakaDate = toDhakaTime(l.createdAt)
+    const m = formatShortMonth(dhakaDate.getMonth())
     if (monthMap.has(m)) monthMap.get(m)!.loans += (l.amount)
   }
   for (const g of recentGrants) {
-    const m = formatShortMonth(new Date(g.createdAt).getUTCMonth())
+    const dhakaDate = toDhakaTime(g.createdAt)
+    const m = formatShortMonth(dhakaDate.getMonth())
     if (monthMap.has(m)) monthMap.get(m)!.grants += (g.amount)
   }
 

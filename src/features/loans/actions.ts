@@ -1,4 +1,5 @@
 "use server"
+import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
 import { loanSchema, type LoanFormValues } from "./schema"
@@ -31,7 +32,7 @@ export async function getLoan(id: string) {
 
 async function generateLoanNumber(tx: any = prisma) {
   const count = await tx.loan.count()
-  const year = new Date().getFullYear()
+  const year = getNow().getFullYear()
   return `L-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
 

@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState, useRef } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
@@ -87,7 +88,7 @@ export function GrantForm({
 
   const defaultValues: Partial<GrantFormValues> = initialData || {
     beneficiaryId: "",
-    grantDate: new Date().toISOString().split("T")[0],
+    grantDate: getNow().toLocaleDateString('en-CA'),
     amount: 0,
     grantReason: "",
     comment: "",

@@ -39,25 +39,107 @@
   --animate-collapsible-down: collapsible-down 0.2s ease-out;
   --animate-collapsible-up: collapsible-up 0.2s ease-out;
 
+  /* Status Colors */
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-error: hsl(var(--error));
+  --color-error-foreground: hsl(var(--error-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  /* Elevation & Shadows */
+  --shadow-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-elevation-3: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Icon Scale */
+  --size-icon-sm: 16px;
+  --size-icon-md: 20px;
+  --size-icon-lg: 24px;
+  
+  /* Motion Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
   @keyframes collapsible-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-collapsible-content-height);
-    }
+    from { height: 0; }
+    to { height: var(--radix-collapsible-content-height); }
   }
 
   @keyframes collapsible-up {
-    from {
-      height: var(--radix-collapsible-content-height);
-    }
-    to {
-      height: 0;
-    }
+    from { height: var(--radix-collapsible-content-height); }
+    to { height: 0; }
+  }
+
+  /* Foundation Design Colors */
+  --color-brand-50: #f0f0ff;
+  --color-brand-100: #e0e0ff;
+  --color-brand-200: #c7c5ff;
+  --color-brand-300: #a4a0ff;
+  --color-brand-400: #8078ff;
+  --color-brand-500: #6358f5;
+  --color-brand-600: #5243e8;
+  --color-brand-700: #4436cc;
+  --color-brand-800: #3930a3;
+  --color-brand-900: #322d82;
+  --color-brand-950: #1c194d;
+
+  --color-surface-0: var(--surface-0);
+  --color-surface-50: var(--surface-50);
+  --color-surface-100: var(--surface-100);
+  --color-surface-200: var(--surface-200);
+  --color-surface-300: var(--surface-300);
+  --color-surface-400: var(--surface-400);
+  --color-surface-500: var(--surface-500);
+  --color-surface-600: var(--surface-600);
+  --color-surface-700: var(--surface-700);
+  --color-surface-800: var(--surface-800);
+  --color-surface-900: var(--surface-900);
+  --color-surface-950: var(--surface-950);
+
+  --color-accent-green: #10b981;
+  --color-accent-emerald: #059669;
+  --color-accent-red: #ef4444;
+  --color-accent-amber: #f59e0b;
+  --color-accent-blue: #3b82f6;
+  --color-accent-violet: #8b5cf6;
+  --color-accent-rose: #f43f5e;
+  --color-accent-cyan: #06b6d4;
+
+  /* Custom Animations */
+  --animate-fade-up: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in: fadeIn 0.4s ease forwards;
+  --animate-slide-left: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-count: countUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
-
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -78,48 +160,98 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --background: 226 50% 98%; /* surface-50 equivalent approx */
+    --foreground: 231 28% 16%; /* surface-950 */
+    --card: 0 0% 100%; /* surface-0 */
+    --card-foreground: 231 28% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 231 28% 16%;
+    --primary: 244 89% 65%; /* brand-500 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 226 52% 95%; /* surface-100 */
+    --secondary-foreground: 231 28% 16%;
+    --muted: 226 52% 95%;
+    --muted-foreground: 227 21% 60%; /* surface-500 */
+    --accent: 226 52% 95%;
+    --accent-foreground: 231 28% 16%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    
+    /* Status Base */
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+    --error: 0 84.2% 60.2%;
+    --error-foreground: 210 40% 98%;
+    --info: 221 83% 53%;
+    --info-foreground: 210 40% 98%;
+
+    --border: 226 40% 93%; /* surface-200 */
+    --input: 226 40% 93%;
+    --ring: 244 89% 65%;
     --radius: 0.5rem;
+
+    /* Custom Surface Variables */
+    --surface-0: #ffffff;
+    --surface-50: #f8f9fc;
+    --surface-100: #f1f3f9;
+    --surface-200: #e8ebf4;
+    --surface-300: #d5d9e8;
+    --surface-400: #b0b6cc;
+    --surface-500: #8b92ad;
+    --surface-600: #6b7194;
+    --surface-700: #555b78;
+    --surface-800: #464b62;
+    --surface-900: #3b3f52;
+    --surface-950: #1e2035;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 240 10% 4%; /* #09090B */
+    --foreground: 0 0% 98%; /* #FAFAFA */
+    --card: 240 6% 10%; /* #18181B */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 221 83% 53%; /* #2563EB */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 16%; /* #27272A */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%; /* #A1A1AA */
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%; /* #ef4444 */
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    
+    /* Status Dark */
+    --success: 160 84% 39%; /* Emerald #10b981 */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%; /* Amber #f59e0b */
+    --warning-foreground: 0 0% 100%;
+    --error: 0 84% 60%; /* Red #ef4444 */
+    --error-foreground: 0 0% 100%;
+    --info: 221 83% 53%; /* Blue #2563EB */
+    --info-foreground: 0 0% 100%;
+
+    --border: 240 4% 16%; /* #27272A */
+    --input: 240 4% 16%;
+    --ring: 221 83% 53%;
+
+    /* Custom Surface Variables for Dark Mode */
+    --surface-0: #18181B; /* Card */
+    --surface-50: #111827; /* Surface */
+    --surface-100: #1f2937;
+    --surface-200: #27272A; /* Border */
+    --surface-300: #3f3f46;
+    --surface-400: #71717a;
+    --surface-500: #A1A1AA; /* Text Secondary */
+    --surface-600: #d4d4d8;
+    --surface-700: #e4e4e7;
+    --surface-800: #f4f4f5;
+    --surface-900: #FAFAFA;
+    --surface-950: #FAFAFA; /* Text Primary */
   }
 }
 
@@ -129,5 +261,292 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom Foundation UI Styles */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 20px;
+}
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.material-symbols-outlined.sm { font-size: 16px; }
+.material-symbols-outlined.lg { font-size: 24px; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d5d9e8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #b0b6cc; }
+
+.delay-1 { animation-delay: 50ms; }
+.delay-2 { animation-delay: 100ms; }
+.delay-3 { animation-delay: 150ms; }
+.delay-4 { animation-delay: 200ms; }
+.delay-5 { animation-delay: 250ms; }
+.delay-6 { animation-delay: 300ms; }
+.delay-7 { animation-delay: 350ms; }
+.delay-8 { animation-delay: 400ms; }
+.delay-9 { animation-delay: 450ms; }
+.delay-10 { animation-delay: 500ms; }
+.delay-11 { animation-delay: 550ms; }
+.delay-12 { animation-delay: 600ms; }
+
+.kpi-card {
+  transition: all 0.2s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-elevation-2);
+}
+
+.nav-item {
+  transition: all 0.2s ease;
+  position: relative;
+}
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: #6358f5;
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
+}
+.nav-item:hover::before, .nav-item.active::before {
+  height: 60%;
+}
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(99, 88, 245, 0.08), rgba(99, 88, 245, 0.03));
+  color: #6358f5;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.gradient-border {
+  position: relative;
+}
+.gradient-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(99, 88, 245, 0.15), rgba(99, 88, 245, 0.02), rgba(99, 88, 245, 0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.sparkline-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.tooltip-container { position: relative; }
+.tooltip-container .tooltip-custom {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: #1e2035;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 50;
+}
+.tooltip-container:hover .tooltip-custom {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.badge-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.stat-ring {
+  transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ===== OPTIMIZED CARD ===== */
+.wm-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 26px 24px;
+  overflow: hidden;
+  /* Single lightweight shadow */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  contain: layout style;
+}
+
+/* Watermark Icon - simplified */
+.wm-card .watermark {
+  position: absolute;
+  right: -8px;
+  bottom: -12px;
+  font-size: 120px;
+  line-height: 1;
+  opacity: 0.05;
+  color: var(--wm-color, #6366f1);
+  pointer-events: none;
+  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 48;
+  z-index: 0;
+}
+
+/* Top accent line - simple, no gradient animation */
+.wm-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--card-accent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 2;
+}
+
+/* Hover - transform only (GPU), single shadow */
+.wm-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px var(--shadow-hover, rgba(99, 102, 241, 0.1));
+}
+.wm-card:hover::before {
+  opacity: 1;
+}
+.wm-card:hover .watermark {
+  opacity: 0.09;
+}
+
+.wm-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Badge - no backdrop-filter */
+.wm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid;
+}
+.wm-badge.up {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+.wm-badge.down {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.wm-badge.neutral {
+  background: #f8fafc;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+.wm-badge.info {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.wm-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #0f172a;
+}
+.dark .wm-value {
+  color: #ffffff;
+}
+
+.wm-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wm-sublabel {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.wm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dot-color, #6366f1);
+  flex-shrink: 0;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+    opacity: 1;
+  }
+  .wm-card {
+    transition: none;
+  }
+  .wm-card:hover {
+    transform: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .wm-card {
+    padding: 20px 18px;
+    min-height: 150px;
+  }
+  .wm-card .watermark {
+    font-size: 90px;
+  }
+  .wm-value {
+    font-size: 28px;
   }
 }

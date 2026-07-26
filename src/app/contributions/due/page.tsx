@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { formatMonth } from "@/lib/format"
 import { getMembers } from "@/features/members/actions"
 import { getContributions } from "@/features/contributions/actions"
@@ -17,8 +18,8 @@ export default async function DueContributionsPage() {
   const members = await getMembers()
   const contributions = await getContributions()
   
-  const currentMonth = new Date().getMonth() + 1
-  const currentYear = new Date().getFullYear()
+  const currentMonth = getNow().getMonth() + 1
+  const currentYear = getNow().getFullYear()
 
   // Determine who has paid this month
   const paidMemberIds = new Set(
@@ -43,7 +44,7 @@ export default async function DueContributionsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">বকেয়া চাঁদা</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            যে সকল সদস্য {formatMonth(new Date().getUTCMonth())} {currentYear} এর চাঁদা পরিশোধ করেননি।
+            যে সকল সদস্য {formatMonth(getNow().getMonth())} {currentYear} এর চাঁদা পরিশোধ করেননি।
           </p>
         </div>
       </div>

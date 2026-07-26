@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState } from "react"
 import {
@@ -61,7 +62,7 @@ export function ReportViewer({ title, columns, data }: ReportViewerProps) {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `${title.replace(/\s+/g, '_')}_${getNow().toLocaleDateString('en-CA')}.csv`
     a.click()
   }
 

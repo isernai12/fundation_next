@@ -1,4 +1,5 @@
 "use server"
+import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
 import { beneficiarySchema, type BeneficiaryFormValues } from "./schema"
@@ -28,7 +29,7 @@ export async function getBeneficiary(id: string) {
 
 async function generateBeneficiaryId() {
   const count = await prisma.beneficiary.count()
-  const year = new Date().getFullYear()
+  const year = getNow().getFullYear()
   return `BEN-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
 

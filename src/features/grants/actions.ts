@@ -1,4 +1,5 @@
 "use server"
+import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
 import { grantSchema, type GrantFormValues } from "./schema"
@@ -7,7 +8,7 @@ import { revalidatePath } from "next/cache"
 
 async function generateGrantNumber() {
   const count = await prisma.grant.count()
-  const year = new Date().getFullYear()
+  const year = getNow().getFullYear()
   return `GRN-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
 

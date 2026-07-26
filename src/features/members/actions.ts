@@ -1,4 +1,5 @@
 "use server"
+import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
 import { memberSchema, type MemberFormValues } from "./schema"
@@ -28,7 +29,7 @@ export async function getMember(id: string) {
 
 async function generateMemberId() {
   const count = await prisma.member.count()
-  const year = new Date().getFullYear()
+  const year = getNow().getFullYear()
   return `MBR-${year}-${(count + 1).toString().padStart(4, '0')}`
 }
 

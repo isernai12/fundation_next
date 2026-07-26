@@ -45,7 +45,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
   const bcDoc = getDoc("Birth Certificate");
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-white text-black p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
+    <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-background text-foreground p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
       {/* Top Navigation & Actions */}
       <div className="flex items-center justify-between pb-4 border-b print:hidden">
         <div className="flex items-center gap-4">

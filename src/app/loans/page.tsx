@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { getLoans } from "@/features/loans/actions"
 import { getBeneficiaries } from "@/features/beneficiaries/actions"
 import { LoansTable } from "@/features/loans/components/loans-table"
@@ -10,7 +11,7 @@ export default async function LoansPage() {
   const beneficiaries = await getBeneficiaries()
 
   // Augment loans with due logic
-  const today = new Date()
+  const today = getNow()
   today.setHours(0, 0, 0, 0)
   
   const loans = rawLoans.map(loan => {

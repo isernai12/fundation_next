@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { formatMonth } from "@/lib/format"
 import { getContributions } from "@/features/contributions/actions"
 import { ContributionsTable } from "@/features/contributions/components/contributions-table"
@@ -8,8 +9,8 @@ export default async function MonthlyContributionsPage() {
   // Ideally this would filter by month, but for now we get all and let the table handle it, or we filter here.
   const allContributions = await getContributions()
   
-  const currentMonth = new Date().getMonth() + 1
-  const currentYear = new Date().getFullYear()
+  const currentMonth = getNow().getMonth() + 1
+  const currentYear = getNow().getFullYear()
   
   const monthlyContributions = allContributions.filter(c => c.month === currentMonth && c.year === currentYear)
 
@@ -27,7 +28,7 @@ export default async function MonthlyContributionsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">চলতি মাসের চাঁদা</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {formatMonth(new Date().getUTCMonth())} {currentYear} এর মাসিক চাঁদার তালিকা দেখানো হচ্ছে।
+            {formatMonth(getNow().getMonth())} {currentYear} এর মাসিক চাঁদার তালিকা দেখানো হচ্ছে।
           </p>
         </div>
       </div>

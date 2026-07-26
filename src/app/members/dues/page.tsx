@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { formatCurrency } from "@/lib/format"
 import { getMemberDuesList } from "@/features/members/due-actions"
 import { MemberDuesTable } from "@/features/members/components/member-dues-table"
@@ -19,7 +20,7 @@ export default async function MemberDuesPage() {
   // Instead of querying prisma directly here, I'll export a small helper from due-actions or just calculate it.
   // Actually, I'll query it inline just for the summary card.
   const { prisma } = await import("@/lib/prisma")
-  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  const startOfMonth = new Date(getNow().getFullYear(), getNow().getMonth(), 1)
   const collectedThisMonthAgg = await prisma.contributionPayment.aggregate({
     where: { paymentDate: { gte: startOfMonth } },
     _sum: { amount: true }

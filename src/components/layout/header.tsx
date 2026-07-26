@@ -1,9 +1,10 @@
 "use client"
 
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Bell, User, LogOut, Settings, Menu, Monitor } from "lucide-react"
+import { User, LogOut, Settings, KeyRound } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { useSidebar } from "@/components/layout/sidebar-provider"
+import { usePathname } from "next/navigation"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,65 +17,100 @@ import Link from "next/link"
 
 export function Header() {
   const { data: session } = useSession()
-  const { setIsOpen } = useSidebar()
+  const { toggleSidebar } = useSidebar()
+  const pathname = usePathname()
+
+  const getPageTitle = () => {
+    if (pathname === '/') return 'Dashboard'
+    const path = pathname.split('/')[1]
+    return path ? path.charAt(0).toUpperCase() + path.slice(1) : 'Dashboard'
+  }
 
   return (
-    <header className="h-14 border-b bg-background flex items-center justify-between px-6">
-      <div className="flex items-center">
+    <header className="h-14 bg-white/80 backdrop-blur-md border-b border-surface-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40 sticky top-0 w-full animate-fade-in">
+      <div className="flex items-center gap-3">
         <button 
-          className="md:hidden mr-4 flex items-center justify-center h-11 w-11 -ml-3 text-muted-foreground hover:text-foreground rounded-md" 
-          onClick={() => setIsOpen(true)}
-          aria-label="Open menu"
+          className="p-2 -ml-2 text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-colors flex items-center justify-center" 
+          onClick={toggleSidebar}
+          aria-label="Toggle menu"
         >
-          <Menu className="h-6 w-6" />
+          <span className="material-symbols-outlined">menu</span>
         </button>
-        {/* Breadcrumbs or page title could go here */}
+        
+        <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight capitalize ml-2">{getPageTitle()}</h1>
       </div>
-      <div className="flex items-center space-x-4">
-        <button className="text-muted-foreground hover:text-foreground">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
+
+      <div className="flex items-center gap-1">
+        
+        <div className="tooltip-container">
+          <ThemeToggle />
+          <span className="tooltip-custom">Theme</span>
+        </div>
+
+        <button className="tooltip-container p-2 text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-all hidden sm:flex">
+          <span className="material-symbols-outlined">help_outline</span>
+          <span className="tooltip-custom">Help Center</span>
         </button>
-        <ThemeToggle />
+
+        <div className="w-px h-6 bg-surface-200 mx-2 hidden sm:block"></div>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="h-8 w-8 rounded-full bg-accent flex items-center justify-center outline-none ring-2 ring-transparent focus:ring-blue-500">
-              <User className="h-5 w-5 text-accent-foreground" />
+            <button className="flex items-center gap-2 pl-1 outline-none ring-2 ring-transparent focus:ring-brand-500 rounded-full transition-all hover:opacity-80">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-[11px] font-bold shadow-sm overflow-hidden border border-surface-200">
+                {session?.user?.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img 
+                    src={session.user.image} 
+                    alt={session.user.name || "User"} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      if (e.currentTarget.parentElement) {
+                        e.currentTarget.parentElement.innerHTML = session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : 'EX';
+                      }
+                    }}
+                  />
+                ) : (
+                  session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : 'EX'
+                )}
+              </div>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 bg-surface-0 border border-surface-200 shadow-lg">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{session?.user?.name || "Administrator"}</p>
-                <p className="text-xs leading-none text-muted-foreground">{session?.user?.email}</p>
+                <p className="text-[13px] font-semibold text-surface-900 leading-none">{session?.user?.name || "Executive"}</p>
+                <p className="text-[11px] leading-none text-surface-500 mt-1">{session?.user?.email || "admin@foundation.org"}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile" className="cursor-pointer">
+            <DropdownMenuSeparator className="bg-surface-200" />
+            <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
+              <Link href="/profile">
                 <User className="mr-2 h-4 w-4" />
-                <span>আমার প্রোফাইল (My Profile)</span>
+                <span>Profile</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/profile/devices" className="cursor-pointer">
-                <Monitor className="mr-2 h-4 w-4" />
-                <span>ডিভাইস ব্যবস্থাপনা</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings" className="cursor-pointer">
+            <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
+              <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>System Settings</span>
+                <span>Settings</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-red-600 focus:text-red-600">
+            <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
+              <Link href="/profile/password">
+                <KeyRound className="mr-2 h-4 w-4" />
+                <span>Change Password</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-surface-200" />
+            <DropdownMenuItem onClick={() => signOut()} className="hover:bg-accent-red/10 focus:bg-accent-red/10 text-accent-red focus:text-accent-red text-[13px] font-medium cursor-pointer transition-colors">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
       </div>
     </header>
   )

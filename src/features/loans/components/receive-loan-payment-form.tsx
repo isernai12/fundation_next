@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
@@ -71,7 +72,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: any[],
   const daysOverdue = useMemo(() => {
     if (!selectedLoan || !selectedLoan.nextDueDate) return 0;
     const due = new Date(selectedLoan.nextDueDate)
-    const today = new Date()
+    const today = getNow()
     due.setHours(0,0,0,0)
     today.setHours(0,0,0,0)
     const diffTime = today.getTime() - due.getTime()

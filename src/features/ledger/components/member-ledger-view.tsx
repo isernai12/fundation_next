@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
@@ -185,8 +186,8 @@ export function MemberLedgerView({ members }: MemberLedgerViewProps) {
                   <SelectContent>
                     <SelectItem value="ALL">সব বছর</SelectItem>
                     {Array.from({length: 5}, (_, i) => (
-                      <SelectItem key={i} value={(new Date().getFullYear() - i).toString()}>
-                        {new Date().getFullYear() - i}
+                      <SelectItem key={i} value={(getNow().getFullYear() - i).toString()}>
+                        {getNow().getFullYear() - i}
                       </SelectItem>
                     ))}
                   </SelectContent>

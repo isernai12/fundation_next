@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -50,7 +51,7 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
       month: contribution.month,
       year: contribution.year,
       amount: payment ? payment.amount : contribution.expectedAmount,
-      paymentDate: payment ? new Date(payment.paymentDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      paymentDate: payment ? new Date(payment.paymentDate).toISOString().split('T')[0] : getNow().toLocaleDateString('en-CA'),
       paymentMethod: payment ? payment.paymentMethod : "CASH",
       referenceNumber: payment?.referenceNumber || "",
       notes: payment?.notes || "",

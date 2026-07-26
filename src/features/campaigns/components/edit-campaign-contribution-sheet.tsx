@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -47,7 +48,7 @@ export function EditCampaignContributionSheet({ isOpen, onClose, contribution }:
     resolver: zodResolver(editSchema),
     defaultValues: {
       amount: contribution?.amount || 0,
-      date: contribution?.date ? new Date(contribution.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: contribution?.date ? new Date(contribution.date).toISOString().split('T')[0] : getNow().toLocaleDateString('en-CA'),
       remarks: contribution?.remarks || "",
     },
   })

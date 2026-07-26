@@ -1,4 +1,5 @@
 "use server"
+import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
@@ -26,7 +27,7 @@ export async function createDocumentCategory(name: string, description?: string)
 // Document Upload
 async function generateDocumentNumber() {
   const count = await prisma.document.count()
-  const year = new Date().getFullYear()
+  const year = getNow().getFullYear()
   return `DOC-${year}-${(count + 1).toString().padStart(5, '0')}`
 }
 

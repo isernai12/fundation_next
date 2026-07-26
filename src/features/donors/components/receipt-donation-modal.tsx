@@ -30,7 +30,7 @@ export function ReceiptDonationModal({ isOpen, onClose, donation, mode = "print"
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden bg-white dark:bg-zinc-950 text-black dark:text-white print:p-0 print:border-none print:shadow-none">
+      <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden bg-background text-foreground print:p-0 print:border-none print:shadow-none">
         {/* Header Action Bar (Hidden when printing) */}
         <div className="flex items-center justify-between px-6 py-4 bg-muted/50 border-b print:hidden">
           <DialogTitle className="text-lg font-semibold flex items-center gap-2">

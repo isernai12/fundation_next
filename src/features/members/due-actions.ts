@@ -1,4 +1,5 @@
 "use server"
+import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
 
@@ -11,7 +12,7 @@ export async function generateMissingContributions() {
   const setting = await prisma.systemSettings.findFirst({ where: { key: "DEFAULT_MONTHLY_CONTRIBUTION" } });
   const defaultAmount = setting ? parseInt(setting.value) : 100;
 
-  const now = new Date();
+  const now = getNow();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 1-12
 

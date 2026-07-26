@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { getLoan } from "@/features/loans/actions"
 import { getDocumentsByEntity } from "@/features/documents/actions"
 import { notFound } from "next/navigation"
@@ -18,7 +19,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
   const documents = await getDocumentsByEntity("LOAN", loan.id)
 
   // Due logic
-  const today = new Date()
+  const today = getNow()
   today.setHours(0, 0, 0, 0)
   
   let dueStatus = "No Due"

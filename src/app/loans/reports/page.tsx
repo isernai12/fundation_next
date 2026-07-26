@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { formatCurrency } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
@@ -20,7 +21,7 @@ export default async function LoanReportsPage() {
 
   const repaymentPercentage = totalAmount > 0 ? (totalRepaid / totalAmount) * 100 : 0
   
-  const today = new Date()
+  const today = getNow()
   today.setHours(0, 0, 0, 0)
   
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)

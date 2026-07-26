@@ -1,3 +1,4 @@
+import { getNow } from "@/lib/date";
 import { getLoans } from "@/features/loans/actions"
 import { DueListTable } from "@/features/loans/components/due-list-table"
 import { Card, CardContent } from "@/components/ui/card"
@@ -6,7 +7,7 @@ export default async function UpcomingCollectionPage() {
   const rawLoans = await getLoans()
 
   // Augment loans with due logic
-  const today = new Date()
+  const today = getNow()
   today.setHours(0, 0, 0, 0)
   
   const next7Days = new Date(today)

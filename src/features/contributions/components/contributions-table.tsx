@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 import { formatDate, formatShortMonth } from "@/lib/format"
 import { useState } from "react"
 import {
@@ -85,7 +86,7 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
       month: contribution.month,
       year: contribution.year,
       amount: contribution.payments[0]?.amount || contribution.expectedAmount,
-      paymentDate: contribution.payments[0] ? new Date(contribution.payments[0].paymentDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      paymentDate: contribution.payments[0] ? new Date(contribution.payments[0].paymentDate).toISOString().split('T')[0] : getNow().toLocaleDateString('en-CA'),
       paymentMethod: contribution.payments[0]?.paymentMethod || "CASH",
       status: newStatus as any,
       isAdditional: contribution.isAdditional,

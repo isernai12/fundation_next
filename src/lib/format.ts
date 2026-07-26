@@ -1,23 +1,16 @@
+import { formatDate as formatDateTz, formatTimeBangla } from './date';
 export function formatDate(date: string | Date | number | null | undefined): string {
   if (!date) return 'N/A';
   const d = new Date(date);
   if (isNaN(d.getTime())) return 'N/A';
-  const dd = String(d.getUTCDate()).padStart(2, '0');
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const yyyy = d.getUTCFullYear();
-  return `${mm}/${dd}/${yyyy}`; // Used typical US format to match existing or neutral
+  return formatDateTz(d);
 }
 
 export function formatDateTime(date: string | Date | number | null | undefined): string {
   if (!date) return 'N/A';
   const d = new Date(date);
   if (isNaN(d.getTime())) return 'N/A';
-  const dd = String(d.getUTCDate()).padStart(2, '0');
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const yyyy = d.getUTCFullYear();
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const min = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${mm}/${dd}/${yyyy} ${hh}:${min} UTC`;
+  return `${formatDateTz(d)}, ${formatTimeBangla(d)}`;
 }
 
 export function formatCurrency(amount: number | string | null | undefined): string {

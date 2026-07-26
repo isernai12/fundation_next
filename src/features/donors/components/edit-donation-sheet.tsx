@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -59,7 +60,7 @@ export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }:
       donorId: "",
       groupId: "",
       amount: 0,
-      date: new Date().toISOString().split("T")[0],
+      date: getNow().toLocaleDateString('en-CA'),
       remarks: "",
     },
   })
@@ -70,7 +71,7 @@ export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }:
         donorId: donation.donorId || "",
         groupId: donation.groupId || "",
         amount: donation.amount || 0,
-        date: donation.date ? new Date(donation.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        date: donation.date ? new Date(donation.date).toISOString().split("T")[0] : getNow().toLocaleDateString('en-CA'),
         remarks: donation.remarks || "",
       })
     }

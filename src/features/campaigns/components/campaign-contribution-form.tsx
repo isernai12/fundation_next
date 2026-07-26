@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -43,7 +44,7 @@ export function CampaignContributionForm({
       donorMobile: "",
       donorAddress: "",
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: getNow().toLocaleDateString('en-CA'),
       remarks: "",
     },
   })

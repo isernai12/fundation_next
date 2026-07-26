@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -27,10 +28,10 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
 
   const defaultValues: Partial<ContributionFormValues> = {
     memberId: "",
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(),
+    month: getNow().getMonth() + 1,
+    year: getNow().getFullYear(),
     amount: 0,
-    paymentDate: new Date().toISOString().split("T")[0],
+    paymentDate: getNow().toLocaleDateString('en-CA'),
     paymentMethod: "CASH",
     referenceNumber: "",
     notes: "",

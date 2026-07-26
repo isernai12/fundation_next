@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 
 import { useState, useMemo } from "react"
 import { formatCurrency, formatDate } from "@/lib/format"
@@ -105,7 +106,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `Donor_Ledger_${new Date().toISOString().split("T")[0]}.csv`
+    a.download = `Donor_Ledger_${getNow().toLocaleDateString('en-CA')}.csv`
     a.click()
   }
 
@@ -247,7 +248,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-2">
-            প্রিন্ট তারিখ: {new Date().toLocaleDateString('bn-BD')}
+            প্রিন্ট তারিখ: {formatDate(getNow())}
           </p>
         </div>
 

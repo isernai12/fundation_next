@@ -1,4 +1,5 @@
 "use client"
+import { getNow } from "@/lib/date";
 import { formatMonth } from "@/lib/format"
 
 import { useState } from "react"
@@ -37,8 +38,8 @@ interface ContributionFormDialogProps {
 export function ContributionFormDialog({ members, trigger }: ContributionFormDialogProps) {
   const [open, setOpen] = useState(false)
 
-  const currentYear = new Date().getFullYear()
-  const currentMonth = new Date().getMonth() + 1
+  const currentYear = getNow().getFullYear()
+  const currentMonth = getNow().getMonth() + 1
 
   const form = useForm<ContributionFormValues>({
     resolver: zodResolver(contributionSchema),
@@ -47,7 +48,7 @@ export function ContributionFormDialog({ members, trigger }: ContributionFormDia
       month: currentMonth,
       year: currentYear,
       amount: 100,
-      paymentDate: new Date().toISOString().split('T')[0],
+      paymentDate: getNow().toLocaleDateString('en-CA'),
       paymentMethod: "CASH",
       referenceNumber: "",
       notes: "",
