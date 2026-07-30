@@ -36,7 +36,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { memberSchema, type MemberFormValues } from "../schema";
 import { createMember, updateMember, deleteMemberDocument } from "../actions";
-import { Member } from "@prisma/client";
+import type { Member } from "@prisma/client";
 import { formatDate } from "@/lib/format";
 
 const SectionCard = ({

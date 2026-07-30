@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Noto_Sans_Bengali } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -94,7 +95,9 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.6/index.min.css" rel="stylesheet" />
-        <script
+        <Script
+          id="app-settings"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `window.APP_TIMEZONE = "${userTimezone}"; window.APP_DATE_FORMAT = "${userDateFormat}";`
           }}

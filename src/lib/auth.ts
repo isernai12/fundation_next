@@ -36,12 +36,42 @@ function parseUserAgent(ua: string) {
   return { browser, os, device }
 }
 
+const useSecure = process.env.NEXTAUTH_URL?.startsWith("https://") ?? false
+
 export const authOptions: NextAuthOptions = {
   // @ts-ignore
   trustHost: true,
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days max global, actual controlled dynamically by jwt token.expiresAt
+  },
+  cookies: {
+    sessionToken: {
+      name: useSecure ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    callbackUrl: {
+      name: useSecure ? `__Secure-next-auth.callback-url` : `next-auth.callback-url`,
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    csrfToken: {
+      name: useSecure ? `__Host-next-auth.csrf-token` : `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
   },
   pages: {
     signIn: "/login",
@@ -155,6 +185,8 @@ export const authOptions: NextAuthOptions = {
 
       const sessionId = (token.sessionId || token.jti) as string
 
+      console.log(`[AUTH DEBUG] JWT Callback - User ID: ${token.id}, Role: ${token.role}, Session ID: ${sessionId}`);
+
       // Check dynamic expiration
       if (token.expiresAt && Date.now() > (token.expiresAt as number)) {
         if (sessionId) {
@@ -169,6 +201,7 @@ export const authOptions: NextAuthOptions = {
           where: { jti: sessionId },
         })
         if (!session) {
+          console.log(`[AUTH DEBUG] Session ${sessionId} revoked or not found in DB`);
           return {} as any // Session revoked via Device Management or password change
         }
 
@@ -186,6 +219,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       const sessionId = (token.sessionId || token.jti) as string
       if (!token || !token.id || !sessionId) {
+        console.log(`[AUTH DEBUG] Session Callback - Invalid token or missing session ID`);
         return session
       }
       session.user = {
@@ -196,6 +230,7 @@ export const authOptions: NextAuthOptions = {
         image: token.picture as string | null | undefined,
       } as any
       ;(session as any).jti = sessionId
+      console.log(`[AUTH DEBUG] Session Callback - Valid Session for User ID: ${token.id}, Role: ${token.role}`);
       return session
     },
   },

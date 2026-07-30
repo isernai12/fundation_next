@@ -34,11 +34,17 @@ import {
 import { deleteDonor } from "../actions"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 export function DonorsTable({ data }: { data: any[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const router = useRouter()
+  const { can } = useRbac()
+
+  const canView = can("Donors", "View")
+  const canEdit = can("Donors", "Edit")
+  const canDelete = can("Donors", "Delete")
 
   const columns: ColumnDef<any>[] = [
     {
@@ -76,40 +82,48 @@ export function DonorsTable({ data }: { data: any[] }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/donors/${donor.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/donors/${donor.id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/donors/ledger?donorId=${donor.id}`}>
-                  <BookOpen className="mr-2 h-4 w-4" /> লেজার
-                </Link>
-              </DropdownMenuItem>
+              {canView && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/donors/${donor.id}`}>
+                    <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/donors/${donor.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canView && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/donors/ledger?donorId=${donor.id}`}>
+                    <BookOpen className="mr-2 h-4 w-4" /> লেজার
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => window.print()}>
                 <Printer className="mr-2 h-4 w-4" /> প্রিন্ট
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={async () => {
-                  if (confirm("আপনি কি নিশ্চিত যে আপনি এই অনুদানদাতাকে মুছে ফেলতে চান?")) {
-                    const res = await deleteDonor(donor.id)
-                    if (res.success) {
-                      toast.success("সফলভাবে মুছে ফেলা হয়েছে")
-                      router.refresh()
-                    } else {
-                      toast.error(res.error)
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={async () => {
+                    if (confirm("আপনি কি নিশ্চিত যে আপনি এই অনুদানদাতাকে মুছে ফেলতে চান?")) {
+                      const res = await deleteDonor(donor.id)
+                      if (res.success) {
+                        toast.success("সফলভাবে মুছে ফেলা হয়েছে")
+                        router.refresh()
+                      } else {
+                        toast.error(res.error)
+                      }
                     }
-                  }
-                }}
-              >
-                <Trash className="mr-2 h-4 w-4" /> মুছুন
-              </DropdownMenuItem>
+                  }}
+                >
+                  <Trash className="mr-2 h-4 w-4" /> মুছুন
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )

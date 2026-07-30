@@ -59,23 +59,25 @@ const sidebarSections: Section[] = [
         name: "সদস্য", 
         href: "/members", 
         icon: Users,
+        permission: "Members:View",
         submenu: [
-          { name: "নতুন সদস্য", href: "/members/new" },
-          { name: "সদস্য ব্যবস্থাপনা", href: "/members/manage" },
-          { name: "সদস্য লেজার", href: "/members/ledger" },
-          { name: "বকেয়া চাঁদা", href: "/members/dues" },
+          { name: "নতুন সদস্য", href: "/members/new", permission: "Members:Add" },
+          { name: "সদস্য ব্যবস্থাপনা", href: "/members/manage", permission: "Members:View" },
+          { name: "সদস্য লেজার", href: "/members/ledger", permission: "Members:View" },
+          { name: "বকেয়া চাঁদা", href: "/members/dues", permission: "Members:View" },
         ]
       },
       { 
         name: "সুবিধাভোগী", 
         href: "/beneficiaries", 
         icon: UserRoundCheck,
+        permission: "Beneficiaries:View",
         submenu: [
-          { name: "নতুন সুবিধাভোগী", href: "/beneficiaries/new" },
-          { name: "সুবিধাভোগী ব্যবস্থাপনা", href: "/beneficiaries/manage" },
-          { name: "সুবিধাভোগী লেজার", href: "/beneficiaries/ledger" },
-          { name: "সহায়তার ইতিহাস", href: "/beneficiaries/assistance-history" },
-          { name: "ঋণের ইতিহাস", href: "/beneficiaries/loan-history" },
+          { name: "নতুন সুবিধাভোগী", href: "/beneficiaries/new", permission: "Beneficiaries:Add" },
+          { name: "সুবিধাভোগী ব্যবস্থাপনা", href: "/beneficiaries/manage", permission: "Beneficiaries:View" },
+          { name: "সুবিধাভোগী লেজার", href: "/beneficiaries/ledger", permission: "Beneficiaries:View" },
+          { name: "সহায়তার ইতিহাস", href: "/beneficiaries/assistance-history", permission: "Beneficiaries:View" },
+          { name: "ঋণের ইতিহাস", href: "/beneficiaries/loan-history", permission: "Beneficiaries:View" },
         ]
       },
     ]
@@ -87,55 +89,60 @@ const sidebarSections: Section[] = [
         name: "অনুদানদাতা", 
         href: "/donors", 
         icon: HandCoins,
+        permission: "Donors:View",
         submenu: [
-          { name: "নতুন অনুদানদাতা", href: "/donors/new" },
-          { name: "অনুদানদাতা ব্যবস্থাপনা", href: "/donors/manage" },
-          { name: "অনুদান গ্রহণ", href: "/donors/receive" },
-          { name: "অনুদান লেজার", href: "/donors/ledger" },
+          { name: "নতুন অনুদানদাতা", href: "/donors/new", permission: "Donors:Add" },
+          { name: "অনুদানদাতা ব্যবস্থাপনা", href: "/donors/manage", permission: "Donors:View" },
+          { name: "অনুদান গ্রহণ", href: "/donors/receive", permission: "Donors:Receive Installment" },
+          { name: "অনুদান লেজার", href: "/donors/ledger", permission: "Donors:View" },
         ]
       },
       { 
         name: "আর্থিক কার্যক্রম", 
         href: "/campaigns", 
         icon: WalletCards,
+        permission: "Fund Collection:View",
         submenu: [
-          { name: "নতুন তহবিল", href: "/campaigns/new" },
-          { name: "তহবিল ব্যবস্থাপনা", href: "/campaigns/manage" },
-          { name: "তহবিলে অর্থ গ্রহণ", href: "/campaigns/contribute" },
-          { name: "তহবিল লেজার", href: "/campaigns/ledger" },
+          { name: "নতুন তহবিল", href: "/campaigns/new", permission: "Fund Collection:Add" },
+          { name: "তহবিল ব্যবস্থাপনা", href: "/campaigns/manage", permission: "Fund Collection:View" },
+          { name: "তহবিলে অর্থ গ্রহণ", href: "/campaigns/contribute", permission: "Fund Collection:Add" },
+          { name: "তহবিল লেজার", href: "/campaigns/ledger", permission: "Fund Collection:View" },
         ]
       },
       { 
         name: "তহবিল / চাঁদা", 
         href: "/contributions", 
         icon: PiggyBank,
+        permission: "Fund Collection:View",
         submenu: [
-          { name: "তহবিল গ্রহণ", href: "/contributions/new" },
-          { name: "মাসিক চাঁদা", href: "/contributions/monthly" },
-          { name: "চাঁদা ব্যবস্থাপনা", href: "/contributions" },
-          { name: "বকেয়া চাঁদা", href: "/contributions/due" },
-          { name: "চাঁদা লেজার", href: "/contributions/ledger" },
+          { name: "তহবিল গ্রহণ", href: "/contributions/new", permission: "Fund Collection:Add" },
+          { name: "মাসিক চাঁদা", href: "/contributions/monthly", permission: "Fund Collection:View" },
+          { name: "চাঁদা ব্যবস্থাপনা", href: "/contributions", permission: "Fund Collection:View" },
+          { name: "বকেয়া চাঁদা", href: "/contributions/due", permission: "Fund Collection:View" },
+          { name: "চাঁদা লেজার", href: "/contributions/ledger", permission: "Fund Collection:View" },
         ]
       },
       { 
         name: "ঋণ", 
         href: "/loans", 
         icon: Landmark,
+        permission: "Loans:View",
         submenu: [
-          { name: "নতুন ঋণ", href: "/loans/new" },
-          { name: "ঋণ ব্যবস্থাপনা", href: "/loans" },
-          { name: "ঋণ পরিশোধ", href: "/loans/repayments" },
-          { name: "ঋণ লেজার", href: "/loans/ledger" },
+          { name: "নতুন ঋণ", href: "/loans/new", permission: "Loans:Add" },
+          { name: "ঋণ ব্যবস্থাপনা", href: "/loans", permission: "Loans:View" },
+          { name: "ঋণ পরিশোধ", href: "/loans/repayments", permission: "Loans:Manage" },
+          { name: "ঋণ লেজার", href: "/loans/ledger", permission: "Loans:View" },
         ]
       },
       { 
         name: "অনুদান", 
         href: "/grants", 
         icon: Gift,
+        permission: "Grants:View",
         submenu: [
-          { name: "নতুন অনুদান", href: "/grants/new" },
-          { name: "অনুদান ব্যবস্থাপনা", href: "/grants/manage" },
-          { name: "অনুদান লেজার", href: "/grants/ledger" },
+          { name: "নতুন অনুদান", href: "/grants/new", permission: "Grants:Add" },
+          { name: "অনুদান ব্যবস্থাপনা", href: "/grants/manage", permission: "Grants:View" },
+          { name: "অনুদান লেজার", href: "/grants/ledger", permission: "Grants:View" },
         ]
       },
     ]
@@ -147,15 +154,16 @@ const sidebarSections: Section[] = [
         name: "গ্রুপ", 
         href: "/groups", 
         icon: UsersRound,
+        permission: "Groups:View",
         submenu: [
-          { name: "নতুন গ্রুপ", href: "/groups/new" },
-          { name: "গ্রুপ ব্যবস্থাপনা", href: "/groups/manage" },
-          { name: "গ্রুপের সদস্য", href: "/groups/members" },
-          { name: "গ্রুপ ফান্ড", href: "/groups/fund" },
-          { name: "গ্রুপ লেজার", href: "/groups/ledger" },
+          { name: "নতুন গ্রুপ", href: "/groups/new", permission: "Groups:Add" },
+          { name: "গ্রুপ ব্যবস্থাপনা", href: "/groups/manage", permission: "Groups:View" },
+          { name: "গ্রুপের সদস্য", href: "/groups/members", permission: "Groups:View" },
+          { name: "গ্রুপ ফান্ড", href: "/groups/fund", permission: "Groups:View" },
+          { name: "গ্রুপ লেজার", href: "/groups/ledger", permission: "Groups:View" },
         ]
       },
-      { name: "সেটিংস", href: "/settings", icon: Settings },
+      { name: "সেটিংস", href: "/settings", icon: Settings, permission: "Settings:View" },
     ]
   }
 ]
@@ -171,13 +179,26 @@ export function Sidebar() {
 
   const filteredSections = React.useMemo(() => {
     if (permissions.includes("*")) return sidebarSections;
-    return sidebarSections.map((section: any) => ({
-      ...section,
-      items: section.items.filter((item: any) => !item.permission || can(item.permission.split(":")[0], item.permission.split(":")[1])).map((item: any) => ({
-        ...item,
-        submenu: item.submenu?.filter((sub: any) => !sub.permission || can(sub.permission.split(":")[0], sub.permission.split(":")[1]))
-      }))
-    })).filter((section: any) => section.items.length > 0)
+    
+    return sidebarSections.map((section: any) => {
+      const items = section.items
+        .map((item: any) => {
+          const submenu = item.submenu
+            ? item.submenu.filter((sub: any) => !sub.permission || can(sub.permission.split(":")[0], sub.permission.split(":")[1]))
+            : undefined;
+          return { ...item, submenu };
+        })
+        .filter((item: any) => {
+          const hasParentPerm = !item.permission || can(item.permission.split(":")[0], item.permission.split(":")[1]);
+          if (!hasParentPerm) return false;
+          
+          if (item.submenu && item.submenu.length === 0) return false;
+          
+          return true;
+        });
+
+      return { ...section, items };
+    }).filter((section: any) => section.items.length > 0);
   }, [permissions, can])
 
   const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(() => {

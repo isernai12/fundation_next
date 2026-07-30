@@ -43,6 +43,7 @@ import { deleteDonationTransaction, type DonationTransactionItem } from "../acti
 import { ViewDonationDialog } from "./view-donation-dialog"
 import { EditDonationSheet } from "./edit-donation-sheet"
 import { ReceiptDonationModal } from "./receipt-donation-modal"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 interface DonationsTableProps {
   data: DonationTransactionItem[]
@@ -53,6 +54,11 @@ interface DonationsTableProps {
 export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
   const router = useRouter()
   const [sorting, setSorting] = useState<SortingState>([])
+  const { can } = useRbac()
+
+  const canView = can("Donors", "View")
+  const canEdit = can("Donors", "Edit")
+  const canDelete = can("Donors", "Delete")
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("")
@@ -226,13 +232,17 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
                 <DropdownMenuLabel>অ্যাকশনসমূহ</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={() => setViewingItem(item)} className="cursor-pointer">
-                  <Eye className="mr-2 h-4 w-4 text-blue-500" /> বিস্তারিত দেখুন (View)
-                </DropdownMenuItem>
+                {canView && (
+                  <DropdownMenuItem onClick={() => setViewingItem(item)} className="cursor-pointer">
+                    <Eye className="mr-2 h-4 w-4 text-blue-500" /> বিস্তারিত দেখুন (View)
+                  </DropdownMenuItem>
+                )}
 
-                <DropdownMenuItem onClick={() => setEditingItem(item)} className="cursor-pointer">
-                  <Edit className="mr-2 h-4 w-4 text-amber-500" /> সম্পাদনা করুন (Edit)
-                </DropdownMenuItem>
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => setEditingItem(item)} className="cursor-pointer">
+                    <Edit className="mr-2 h-4 w-4 text-amber-500" /> সম্পাদনা করুন (Edit)
+                  </DropdownMenuItem>
+                )}
 
                 <DropdownMenuSeparator />
 
@@ -244,41 +254,49 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
                   <Download className="mr-2 h-4 w-4 text-purple-500" /> এক্সপোর্ট PDF (Export PDF)
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+                {canView && (
+                  <>
+                    <DropdownMenuSeparator />
 
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (item.donorId) {
-                      router.push(`/donors/ledger?donorId=${item.donorId}`)
-                      toast.info("ডোনার লেজার ওপেন করা হয়েছে", { description: `অনুদানদাতা: ${item.donor?.fullName || item.donorId}` })
-                    } else {
-                      toast.error("ডোনার পাওয়া যায়নি")
-                    }
-                  }}
-                  className="cursor-pointer"
-                >
-                  <Users className="mr-2 h-4 w-4 text-sky-500" /> ডোনার লেজার খুলুন
-                </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (item.donorId) {
+                          router.push(`/donors/ledger?donorId=${item.donorId}`)
+                          toast.info("ডোনার লেজার ওপেন করা হয়েছে", { description: `অনুদানদাতা: ${item.donor?.fullName || item.donorId}` })
+                        } else {
+                          toast.error("ডোনার পাওয়া যায়নি")
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Users className="mr-2 h-4 w-4 text-sky-500" /> ডোনার লেজার খুলুন
+                    </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (item.groupId) {
-                      router.push(`/groups/${item.groupId}/ledger`)
-                      toast.info("গ্রুপ লেজার ওপেন করা হয়েছে", { description: `গ্রুপ: ${item.groupName}` })
-                    } else {
-                      router.push("/groups/fund")
-                    }
-                  }}
-                  className="cursor-pointer"
-                >
-                  <Building className="mr-2 h-4 w-4 text-indigo-500" /> গ্রুপ লেজার খুলুন
-                </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (item.groupId) {
+                          router.push(`/groups/${item.groupId}/ledger`)
+                          toast.info("গ্রুপ লেজার ওপেন করা হয়েছে", { description: `গ্রুপ: ${item.groupName}` })
+                        } else {
+                          router.push("/groups/fund")
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Building className="mr-2 h-4 w-4 text-indigo-500" /> গ্রুপ লেজার খুলুন
+                    </DropdownMenuItem>
+                  </>
+                )}
 
-                <DropdownMenuSeparator />
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={() => handleDelete(item.id)} className="cursor-pointer text-destructive focus:text-destructive">
-                  <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন (Delete)
-                </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(item.id)} className="cursor-pointer text-destructive focus:text-destructive">
+                      <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন (Delete)
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

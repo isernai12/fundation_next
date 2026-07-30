@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { beneficiarySchema, type BeneficiaryFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function getBeneficiaries() {
-    await requirePermission("Beneficiaries", "View");
+  if (!await checkPermission("Beneficiaries", "View")) return [];
   return prisma.beneficiary.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -18,7 +18,7 @@ export async function getBeneficiaries() {
 }
 
 export async function getBeneficiary(id: string) {
-    await requirePermission("Beneficiaries", "View");
+  if (!await checkPermission("Beneficiaries", "View")) return null;
   return prisma.beneficiary.findUnique({
     where: { id },
     include: {

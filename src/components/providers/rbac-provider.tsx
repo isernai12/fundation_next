@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { hasPermission } from "@/lib/rbac"
+import { hasPermission } from "@/lib/rbac-client"
 
 type RbacContextType = {
   permissions: string[]

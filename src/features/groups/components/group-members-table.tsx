@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Member } from "@prisma/client"
+import type { Member } from "@prisma/client"
 import { removeMemberFromGroup } from "../actions"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"

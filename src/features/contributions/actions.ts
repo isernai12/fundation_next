@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { contributionSchema, type ContributionFormValues } from "./schema"
 import { LedgerEngine } from "@/services/ledger"
 import { revalidatePath } from "next/cache"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function createContribution(data: ContributionFormValues) {
     await requirePermission("Fund Collection", "Add");
@@ -101,7 +101,7 @@ export async function createContribution(data: ContributionFormValues) {
 }
 
 export async function getContributions() {
-    await requirePermission("Fund Collection", "View");
+  if (!await checkPermission("Fund Collection", "View")) return [];
   return prisma.monthlyContribution.findMany({
     orderBy: { createdAt: "desc" },
     include: {

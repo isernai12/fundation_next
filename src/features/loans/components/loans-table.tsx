@@ -58,6 +58,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { deleteLoanAction } from "../actions"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 const globalSearchFn: FilterFn<any> = (row, columnId, value, addMeta) => {
   const searchValue = value.toLowerCase()
@@ -73,6 +74,12 @@ export function LoansTable({ data }: { data: any[] }) {
   const [globalFilter, setGlobalFilter] = useState("")
   const [amountRange, setAmountRange] = useState({ min: "", max: "" })
   const router = useRouter()
+  const { can } = useRbac()
+
+  const canView = can("Loans", "View")
+  const canEdit = can("Loans", "Edit")
+  const canDelete = can("Loans", "Delete")
+  const canManage = can("Loans", "Manage")
 
   const handleDelete = async (id: string, hasRepayments: boolean) => {
     if (hasRepayments) {
@@ -194,18 +201,22 @@ export function LoansTable({ data }: { data: any[] }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/loans/${loan.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/loans/${loan.id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" /> ঋণ সংশোধন করুন
-                </Link>
-              </DropdownMenuItem>
-              {isEligibleForCompletion && loan.remainingBalance > 0 && (
+              <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
+              {canView && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/loans/${loan.id}`}>
+                    <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/loans/${loan.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" /> ঋণ সংশোধন করুন
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canManage && isEligibleForCompletion && loan.remainingBalance > 0 && (
                 <DropdownMenuItem asChild>
                   <Link href={`/loans/repayments?loanId=${loan.id}`}>
                     <CreditCard className="mr-2 h-4 w-4" /> কিস্তি গ্রহণ করুন
@@ -213,31 +224,32 @@ export function LoansTable({ data }: { data: any[] }) {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/loans/${loan.id}#history`}>
-                  <FileText className="mr-2 h-4 w-4" /> পরিশোধের ইতিহাস
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/loans/ledger?loanId=${loan.id}`}>
-                  <BookOpen className="mr-2 h-4 w-4" /> ঋণের খতিয়ান
-                </Link>
-              </DropdownMenuItem>
+              {canView && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/loans/${loan.id}#history`}>
+                      <FileText className="mr-2 h-4 w-4" /> পরিশোধের ইতিহাস
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/loans/ledger?loanId=${loan.id}`}>
+                      <BookOpen className="mr-2 h-4 w-4" /> ঋণের খতিয়ান
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuItem onClick={() => window.print()}>
                 <Printer className="mr-2 h-4 w-4" /> প্রিন্ট করুন
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {isEligibleForCompletion && (
-                <DropdownMenuItem onClick={() => handleMarkAsCompleted(loan.id)}>
-                  <CheckCircle className="mr-2 h-4 w-4" /> সম্পন্ন মার্ক করুন
+              {canDelete && (
+                <DropdownMenuItem 
+                  onClick={() => handleDelete(loan.id, hasRepayments)}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> মুছে ফেলুন (Delete)
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem 
-                onClick={() => handleDelete(loan.id, hasRepayments)}
-                className="text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> মুছে ফেলুন (Delete)
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )

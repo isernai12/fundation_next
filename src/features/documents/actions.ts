@@ -6,11 +6,11 @@ import { revalidatePath } from "next/cache"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 import crypto from "crypto"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 // Document Categories
 export async function getDocumentCategories() {
-    await requirePermission("Settings", "View");
+  if (!await checkPermission("Settings", "View")) return [];
   return prisma.documentCategory.findMany({ orderBy: { name: "asc" } })
 }
 
@@ -111,7 +111,7 @@ export async function uploadDocument(formData: FormData) {
 }
 
 export async function getDocumentsByEntity(targetType: any, entityId: string) {
-    await requirePermission("Settings", "View");
+  if (!await checkPermission("Settings", "View")) return [];
   return prisma.document.findMany({
     where: { targetType, entityId },
     include: { category: true },
@@ -120,7 +120,7 @@ export async function getDocumentsByEntity(targetType: any, entityId: string) {
 }
 
 export async function getAllDocuments() {
-    await requirePermission("Settings", "View");
+  if (!await checkPermission("Settings", "View")) return [];
   return prisma.document.findMany({
     include: { category: true },
     orderBy: { createdAt: "desc" }

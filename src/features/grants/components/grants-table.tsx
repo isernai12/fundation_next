@@ -31,10 +31,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Grant, FundAllocation, Fund } from "@prisma/client"
+import type { Grant, FundAllocation, Fund } from "@prisma/client"
 import { deleteGrant } from "../actions"
 import { toast } from "sonner"
 import Link from "next/link"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 type GrantWithDetails = Grant & {
   beneficiary: {
@@ -52,6 +53,11 @@ type GrantWithDetails = Grant & {
 export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetails[], manageMode?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const { can } = useRbac()
+
+  const canView = can("Grants", "View")
+  const canEdit = can("Grants", "Edit")
+  const canDelete = can("Grants", "Delete")
 
   const columns: ColumnDef<GrantWithDetails>[] = [
     {
@@ -106,36 +112,39 @@ export function GrantsTable({ data, manageMode = false }: { data: GrantWithDetai
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/grants/${grant.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
-                </Link>
-              </DropdownMenuItem>
+              {canView && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/grants/${grant.id}`}>
+                    <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
+                  </Link>
+                </DropdownMenuItem>
+              )}
               {manageMode && (
                 <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/grants/${grant.id}/edit`}>
-                      <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  {canEdit && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/grants/${grant.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => window.print()}>
                     <Printer className="mr-2 h-4 w-4" /> প্রিন্ট
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Archive className="mr-2 h-4 w-4" /> আর্কাইভ
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={async () => {
-                      if (confirm("আপনি কি নিশ্চিত যে এই অনুদানটি মুছে ফেলতে চান?")) {
-                        const res = await deleteGrant(grant.id)
-                        if (res.success) toast.success("অনুদান মুছে ফেলা হয়েছে")
-                        else toast.error(res.error || "অনুদান মুছতে ব্যর্থ হয়েছে")
-                      }
-                    }}
-                  >
-                    <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
-                  </DropdownMenuItem>
+                  {canDelete && (
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={async () => {
+                        if (confirm("আপনি কি নিশ্চিত যে এই অনুদানটি মুছে ফেলতে চান?")) {
+                          const res = await deleteGrant(grant.id)
+                          if (res.success) toast.success("অনুদান মুছে ফেলা হয়েছে")
+                          else toast.error(res.error || "অনুদান মুছতে ব্যর্থ হয়েছে")
+                        }
+                      }}
+                    >
+                      <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
             </DropdownMenuContent>

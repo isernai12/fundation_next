@@ -23,13 +23,14 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Member, Group } from "@prisma/client"
+import type { Member, Group } from "@prisma/client"
 import { MemberFormDialog } from "./member-form-dialog"
 import { toggleMemberStatus, deleteMember } from "../actions"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Eye, Edit, Trash, MoreHorizontal, Power, PowerOff, BookOpen } from "lucide-react"
+import { useRbac } from "@/components/providers/rbac-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +47,9 @@ type MemberWithGroup = Member & {
 export function MembersTable({ data, groups, isManage = false }: { data: MemberWithGroup[], groups: Group[], isManage?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const { can } = useRbac()
+  const canEdit = can("Members", "Edit")
+  const canDelete = can("Members", "Delete")
 
   const columns: ColumnDef<MemberWithGroup>[] = [
     {
@@ -109,50 +113,56 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
               </DropdownMenuItem>
               {isManage && (
                 <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/members/${member.id}/edit`}>
-                      <Edit className="mr-2 h-4 w-4" /> সদস্য সম্পাদনা করুন
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  {member.status === "ACTIVE" ? (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে নিষ্ক্রিয় করতে চান?")) {
-                          const res = await toggleMemberStatus(member.id, "INACTIVE")
-                          if (res.success) toast.success("সদস্য নিষ্ক্রিয় করা হয়েছে")
-                          else toast.error(res.error)
-                        }
-                      }}
-                    >
-                      <PowerOff className="mr-2 h-4 w-4" /> নিষ্ক্রিয় করুন
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে সক্রিয় করতে চান?")) {
-                          const res = await toggleMemberStatus(member.id, "ACTIVE")
-                          if (res.success) toast.success("সদস্য সক্রিয় করা হয়েছে")
-                          else toast.error(res.error)
-                        }
-                      }}
-                    >
-                      <Power className="mr-2 h-4 w-4" /> সক্রিয় করুন
+                  {canEdit && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/members/${member.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" /> সদস্য সম্পাদনা করুন
+                      </Link>
                     </DropdownMenuItem>
                   )}
                   
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={async () => {
-                      if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে স্থায়ীভাবে মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না।")) {
-                        const res = await deleteMember(member.id)
-                        if (res.success) toast.success("সদস্য সফলভাবে মুছে ফেলা হয়েছে")
-                        else toast.error(res.error)
-                      }
-                    }}
-                  >
-                    <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
-                  </DropdownMenuItem>
+                  {canEdit && (
+                    member.status === "ACTIVE" ? (
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে নিষ্ক্রিয় করতে চান?")) {
+                            const res = await toggleMemberStatus(member.id, "INACTIVE")
+                            if (res.success) toast.success("সদস্য নিষ্ক্রিয় করা হয়েছে")
+                            else toast.error(res.error)
+                          }
+                        }}
+                      >
+                        <PowerOff className="mr-2 h-4 w-4" /> নিষ্ক্রিয় করুন
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে সক্রিয় করতে চান?")) {
+                            const res = await toggleMemberStatus(member.id, "ACTIVE")
+                            if (res.success) toast.success("সদস্য সক্রিয় করা হয়েছে")
+                            else toast.error(res.error)
+                          }
+                        }}
+                      >
+                        <Power className="mr-2 h-4 w-4" /> সক্রিয় করুন
+                      </DropdownMenuItem>
+                    )
+                  )}
+                  
+                  {canDelete && (
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={async () => {
+                        if (confirm("আপনি কি নিশ্চিত যে আপনি এই সদস্যকে স্থায়ীভাবে মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না।")) {
+                          const res = await deleteMember(member.id)
+                          if (res.success) toast.success("সদস্য সফলভাবে মুছে ফেলা হয়েছে")
+                          else toast.error(res.error)
+                        }
+                      }}
+                    >
+                      <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
             </DropdownMenuContent>

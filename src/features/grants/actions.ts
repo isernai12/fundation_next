@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { grantSchema, type GrantFormValues } from "./schema"
 import { LedgerEngine, LedgerEntryInput } from "@/services/ledger"
 import { revalidatePath } from "next/cache"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 async function generateGrantNumber() {
   const count = await prisma.grant.count()
@@ -131,8 +131,10 @@ export async function updateGrant(id: string, data: GrantFormValues) {
   }
 }
 
+
+
 export async function getGrants() {
-    await requirePermission("Grants", "View");
+  if (!await checkPermission("Grants", "View")) return [];
   return prisma.grant.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -151,7 +153,7 @@ export async function getGrants() {
 }
 
 export async function getGrant(id: string) {
-    await requirePermission("Grants", "View");
+  if (!await checkPermission("Grants", "View")) return null;
   return prisma.grant.findUnique({
     where: { id },
     include: {

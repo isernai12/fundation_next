@@ -4,10 +4,10 @@ import { FinancialService } from "@/services/finance"
 import { prisma } from "@/lib/prisma"
 import { groupSchema, type GroupFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function getGroups() {
-    await requirePermission("Groups", "View");
+  if (!await checkPermission("Groups", "View")) return [];
   const groups = await prisma.group.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -32,7 +32,7 @@ export async function getGroups() {
 }
 
 export async function getGroup(id: string) {
-    await requirePermission("Groups", "View");
+  if (!await checkPermission("Groups", "View")) return null;
   return prisma.group.findUnique({
     where: { id },
     include: {

@@ -1,15 +1,22 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { updateRolePermissions } from "./actions"
 import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { SectionHeader } from "@/components/ui/section-header"
-import { Save, ShieldCheck } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Save, ShieldCheck, ChevronRight, ChevronDown, Folder, FolderOpen, Layers, Lock, CheckCircle2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import {
+  HIERARCHICAL_PERMISSIONS_CONFIG,
+  type ModulePermissionConfig,
+  type SubmenuPermissionConfig,
+  type PermissionActionConfig
+} from "@/lib/permissions-config"
 
 export function RolesManager({
   roles,
@@ -20,22 +27,30 @@ export function RolesManager({
   permissions: any[]
   rolePermissions: any[]
 }) {
+  const router = useRouter()
   const [selectedRoleId, setSelectedRoleId] = useState<string>(roles[0]?.id || "")
   const [saving, setSaving] = useState(false)
-  
-  // We'll store a Set of permission IDs for the currently selected role
-  const initialRolePerms = useMemo(() => {
+
+  // Map module+action to permission ID
+  const permMap = useMemo(() => {
+    const map = new Map<string, string>()
+    permissions.forEach(p => {
+      map.set(`${p.module}:${p.action}`, p.id)
+    })
+    return map
+  }, [permissions])
+
+  // Set of selected permission IDs for selected role
+  const [selectedPerms, setSelectedPerms] = useState<Set<string>>(() => {
     return new Set(
       rolePermissions
-        .filter(rp => rp.roleId === selectedRoleId)
+        .filter(rp => rp.roleId === (roles[0]?.id || ""))
         .map(rp => rp.permissionId)
     )
-  }, [rolePermissions, selectedRoleId])
-  
-  const [selectedPerms, setSelectedPerms] = useState<Set<string>>(initialRolePerms)
-  
-  // Update local state when role changes
-  useMemo(() => {
+  })
+
+  // Update selectedPerms when role changes
+  useEffect(() => {
     setSelectedPerms(
       new Set(
         rolePermissions
@@ -45,50 +60,83 @@ export function RolesManager({
     )
   }, [rolePermissions, selectedRoleId])
 
-  // Group permissions by module
-  const modules = useMemo(() => {
-    const mods = new Map<string, any[]>()
-    permissions.forEach(p => {
-      if (!mods.has(p.module)) {
-        mods.set(p.module, [])
-      }
-      mods.get(p.module)!.push(p)
-    })
-    return mods
-  }, [permissions])
+  // Track expanded state for modules and submenus
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
+    dashboard: true,
+    members: true,
+    beneficiaries: true,
+  })
+  const [expandedSubmenus, setExpandedSubmenus] = useState<Record<string, boolean>>({
+    members_manage: true,
+    beneficiaries_manage: true,
+  })
 
-  const allActions = useMemo(() => {
-    const actions = new Set<string>()
-    permissions.forEach(p => actions.add(p.action))
-    // Standardize order
-    const ordered = ["View", "Create", "Add", "Edit", "Update", "Delete", "Approve", "Manage"]
-    return Array.from(actions).sort((a, b) => {
-      const idxA = ordered.findIndex(o => a.includes(o))
-      const idxB = ordered.findIndex(o => b.includes(o))
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB
-      if (idxA !== -1) return -1
-      if (idxB !== -1) return 1
-      return a.localeCompare(b)
-    })
-  }, [permissions])
+  const toggleModuleExpand = (modId: string) => {
+    setExpandedModules(prev => ({ ...prev, [modId]: !prev[modId] }))
+  }
 
-  const handleToggle = (permId: string) => {
+  const toggleSubmenuExpand = (subId: string) => {
+    setExpandedSubmenus(prev => ({ ...prev, [subId]: !prev[subId] }))
+  }
+
+  // Helpers to resolve DB Permission IDs for a submenu
+  const getSubmenuPermIds = (sub: SubmenuPermissionConfig): string[] => {
+    const ids: string[] = []
+    sub.permissions.forEach(p => {
+      const id = permMap.get(`${p.module}:${p.action}`)
+      if (id) ids.push(id)
+    })
+    return ids
+  }
+
+  // Helpers to resolve DB Permission IDs for a module
+  const getModulePermIds = (mod: ModulePermissionConfig): string[] => {
+    const ids: string[] = []
+    mod.submenus.forEach(sub => {
+      ids.push(...getSubmenuPermIds(sub))
+    })
+    return Array.from(new Set(ids))
+  }
+
+  // Toggle all permissions under a module
+  const handleToggleModule = (mod: ModulePermissionConfig, enable: boolean) => {
+    const ids = getModulePermIds(mod)
+    setSelectedPerms(prev => {
+      const next = new Set(prev)
+      ids.forEach(id => {
+        if (enable) next.add(id)
+        else next.delete(id)
+      })
+      return next
+    })
+    if (enable) {
+      setExpandedModules(prev => ({ ...prev, [mod.id]: true }))
+    }
+  }
+
+  // Toggle all permissions under a submenu
+  const handleToggleSubmenu = (sub: SubmenuPermissionConfig, enable: boolean, modId: string) => {
+    const ids = getSubmenuPermIds(sub)
+    setSelectedPerms(prev => {
+      const next = new Set(prev)
+      ids.forEach(id => {
+        if (enable) next.add(id)
+        else next.delete(id)
+      })
+      return next
+    })
+    if (enable) {
+      setExpandedModules(prev => ({ ...prev, [modId]: true }))
+      setExpandedSubmenus(prev => ({ ...prev, [sub.id]: true }))
+    }
+  }
+
+  // Toggle a single permission
+  const handleTogglePermission = (permId: string) => {
     setSelectedPerms(prev => {
       const next = new Set(prev)
       if (next.has(permId)) next.delete(permId)
       else next.add(permId)
-      return next
-    })
-  }
-
-  const handleSelectAllModule = (moduleName: string, checked: boolean) => {
-    const modPerms = modules.get(moduleName) || []
-    setSelectedPerms(prev => {
-      const next = new Set(prev)
-      modPerms.forEach(p => {
-        if (checked) next.add(p.id)
-        else next.delete(p.id)
-      })
       return next
     })
   }
@@ -98,6 +146,7 @@ export function RolesManager({
     const res = await updateRolePermissions(selectedRoleId, Array.from(selectedPerms))
     if (res.success) {
       toast.success("Role permissions updated successfully")
+      router.refresh()
     } else {
       toast.error(res.error || "Failed to update permissions")
     }
@@ -105,20 +154,21 @@ export function RolesManager({
   }
 
   const selectedRole = roles.find(r => r.id === selectedRoleId)
+  const isSuperAdmin = selectedRole?.name === 'SUPER_ADMIN'
 
   return (
     <div className="space-y-6">
       <SectionHeader 
-        title="Roles & Permissions" 
-        description="Manage access control and permissions for different roles in the system."
+        title="রোল ও পারমিশন কন্ট্রোল" 
+        description="হায়ারার্কিক্যাল মডিউল, সাবমেনু ও অ্যাকশন পারমিশন নির্বাচন করুন।"
       />
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar for Roles */}
         <Card className="md:w-1/4 h-fit border-border/50 shadow-sm">
           <CardHeader className="bg-muted/10 pb-4 border-b">
-            <CardTitle className="text-lg">Roles</CardTitle>
-            <CardDescription>Select a role to modify</CardDescription>
+            <CardTitle className="text-lg">রোল তালিকা (Roles)</CardTitle>
+            <CardDescription>পারমিশন পরিবর্তন করতে রোল নির্বাচন করুন</CardDescription>
           </CardHeader>
           <CardContent className="p-4 space-y-2">
             <div className="md:hidden">
@@ -139,99 +189,188 @@ export function RolesManager({
                 <button
                   key={r.id}
                   onClick={() => setSelectedRoleId(r.id)}
-                  className={`text-left px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium border ${
+                  className={`text-left px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium border flex items-center justify-between ${
                     selectedRoleId === r.id 
                       ? "bg-primary text-primary-foreground border-primary shadow-sm" 
                       : "bg-background border-transparent hover:bg-muted hover:border-border text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {r.name}
+                  <span>{r.name}</span>
+                  {r.name === 'SUPER_ADMIN' && <Lock className="w-3.5 h-3.5 opacity-70" />}
                 </button>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Main Area for Permissions */}
+        {/* Main Area: Hierarchical Tree */}
         <Card className="flex-1 shadow-sm border-border/50">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bg-muted/10 pb-4">
             <div>
               <CardTitle className="text-xl flex items-center gap-2">
-                Permissions: <span className="text-primary">{selectedRole?.name}</span>
+                পারমিশন গাছ (Tree): <span className="text-primary">{selectedRole?.name}</span>
               </CardTitle>
               <CardDescription className="mt-1.5">
-                Configure module-level access and operations for this role.
+                মডিউল ➔ সাবমেনু ➔ অ্যাকশন হায়ারার্কি অনুসারে রোল অনুমতি দিন।
               </CardDescription>
             </div>
             <Button 
               onClick={handleSave} 
-              disabled={saving || selectedRole?.name === 'SUPER_ADMIN'}
+              disabled={saving || isSuperAdmin}
               className="w-full sm:w-auto shadow-sm"
             >
               <Save className="mr-2 h-4 w-4" />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? "সংরক্ষণ হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
             </Button>
           </CardHeader>
-          <CardContent className="p-0 overflow-hidden">
-            {selectedRole?.name === 'SUPER_ADMIN' && (
-              <div className="px-6 py-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-b border-amber-500/20 text-sm font-medium flex items-center">
-                <ShieldCheck className="h-4 w-4 mr-2" />
-                The SUPER_ADMIN role has unrestricted access to all modules. Permissions cannot be modified.
+          
+          <CardContent className="p-4 sm:p-6 space-y-4">
+            {isSuperAdmin && (
+              <div className="p-4 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-sm font-medium flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 shrink-0 text-amber-600" />
+                <span>SUPER_ADMIN রোলের জন্য সমস্ত মডিউল ও অ্যাকশন স্বয়ংক্রিয়ভাবে সক্রিয় করা থাকে।</span>
               </div>
             )}
-            
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[220px] font-semibold text-foreground px-6 py-4">Module</TableHead>
-                    <TableHead className="w-[100px] text-center font-semibold text-foreground py-4">Select All</TableHead>
-                    {allActions.map(action => (
-                      <TableHead key={action} className="text-center font-medium py-4 whitespace-nowrap px-4">{action}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Array.from(modules.entries()).map(([moduleName, modPerms]) => {
-                    const allChecked = modPerms.length > 0 && modPerms.every(p => selectedPerms.has(p.id))
-                    const someChecked = modPerms.some(p => selectedPerms.has(p.id))
-                    
-                    return (
-                      <TableRow key={moduleName} className="hover:bg-muted/30 transition-colors">
-                        <TableCell className="font-medium px-6">{moduleName}</TableCell>
-                        <TableCell className="text-center bg-muted/10 border-x">
-                          <div className="flex justify-center">
-                            <Checkbox 
-                              checked={allChecked ? true : someChecked ? "indeterminate" : false}
-                              onCheckedChange={(c) => handleSelectAllModule(moduleName, !!c)}
-                              disabled={selectedRole?.name === 'SUPER_ADMIN'}
-                              className="data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground"
-                            />
-                          </div>
-                        </TableCell>
-                        {allActions.map(action => {
-                          const perm = modPerms.find(p => p.action === action)
+
+            {/* Tree View */}
+            <div className="space-y-3">
+              {HIERARCHICAL_PERMISSIONS_CONFIG.map(mod => {
+                const modPermIds = getModulePermIds(mod)
+                const enabledModPerms = modPermIds.filter(id => selectedPerms.has(id))
+                const isModAllChecked = modPermIds.length > 0 && enabledModPerms.length === modPermIds.length
+                const isModSomeChecked = enabledModPerms.length > 0 && !isModAllChecked
+                const isModExpanded = expandedModules[mod.id] ?? (enabledModPerms.length > 0)
+
+                return (
+                  <div key={mod.id} className="border rounded-xl bg-card shadow-xs overflow-hidden">
+                    {/* Module Header Row */}
+                    <div className={`flex items-center justify-between px-4 py-3.5 transition-colors ${isModExpanded ? "bg-muted/40 border-b" : "hover:bg-muted/20"}`}>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleModuleExpand(mod.id)}
+                          className="p-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {isModExpanded ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </button>
+
+                        <Checkbox
+                          id={`mod-${mod.id}`}
+                          checked={isSuperAdmin ? true : isModAllChecked ? true : isModSomeChecked ? "indeterminate" : false}
+                          onCheckedChange={(c) => handleToggleModule(mod, !!c)}
+                          disabled={isSuperAdmin}
+                          className="data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground"
+                        />
+
+                        <label
+                          htmlFor={`mod-${mod.id}`}
+                          className="font-semibold text-base text-foreground cursor-pointer flex items-center gap-2 select-none"
+                        >
+                          <Layers className="w-4 h-4 text-primary" />
+                          {mod.name}
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Badge variant={enabledModPerms.length > 0 ? "default" : "outline"} className="text-xs">
+                          {enabledModPerms.length} / {modPermIds.length} সক্রিয়
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Submenus (Expanded view) */}
+                    {isModExpanded && (
+                      <div className="p-4 sm:pl-10 space-y-4 bg-muted/10">
+                        {mod.submenus.map(sub => {
+                          const subPermIds = getSubmenuPermIds(sub)
+                          const enabledSubPerms = subPermIds.filter(id => selectedPerms.has(id))
+                          const isSubAllChecked = subPermIds.length > 0 && enabledSubPerms.length === subPermIds.length
+                          const isSubSomeChecked = enabledSubPerms.length > 0 && !isSubAllChecked
+                          const isSubExpanded = expandedSubmenus[sub.id] ?? (enabledSubPerms.length > 0)
+
                           return (
-                            <TableCell key={action} className="text-center border-r last:border-r-0">
-                              {perm ? (
-                                <div className="flex justify-center">
-                                  <Checkbox 
-                                    checked={selectedPerms.has(perm.id)}
-                                    onCheckedChange={() => handleToggle(perm.id)}
-                                    disabled={selectedRole?.name === 'SUPER_ADMIN'}
+                            <div key={sub.id} className="border border-border/70 rounded-lg bg-background p-3.5 shadow-xs space-y-3">
+                              {/* Submenu Header Row */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSubmenuExpand(sub.id)}
+                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    {isSubExpanded ? (
+                                      <ChevronDown className="w-3.5 h-3.5" />
+                                    ) : (
+                                      <ChevronRight className="w-3.5 h-3.5" />
+                                    )}
+                                  </button>
+
+                                  <Checkbox
+                                    id={`sub-${sub.id}`}
+                                    checked={isSuperAdmin ? true : isSubAllChecked ? true : isSubSomeChecked ? "indeterminate" : false}
+                                    onCheckedChange={(c) => handleToggleSubmenu(sub, !!c, mod.id)}
+                                    disabled={isSuperAdmin}
+                                    className="data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground"
                                   />
+
+                                  <label
+                                    htmlFor={`sub-${sub.id}`}
+                                    className="font-medium text-sm text-foreground cursor-pointer flex items-center gap-1.5 select-none"
+                                  >
+                                    {isSubExpanded ? <FolderOpen className="w-4 h-4 text-amber-500" /> : <Folder className="w-4 h-4 text-amber-500" />}
+                                    {sub.name}
+                                  </label>
                                 </div>
-                              ) : (
-                                <span className="text-muted-foreground/20 font-light">-</span>
+
+                                <Badge variant="secondary" className="text-[11px] font-mono">
+                                  {enabledSubPerms.length} / {subPermIds.length}
+                                </Badge>
+                              </div>
+
+                              {/* Permissions List under Submenu */}
+                              {isSubExpanded && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2 pl-7 border-t border-border/40">
+                                  {sub.permissions.map(p => {
+                                    const permId = permMap.get(`${p.module}:${p.action}`)
+                                    if (!permId) return null
+                                    const isChecked = isSuperAdmin || selectedPerms.has(permId)
+
+                                    return (
+                                      <div
+                                        key={permId}
+                                        onClick={() => !isSuperAdmin && handleTogglePermission(permId)}
+                                        className={`flex items-center gap-2.5 p-2.5 rounded-md border text-xs font-medium cursor-pointer transition-all ${
+                                          isChecked
+                                            ? "bg-primary/5 border-primary/40 text-foreground"
+                                            : "bg-muted/20 border-transparent text-muted-foreground hover:bg-muted/50"
+                                        }`}
+                                      >
+                                        <Checkbox
+                                          id={`perm-${permId}`}
+                                          checked={isChecked}
+                                          onCheckedChange={() => !isSuperAdmin && handleTogglePermission(permId)}
+                                          disabled={isSuperAdmin}
+                                        />
+                                        <label htmlFor={`perm-${permId}`} className="cursor-pointer select-none flex-1 truncate">
+                                          {p.label}
+                                        </label>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
                               )}
-                            </TableCell>
+                            </div>
                           )
                         })}
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>

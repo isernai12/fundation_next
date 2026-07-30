@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getGroups } from "../actions"
-import { Group } from "@prisma/client"
+import type { Group } from "@prisma/client"
 
 export function GroupSelector() {
   const router = useRouter()

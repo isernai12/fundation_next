@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 import { campaignSchema, CampaignFormValues, campaignContributionSchema, CampaignContributionFormValues } from "./schema"
 // generateEntityId removed
 import { LedgerEngine } from "@/services/ledger"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function getCampaigns() {
-    await requirePermission("Fund Collection", "View");
+  if (!await checkPermission("Fund Collection", "View")) return [];
   return await prisma.campaign.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
@@ -18,7 +18,7 @@ export async function getCampaigns() {
 }
 
 export async function getCampaign(id: string) {
-    await requirePermission("Fund Collection", "View");
+  if (!await checkPermission("Fund Collection", "View")) return null;
   return await prisma.campaign.findUnique({
     where: { id },
     include: {

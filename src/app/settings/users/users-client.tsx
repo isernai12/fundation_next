@@ -13,8 +13,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Edit, Shield, Search, Plus, Trash, AlertTriangle, Key } from "lucide-react"
 import { toast } from "sonner"
 import { createUser, updateUser, deleteUser, getUserWithPermissions, updateUserPermissions } from "@/features/settings/users/actions"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 export default function UsersClient({ initialUsers, roles, allPermissions }: any) {
+  const { can } = useRbac()
+  const canAdd = can("Users", "Add")
+  const canEdit = can("Users", "Edit")
+  const canDelete = can("Users", "Delete")
+
   const [users, setUsers] = useState(initialUsers)
   const [search, setSearch] = useState("")
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
@@ -148,9 +154,11 @@ export default function UsersClient({ initialUsers, roles, allPermissions }: any
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button onClick={() => handleOpenUserModal()} className="gap-2">
-          <Plus className="w-4 h-4" /> Add User
-        </Button>
+        {canAdd && (
+          <Button onClick={() => handleOpenUserModal()} className="gap-2">
+            <Plus className="w-4 h-4" /> Add User
+          </Button>
+        )}
       </div>
 
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
@@ -162,7 +170,7 @@ export default function UsersClient({ initialUsers, roles, allPermissions }: any
               <TableHead>Role</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {(canEdit || canDelete) && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -186,17 +194,25 @@ export default function UsersClient({ initialUsers, roles, allPermissions }: any
                     {user.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenPermissions(user.id)} title="Customize Permissions">
-                    <Shield className="w-4 h-4 text-emerald-500" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenUserModal(user)} title="Edit User">
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)} title="Delete User">
-                    <Trash className="w-4 h-4 text-destructive" />
-                  </Button>
-                </TableCell>
+                {(canEdit || canDelete) && (
+                  <TableCell className="text-right space-x-2">
+                    {canEdit && (
+                      <>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenPermissions(user.id)} title="Customize Permissions">
+                          <Shield className="w-4 h-4 text-emerald-500" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenUserModal(user)} title="Edit User">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                    {canDelete && (
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)} title="Delete User">
+                        <Trash className="w-4 h-4 text-destructive" />
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
             {filteredUsers.length === 0 && (

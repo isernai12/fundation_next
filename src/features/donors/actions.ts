@@ -6,12 +6,12 @@ import { revalidatePath } from "next/cache"
 import { getAuthSession } from "@/lib/auth"
 
 import { z } from "zod"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 // generateEntityId removed
 
 export async function getDonors() {
-    await requirePermission("Donors", "View");
+  if (!await checkPermission("Donors", "View")) return [];
   return await prisma.donor.findMany({
     orderBy: { createdAt: "desc" }
   })
@@ -23,7 +23,7 @@ async function generateDonorId() {
 }
 
 export async function getDonor(id: string) {
-    await requirePermission("Donors", "View");
+  if (!await checkPermission("Donors", "View")) return null;
   return await prisma.donor.findUnique({
     where: { id },
     include: {

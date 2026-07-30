@@ -1,5 +1,6 @@
 import { prisma } from "./prisma"
 import { getAuthSession } from "./auth"
+import { hasPermission } from "./rbac-client"
 import { cache } from "react"
 import { redirect } from "next/navigation"
 
@@ -12,6 +13,7 @@ export const getUserPermissions = cache(async (userId: string) => {
     select: {
       role: {
         select: {
+          id: true,
           name: true,
           permissions: {
             select: {
@@ -32,10 +34,18 @@ export const getUserPermissions = cache(async (userId: string) => {
     }
   })
 
-  if (!user) return []
+  console.log(`[RBAC DEBUG] Fetching permissions for User ID: ${userId}`);
+
+  if (!user) {
+    console.log(`[RBAC DEBUG] User not found in DB!`);
+    return []
+  }
+
+  console.log(`[RBAC DEBUG] User Role ID: ${user.role?.id}, Name: ${user.role?.name}`);
 
   // If Super Admin, they inherently have all permissions (or we can just return a wildcard)
   if (user.role.name === "Super Admin" || user.role.name === "SUPER_ADMIN") {
+    console.log(`[RBAC DEBUG] Super Admin detected. Returning wildcard.`);
     return ["*"] // Wildcard meaning everything is permitted
   }
 
@@ -51,35 +61,61 @@ export const getUserPermissions = cache(async (userId: string) => {
     permissions.add(`${up.permission.module}:${up.permission.action}`)
   })
 
-  return Array.from(permissions)
+  const permissionsArray = Array.from(permissions);
+  console.log(`[RBAC DEBUG] Final permissions array length: ${permissionsArray.length}`);
+  console.log(`[RBAC DEBUG] Permissions: `, permissionsArray);
+  
+  return permissionsArray
 })
 
+export { hasPermission }
+
 /**
- * Helper to check if a specific permission string exists in the array
+ * Helper to log and redirect on unauthorized access
  */
-export function hasPermission(
-  userPermissions: string[],
-  module: string,
-  action: string
-): boolean {
-  if (userPermissions.includes("*")) return true
-  return userPermissions.includes(`${module}:${action}`)
+async function handleUnauthorized(userId: string, module: string, action: string) {
+  try {
+    const { headers } = await import("next/headers");
+    const h = await headers();
+    const ipAddress = h.get("x-forwarded-for") || h.get("x-real-ip") || "";
+    const userAgent = h.get("user-agent") || "";
+    
+    await prisma.auditLog.create({
+      data: {
+        userId: userId,
+        action: "UNAUTHORIZED_ACCESS",
+        module: module,
+        remarks: `Attempted to ${action} without permission`,
+        ipAddress: ipAddress.split(',')[0].trim().substring(0, 45),
+        browser: userAgent.substring(0, 255),
+      }
+    });
+  } catch (e) {
+    console.error("[RBAC] Failed to log audit:", e);
+  }
+  
+  redirect(`/unauthorized?module=${encodeURIComponent(module)}&action=${encodeURIComponent(action)}`);
 }
 
 /**
  * Server-side guard to require authentication and a specific permission.
- * Throws an error or redirects if unauthorized.
+ * Redirects if unauthorized.
  */
 export async function requirePermission(module: string, action: string) {
   const session = await getAuthSession()
   if (!(session?.user as any)?.id) {
-    throw new Error("Unauthorized: Please log in.")
+    redirect("/login")
   }
 
-  const permissions = await getUserPermissions((session!.user as any).id)
+  const userId = (session!.user as any).id
+  const permissions = await getUserPermissions(userId)
   
-  if (!hasPermission(permissions, module, action)) {
-    throw new Error(`Forbidden: You do not have permission to ${action} in ${module}.`)
+  const hasPerm = hasPermission(permissions, module, action)
+  console.log(`[RBAC DEBUG] requirePermission check - User: ${userId}, Target: ${module}:${action}, Granted: ${hasPerm}`);
+  
+  if (!hasPerm) {
+    console.log(`[RBAC DEBUG] Permission DENIED! User has ${permissions.length} permissions. First few: ${permissions.slice(0, 5).join(", ")}`);
+    await handleUnauthorized(userId, module, action)
   }
 
   return session!.user
@@ -94,11 +130,23 @@ export async function authorizePage(module: string, action: string) {
     redirect("/login")
   }
 
-  const permissions = await getUserPermissions((session!.user as any).id)
+  const userId = (session!.user as any).id
+  const permissions = await getUserPermissions(userId)
   
   if (!hasPermission(permissions, module, action)) {
-    redirect("/?error=forbidden")
+    await handleUnauthorized(userId, module, action)
   }
 
   return { session, permissions }
+}
+
+/**
+ * Non-redirecting server-side permission checker for safe data loading.
+ */
+export async function checkPermission(module: string, action: string): Promise<boolean> {
+  const session = await getAuthSession()
+  if (!(session?.user as any)?.id) return false
+  const userId = (session!.user as any).id
+  const permissions = await getUserPermissions(userId)
+  return hasPermission(permissions, module, action)
 }

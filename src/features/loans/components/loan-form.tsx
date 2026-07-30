@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Beneficiary } from "@prisma/client"
+import type { Beneficiary } from "@prisma/client"
 import { MemberCombobox } from "@/components/member-combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"

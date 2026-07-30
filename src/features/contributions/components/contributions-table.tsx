@@ -34,7 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MonthlyContribution, ContributionPayment } from "@prisma/client"
+import type { MonthlyContribution, ContributionPayment } from "@prisma/client"
 import { MoreHorizontal, FileText, Download, Printer, Eye, Edit, Trash, CheckCircle, Clock } from "lucide-react"
 import { EditContributionSheet } from "./edit-contribution-sheet"
 import { ViewContributionDialog } from "./view-contribution-dialog"
@@ -51,6 +51,8 @@ type ContributionWithDetails = MonthlyContribution & {
   payments: ContributionPayment[]
 }
 
+import { useRbac } from "@/components/providers/rbac-provider"
+
 export function ContributionsTable({ data }: { data: ContributionWithDetails[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -61,6 +63,11 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
   const [viewingContribution, setViewingContribution] = useState<ContributionWithDetails | null>(null)
   
   const router = useRouter()
+  const { can } = useRbac()
+
+  const canView = can("Fund Collection", "View")
+  const canEdit = can("Fund Collection", "Edit")
+  const canDelete = can("Fund Collection", "Delete")
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this contribution? This will permanently remove the record and reverse all associated ledger entries. This action cannot be undone.")) return;
@@ -169,21 +176,25 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setViewingContribution(contribution)}>
-                <Eye className="mr-2 h-4 w-4" /> View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setEditingContribution(contribution)}>
-                <Edit className="mr-2 h-4 w-4" /> Edit Contribution
-              </DropdownMenuItem>
+              {canView && (
+                <DropdownMenuItem onClick={() => setViewingContribution(contribution)}>
+                  <Eye className="mr-2 h-4 w-4" /> View Details
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem onClick={() => setEditingContribution(contribution)}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit Contribution
+                </DropdownMenuItem>
+              )}
               
               <DropdownMenuSeparator />
               
-              {contribution.status !== "PAID" && (
+              {canEdit && contribution.status !== "PAID" && (
                 <DropdownMenuItem onClick={() => handleStatusUpdate(contribution, "PAID")}>
                   <CheckCircle className="mr-2 h-4 w-4" /> Mark as Paid
                 </DropdownMenuItem>
               )}
-              {contribution.status !== "PENDING" && (
+              {canEdit && contribution.status !== "PENDING" && (
                 <DropdownMenuItem onClick={() => handleStatusUpdate(contribution, "PENDING")}>
                   <Clock className="mr-2 h-4 w-4" /> Mark as Pending
                 </DropdownMenuItem>
@@ -206,7 +217,6 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
               <DropdownMenuItem 
                 onClick={() => {
                   if (contribution.payments.length > 0) {
-                    // Navigate to ledger or show details
                     toast.success("Ledger Entry", { description: `Ledger Transaction ID: ${contribution.payments[0].ledgerTransactionId}` })
                   } else {
                     toast.error("No Payment", { description: "There is no ledger entry for unpaid contributions." })
@@ -216,11 +226,14 @@ export function ContributionsTable({ data }: { data: ContributionWithDetails[] }
                 <FileText className="mr-2 h-4 w-4" /> View Ledger Entry
               </DropdownMenuItem>
               
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem onClick={() => handleDelete(contribution.id)} className="text-red-600 focus:text-red-600">
-                <Trash className="mr-2 h-4 w-4" /> Delete Contribution
-              </DropdownMenuItem>
+              {canDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleDelete(contribution.id)} className="text-red-600 focus:text-red-600">
+                    <Trash className="mr-2 h-4 w-4" /> Delete Contribution
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )

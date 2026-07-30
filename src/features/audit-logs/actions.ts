@@ -1,10 +1,10 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function getAuditLogs() {
-    await requirePermission("Settings", "View");
+  if (!await checkPermission("Settings", "View")) return [];
   return prisma.auditLog.findMany({
     include: {
       user: {

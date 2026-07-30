@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Group } from "@prisma/client"
+import type { Group } from "@prisma/client"
 import { GroupFormDialog } from "./group-form-dialog"
 
 import { toast } from "sonner"
@@ -38,12 +38,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { archiveGroup, deleteGroup, updateGroup } from "../actions"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 type GroupWithCount = Group & { _count: { members: number }, currentFund?: number }
 
 export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount[], manageMode?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const { can } = useRbac()
+
+  const canView = can("Groups", "View")
+  const canEdit = can("Groups", "Edit")
+  const canDelete = can("Groups", "Delete")
 
   const columns: ColumnDef<GroupWithCount>[] = [
     {
@@ -115,83 +121,93 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/groups/${group.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> View Details
-                </Link>
-              </DropdownMenuItem>
+              {canView && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/groups/${group.id}`}>
+                    <Eye className="mr-2 h-4 w-4" /> View Details
+                  </Link>
+                </DropdownMenuItem>
+              )}
               {manageMode && (
                 <>
-                  <GroupFormDialog
-                    group={group}
-                    trigger={
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Edit className="mr-2 h-4 w-4" /> Edit Group
-                      </DropdownMenuItem>
-                    }
-                  />
-                  {group.status === "INACTIVE" ? (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        const payload = {
-                          name: group.name,
-                          code: group.code,
-                          shortName: group.shortName || "",
-                          description: group.description || "",
-                          status: "ACTIVE" as const,
-                          openingBalance: 0,
-                          remarks: group.remarks || "",
+                  {canEdit && (
+                    <>
+                      <GroupFormDialog
+                        group={group}
+                        trigger={
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit Group
+                          </DropdownMenuItem>
                         }
-                        const res = await updateGroup(group.id, payload)
-                        if (res.success) toast.success("Group activated")
-                        else toast.error(res.error)
-                      }}
-                    >
-                      <Eye className="mr-2 h-4 w-4" /> Activate
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        const payload = {
-                          name: group.name,
-                          code: group.code,
-                          shortName: group.shortName || "",
-                          description: group.description || "",
-                          status: "INACTIVE" as const,
-                          openingBalance: 0,
-                          remarks: group.remarks || "",
-                        }
-                        const res = await updateGroup(group.id, payload)
-                        if (res.success) toast.success("Group deactivated")
-                        else toast.error(res.error)
-                      }}
-                    >
-                      <Eye className="mr-2 h-4 w-4" /> Deactivate
-                    </DropdownMenuItem>
+                      />
+                      {group.status === "INACTIVE" ? (
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            const payload = {
+                              name: group.name,
+                              code: group.code,
+                              shortName: group.shortName || "",
+                              description: group.description || "",
+                              status: "ACTIVE" as const,
+                              openingBalance: 0,
+                              remarks: group.remarks || "",
+                            }
+                            const res = await updateGroup(group.id, payload)
+                            if (res.success) toast.success("Group activated")
+                            else toast.error(res.error)
+                          }}
+                        >
+                          <Eye className="mr-2 h-4 w-4" /> Activate
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            const payload = {
+                              name: group.name,
+                              code: group.code,
+                              shortName: group.shortName || "",
+                              description: group.description || "",
+                              status: "INACTIVE" as const,
+                              openingBalance: 0,
+                              remarks: group.remarks || "",
+                            }
+                            const res = await updateGroup(group.id, payload)
+                            if (res.success) toast.success("Group deactivated")
+                            else toast.error(res.error)
+                          }}
+                        >
+                          <Eye className="mr-2 h-4 w-4" /> Deactivate
+                        </DropdownMenuItem>
+                      )}
+                    </>
                   )}
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      if (confirm("Are you sure you want to archive this group?")) {
-                        const res = await archiveGroup(group.id)
-                        if (res.success) toast.success("Group archived")
-                        else toast.error(res.error)
-                      }
-                    }}
-                  >
-                    <Trash className="mr-2 h-4 w-4" /> Archive
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={async () => {
-                      if (confirm("Are you sure you want to fully delete this group? This cannot be undone.")) {
-                        const res = await deleteGroup(group.id)
-                        if (res.success) toast.success("Group deleted")
-                        else toast.error(res.error)
-                      }
-                    }}
-                  >
-                    <Trash className="mr-2 h-4 w-4" /> Delete
-                  </DropdownMenuItem>
+                  {canDelete && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          if (confirm("Are you sure you want to archive this group?")) {
+                            const res = await archiveGroup(group.id)
+                            if (res.success) toast.success("Group archived")
+                            else toast.error(res.error)
+                          }
+                        }}
+                      >
+                        <Trash className="mr-2 h-4 w-4" /> Archive
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={async () => {
+                          if (confirm("Are you sure you want to fully delete this group? This cannot be undone.")) {
+                            const res = await deleteGroup(group.id)
+                            if (res.success) toast.success("Group deleted")
+                            else toast.error(res.error)
+                          }
+                        }}
+                      >
+                        <Trash className="mr-2 h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </>
               )}
             </DropdownMenuContent>

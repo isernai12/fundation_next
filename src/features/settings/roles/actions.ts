@@ -2,10 +2,12 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { requirePermission } from "@/lib/rbac"
+import { requirePermission, checkPermission } from "@/lib/rbac"
 
 export async function getRolesAndPermissions() {
-  await requirePermission("Roles & Permissions", "Manage")
+  if (!await checkPermission("Roles & Permissions", "View") && !await checkPermission("Roles & Permissions", "Manage")) {
+    return { roles: [], permissions: [], rolePermissions: [] }
+  }
 
   const roles = await prisma.role.findMany({
     orderBy: { createdAt: 'asc' }
@@ -42,7 +44,9 @@ export async function updateRolePermissions(roleId: string, permissionIds: strin
       })
     }
     
-    revalidatePath("/settings/roles")
+    console.log(`[RBAC DEBUG] updateRolePermissions - Updated Role ID: ${roleId} with ${permissionIds.length} permissions`);
+    revalidatePath("/", "layout")
+    revalidatePath("/(dashboard)", "layout")
     return { success: true }
   } catch (error) {
     console.error("Failed to update role permissions:", error)

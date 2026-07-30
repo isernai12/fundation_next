@@ -35,7 +35,8 @@ import {
 import Link from "next/link"
 import { deleteBeneficiary, updateBeneficiary } from "../actions"
 import { toast } from "sonner"
-import { Beneficiary, Member } from "@prisma/client"
+import type { Beneficiary, Member } from "@prisma/client"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 type BeneficiaryWithMember = Beneficiary & { 
   member?: { 
@@ -48,6 +49,11 @@ type BeneficiaryWithMember = Beneficiary & {
 export function BeneficiariesTable({ data, members, manageMode = false }: { data: BeneficiaryWithMember[], members: { id: string; fullName: string | null; memberId: string }[], manageMode?: boolean }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const { can } = useRbac()
+
+  const canView = can("Beneficiaries", "View")
+  const canEdit = can("Beneficiaries", "Edit")
+  const canDelete = can("Beneficiaries", "Delete")
 
   const columns: ColumnDef<BeneficiaryWithMember>[] = [
     {
@@ -72,27 +78,42 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`
     },
     {
-      accessorKey: "mobile",
-      header: "Mobile",
+      header: "Full Name",
+      cell: ({ row }) => <div className="font-medium">{row.getValue("fullName")}</div>,
     },
     {
-      id: "linkedMember",
-      header: "Linked Member",
-      cell: ({ row }) => row.original.member ? `${row.original.member.fullName || 'নাম পাওয়া যায়নি'} (${row.original.member.memberId})` : "None"
+      accessorKey: "relationToMember",
+      header: "Relation / Type",
+      cell: ({ row }) => <div>{row.getValue("relationToMember") || "N/A"}</div>,
+    },
+    {
+      accessorKey: "phone",
+      header: "Contact",
+      cell: ({ row }) => (
+        <div className="text-sm">
+          {row.original.phone || row.original.mobile || "N/A"}
+        </div>
+      ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge variant={row.getValue("status") === "ACTIVE" ? "default" : "secondary"}>
-          {row.getValue("status")}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string
+        return (
+          <Badge variant={status === "ACTIVE" ? "default" : "secondary"}>
+            {status}
+          </Badge>
+        )
+      },
     },
     {
       id: "actions",
       cell: ({ row }) => {
         const beneficiary = row.original
+        const hasAnyAction = canView || canEdit || canDelete
+        if (!hasAnyAction) return null
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -103,78 +124,82 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/beneficiaries/${beneficiary.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> View Details
-                </Link>
-              </DropdownMenuItem>
-              {manageMode && (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/beneficiaries/${beneficiary.id}/edit`}>
-                      <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
-                    </Link>
-                  </DropdownMenuItem>
-                  {beneficiary.status === "INACTIVE" ? (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        const payload = {
-                          fullName: beneficiary.fullName,
-                          memberId: beneficiary.memberId || "",
-                          relationToMember: beneficiary.relationToMember || "",
-                          email: beneficiary.email || "",
-                          phone: beneficiary.phone || "",
-                          mobile: beneficiary.mobile || "",
-                          address: beneficiary.address || "",
-                          nationalId: beneficiary.nationalId || "",
-                          occupation: beneficiary.occupation || "",
-                          remarks: beneficiary.remarks || "",
-                          status: "ACTIVE" as const,
-                        }
-                        const res = await updateBeneficiary(beneficiary.id, payload)
-                        if (res.success) toast.success("Beneficiary activated")
-                        else toast.error(res.error)
-                      }}
-                    >
-                      <Eye className="mr-2 h-4 w-4" /> Activate
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        const payload = {
-                          fullName: beneficiary.fullName,
-                          memberId: beneficiary.memberId || "",
-                          relationToMember: beneficiary.relationToMember || "",
-                          email: beneficiary.email || "",
-                          phone: beneficiary.phone || "",
-                          mobile: beneficiary.mobile || "",
-                          address: beneficiary.address || "",
-                          nationalId: beneficiary.nationalId || "",
-                          occupation: beneficiary.occupation || "",
-                          remarks: beneficiary.remarks || "",
-                          status: "INACTIVE" as const,
-                        }
-                        const res = await updateBeneficiary(beneficiary.id, payload)
-                        if (res.success) toast.success("Beneficiary deactivated")
-                        else toast.error(res.error)
-                      }}
-                    >
-                      <Eye className="mr-2 h-4 w-4" /> Deactivate
-                    </DropdownMenuItem>
-                  )}
+              {canView && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/beneficiaries/${beneficiary.id}`}>
+                    <Eye className="mr-2 h-4 w-4" /> View Details
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/beneficiaries/${beneficiary.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                beneficiary.status === "INACTIVE" ? (
                   <DropdownMenuItem
-                    className="text-destructive"
                     onClick={async () => {
-                      if (confirm("Are you sure you want to delete this beneficiary?")) {
-                        const res = await deleteBeneficiary(beneficiary.id)
-                        if (res.success) toast.success("Beneficiary deleted")
-                        else toast.error(res.error)
+                      const payload = {
+                        fullName: beneficiary.fullName,
+                        memberId: beneficiary.memberId || "",
+                        relationToMember: beneficiary.relationToMember || "",
+                        email: beneficiary.email || "",
+                        phone: beneficiary.phone || "",
+                        mobile: beneficiary.mobile || "",
+                        address: beneficiary.address || "",
+                        nationalId: beneficiary.nationalId || "",
+                        occupation: beneficiary.occupation || "",
+                        remarks: beneficiary.remarks || "",
+                        status: "ACTIVE" as const,
                       }
+                      const res = await updateBeneficiary(beneficiary.id, payload)
+                      if (res.success) toast.success("Beneficiary activated")
+                      else toast.error(res.error)
                     }}
                   >
-                    <Trash className="mr-2 h-4 w-4" /> Delete
+                    <Eye className="mr-2 h-4 w-4" /> Activate
                   </DropdownMenuItem>
-                </>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const payload = {
+                        fullName: beneficiary.fullName,
+                        memberId: beneficiary.memberId || "",
+                        relationToMember: beneficiary.relationToMember || "",
+                        email: beneficiary.email || "",
+                        phone: beneficiary.phone || "",
+                        mobile: beneficiary.mobile || "",
+                        address: beneficiary.address || "",
+                        nationalId: beneficiary.nationalId || "",
+                        occupation: beneficiary.occupation || "",
+                        remarks: beneficiary.remarks || "",
+                        status: "INACTIVE" as const,
+                      }
+                      const res = await updateBeneficiary(beneficiary.id, payload)
+                      if (res.success) toast.success("Beneficiary deactivated")
+                      else toast.error(res.error)
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> Deactivate
+                  </DropdownMenuItem>
+                )
+              )}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={async () => {
+                    if (confirm("Are you sure you want to delete this beneficiary?")) {
+                      const res = await deleteBeneficiary(beneficiary.id)
+                      if (res.success) toast.success("Beneficiary deleted")
+                      else toast.error(res.error)
+                    }
+                  }}
+                >
+                  <Trash className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

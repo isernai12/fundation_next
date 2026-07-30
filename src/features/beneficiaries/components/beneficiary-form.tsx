@@ -29,7 +29,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { beneficiarySchema, type BeneficiaryFormValues } from "../schema";
 import { createBeneficiary, updateBeneficiary, deleteBeneficiaryDocument } from "../actions";
-import { Beneficiary } from "@prisma/client";
+import type { Beneficiary } from "@prisma/client";
 import { formatDate } from "@/lib/format";
 
 const SectionCard = ({

@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { memberSchema, type MemberFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function getMembers() {
-    await requirePermission("Members", "View");
+  if (!await checkPermission("Members", "View")) return [];
   return prisma.member.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -20,7 +20,7 @@ export async function getMembers() {
 }
 
 export async function getMember(id: string) {
-    await requirePermission("Members", "View");
+  if (!await checkPermission("Members", "View")) return null;
   return prisma.member.findUnique({
     where: { id },
     include: {

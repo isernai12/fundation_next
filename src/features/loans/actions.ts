@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { loanSchema, type LoanFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { LedgerEngine } from "@/services/ledger"
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission, checkPermission } from "@/lib/rbac";
 
 export async function getLoans() {
-    await requirePermission("Loans", "View");
+  if (!await checkPermission("Loans", "View")) return [];
   return prisma.loan.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -21,7 +21,7 @@ export async function getLoans() {
 }
 
 export async function getLoan(id: string) {
-    await requirePermission("Loans", "View");
+  if (!await checkPermission("Loans", "View")) return null;
   return prisma.loan.findUnique({
     where: { id },
     include: {

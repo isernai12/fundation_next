@@ -1,12 +1,12 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { requirePermission } from "@/lib/rbac"
+import { requirePermission, checkPermission } from "@/lib/rbac"
 import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
 
 export async function getUsers() {
-  await requirePermission("Users", "View")
+  if (!await checkPermission("Users", "View")) return []
   return prisma.user.findMany({
     include: { role: true },
     orderBy: { createdAt: "desc" }
@@ -14,14 +14,14 @@ export async function getUsers() {
 }
 
 export async function getRoles() {
-  await requirePermission("Users", "View")
+  if (!await checkPermission("Users", "View")) return []
   return prisma.role.findMany({
     orderBy: { name: "asc" }
   })
 }
 
 export async function getAllPermissions() {
-  await requirePermission("Users", "View")
+  if (!await checkPermission("Users", "View")) return []
   return prisma.permission.findMany({
     orderBy: [{ module: "asc" }, { action: "asc" }]
   })
