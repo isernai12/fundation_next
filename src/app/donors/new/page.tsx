@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function NewDonorPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">নতুন অনুদানদাতা নিবন্ধন</h1>
         <p className="text-muted-foreground">

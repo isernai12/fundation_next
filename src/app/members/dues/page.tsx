@@ -28,7 +28,7 @@ export default async function MemberDuesPage() {
   const collectedThisMonth = collectedThisMonthAgg._sum.amount || 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h1 className="text-3xl font-bold tracking-tight">সদস্য চাঁদা বকেয়া তালিকা</h1>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

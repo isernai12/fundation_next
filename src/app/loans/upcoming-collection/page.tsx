@@ -46,7 +46,7 @@ export default async function UpcomingCollectionPage() {
   const totalAmountUpcoming = loans.reduce((sum, l) => sum + (l.installmentAmount || 0), 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">আসন্ন সংগ্রহ (Upcoming Collection)</h1>

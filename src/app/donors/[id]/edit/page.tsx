@@ -14,7 +14,7 @@ export default async function EditDonorPage({ params }: { params: { id: string }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">অনুদানদাতা সম্পাদনা</h1>
         <p className="text-muted-foreground">

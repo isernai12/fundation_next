@@ -10,7 +10,7 @@ export default async function GroupMembersPage({ searchParams }: { searchParams:
   const members = groupId ? await getGroupMembers(groupId) : []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Group Members</h1>

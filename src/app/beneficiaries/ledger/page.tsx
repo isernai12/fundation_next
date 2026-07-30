@@ -9,7 +9,7 @@ export default async function BeneficiaryLedgerPage({ searchParams }: { searchPa
   const beneficiaryId = resolvedParams.beneficiaryId
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/beneficiaries" className="hover:text-primary transition-colors">
           Beneficiaries

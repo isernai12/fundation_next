@@ -100,7 +100,7 @@ export function DocumentsTable({ data }: { data: any[] }) {
 
   return (
     <div>
-      <div className="flex items-center space-x-2 py-4">
+      <div className="flex items-center space-x-2 py-2">
         <Input
           placeholder="Filter by title..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -144,7 +144,7 @@ export function DocumentsTable({ data }: { data: any[] }) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
           Previous
         </Button>

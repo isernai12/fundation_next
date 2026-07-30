@@ -1,7 +1,7 @@
 "use client"
 
 import { ThemeToggle } from "@/components/theme-toggle"
-import { User, LogOut, Settings, KeyRound } from "lucide-react"
+import { User, LogOut, Settings, KeyRound, Menu, HelpCircle } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { useSidebar } from "@/components/layout/sidebar-provider"
 import { usePathname } from "next/navigation"
@@ -21,20 +21,33 @@ export function Header() {
   const pathname = usePathname()
 
   const getPageTitle = () => {
-    if (pathname === '/') return 'Dashboard'
+    if (pathname === '/') return 'ড্যাশবোর্ড'
     const path = pathname.split('/')[1]
-    return path ? path.charAt(0).toUpperCase() + path.slice(1) : 'Dashboard'
+    
+    const titles: Record<string, string> = {
+      'members': 'সদস্য',
+      'beneficiaries': 'সুবিধাভোগী',
+      'donors': 'অনুদানদাতা',
+      'campaigns': 'আর্থিক কার্যক্রম',
+      'loans': 'ঋণ',
+      'grants': 'অনুদান',
+      'groups': 'গ্রুপ',
+      'settings': 'সেটিংস',
+      'profile': 'প্রোফাইল'
+    }
+    
+    return path && titles[path] ? titles[path] : (path ? path.charAt(0).toUpperCase() + path.slice(1) : 'ড্যাশবোর্ড')
   }
 
   return (
-    <header className="h-14 bg-white/80 backdrop-blur-md border-b border-surface-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40 sticky top-0 w-full animate-fade-in">
+    <header className="h-14 bg-surface-0/80 backdrop-blur-md border-b border-surface-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40 sticky top-0 w-full animate-fade-in">
       <div className="flex items-center gap-3">
         <button 
           className="p-2 -ml-2 text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-colors flex items-center justify-center" 
           onClick={toggleSidebar}
           aria-label="Toggle menu"
         >
-          <span className="material-symbols-outlined">menu</span>
+          <Menu className="w-5 h-5" />
         </button>
         
         <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight capitalize ml-2">{getPageTitle()}</h1>
@@ -48,7 +61,7 @@ export function Header() {
         </div>
 
         <button className="tooltip-container p-2 text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-all hidden sm:flex">
-          <span className="material-symbols-outlined">help_outline</span>
+          <HelpCircle className="w-5 h-5" />
           <span className="tooltip-custom">Help Center</span>
         </button>
 

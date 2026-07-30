@@ -218,7 +218,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
 
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-2">
         <Input
           placeholder="Search groups..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -272,7 +272,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-2">
         <Button
           variant="outline"
           size="sm"

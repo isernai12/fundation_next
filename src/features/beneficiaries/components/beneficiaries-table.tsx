@@ -200,7 +200,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
 
   return (
     <div>
-      <div className="flex items-center space-x-2 py-4">
+      <div className="flex items-center space-x-2 py-2">
         <Input
           placeholder="Search by first name..."
           value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
@@ -249,7 +249,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
           Previous
         </Button>

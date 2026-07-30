@@ -16,7 +16,7 @@ export default async function ReceiveDonationPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/donors/manage" className="hover:text-primary transition-colors">
           অনুদানদাতা

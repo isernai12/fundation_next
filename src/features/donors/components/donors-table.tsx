@@ -131,7 +131,7 @@ export function DonorsTable({ data }: { data: any[] }) {
 
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-2">
         <Input
           placeholder="নাম দিয়ে খুঁজুন..."
           value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
@@ -173,7 +173,7 @@ export function DonorsTable({ data }: { data: any[] }) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
           পূর্ববর্তী
         </Button>

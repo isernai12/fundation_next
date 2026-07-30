@@ -35,7 +35,7 @@ export default async function CampaignDetailsPage({ params }: { params: Promise<
   const progress = campaign.targetAmount ? Math.min(100, Math.round((totalCollected / campaign.targetAmount) * 100)) : 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/campaigns/manage" className="hover:text-primary transition-colors">
           তহবিল কার্যক্রম

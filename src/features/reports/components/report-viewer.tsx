@@ -126,7 +126,7 @@ export function ReportViewer({ title, columns, data }: ReportViewerProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between py-4 print:hidden">
+      <div className="flex items-center justify-between py-2 print:hidden">
         <span className="text-sm text-muted-foreground">Total records: {data.length}</span>
         <div className="space-x-2">
           <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</Button>

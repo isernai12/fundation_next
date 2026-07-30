@@ -5,7 +5,22 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { ChevronDown, X } from "lucide-react"
+import { 
+  ChevronDown, 
+  X, 
+  LayoutDashboard, 
+  Users, 
+  UserRoundCheck, 
+  HandCoins, 
+  WalletCards, 
+  PiggyBank, 
+  Landmark, 
+  Gift, 
+  UsersRound, 
+  PieChart, 
+  Settings,
+  Diamond
+} from "lucide-react"
 
 import { useSidebar } from "@/components/layout/sidebar-provider"
 
@@ -23,7 +38,7 @@ type SubMenuItem = {
 type MenuItem = {
   name: string
   href: string
-  iconName: string
+  icon: React.ElementType
   submenu?: SubMenuItem[]
 }
 
@@ -34,13 +49,13 @@ type Section = {
 
 const sidebarSections: Section[] = [
   {
-    title: "Overview",
+    title: "প্রধান মেনু",
     items: [
-      { name: "Dashboard", href: "/", iconName: "dashboard" },
+      { name: "ড্যাশবোর্ড", href: "/", icon: LayoutDashboard },
       { 
-        name: "Members", 
+        name: "সদস্য", 
         href: "/members", 
-        iconName: "group",
+        icon: Users,
         submenu: [
           { name: "নতুন সদস্য", href: "/members/new" },
           { name: "সদস্য ব্যবস্থাপনা", href: "/members/manage" },
@@ -49,9 +64,9 @@ const sidebarSections: Section[] = [
         ]
       },
       { 
-        name: "Beneficiaries", 
+        name: "সুবিধাভোগী", 
         href: "/beneficiaries", 
-        iconName: "diversity_3",
+        icon: UserRoundCheck,
         submenu: [
           { name: "নতুন সুবিধাভোগী", href: "/beneficiaries/new" },
           { name: "সুবিধাভোগী ব্যবস্থাপনা", href: "/beneficiaries/manage" },
@@ -63,12 +78,12 @@ const sidebarSections: Section[] = [
     ]
   },
   {
-    title: "Finance",
+    title: "আর্থিক কার্যক্রম",
     items: [
       { 
-        name: "Donations", 
+        name: "অনুদানদাতা", 
         href: "/donors", 
-        iconName: "volunteer_activism",
+        icon: HandCoins,
         submenu: [
           { name: "নতুন অনুদানদাতা", href: "/donors/new" },
           { name: "অনুদানদাতা ব্যবস্থাপনা", href: "/donors/manage" },
@@ -77,9 +92,9 @@ const sidebarSections: Section[] = [
         ]
       },
       { 
-        name: "Financial Support", 
+        name: "আর্থিক কার্যক্রম", 
         href: "/campaigns", 
-        iconName: "payments",
+        icon: WalletCards,
         submenu: [
           { name: "নতুন তহবিল", href: "/campaigns/new" },
           { name: "তহবিল ব্যবস্থাপনা", href: "/campaigns/manage" },
@@ -88,9 +103,9 @@ const sidebarSections: Section[] = [
         ]
       },
       { 
-        name: "Fund Collection", 
+        name: "তহবিল / চাঁদা", 
         href: "/contributions", 
-        iconName: "savings",
+        icon: PiggyBank,
         submenu: [
           { name: "তহবিল গ্রহণ", href: "/contributions/new" },
           { name: "মাসিক চাঁদা", href: "/contributions/monthly" },
@@ -100,9 +115,9 @@ const sidebarSections: Section[] = [
         ]
       },
       { 
-        name: "Loans", 
+        name: "ঋণ", 
         href: "/loans", 
-        iconName: "account_balance",
+        icon: Landmark,
         submenu: [
           { name: "নতুন ঋণ", href: "/loans/new" },
           { name: "ঋণ ব্যবস্থাপনা", href: "/loans" },
@@ -111,9 +126,9 @@ const sidebarSections: Section[] = [
         ]
       },
       { 
-        name: "Grants", 
+        name: "অনুদান", 
         href: "/grants", 
-        iconName: "redeem",
+        icon: Gift,
         submenu: [
           { name: "নতুন অনুদান", href: "/grants/new" },
           { name: "অনুদান ব্যবস্থাপনা", href: "/grants/manage" },
@@ -123,12 +138,12 @@ const sidebarSections: Section[] = [
     ]
   },
   {
-    title: "Organization",
+    title: "সংগঠন",
     items: [
       { 
-        name: "Groups", 
+        name: "গ্রুপ", 
         href: "/groups", 
-        iconName: "groups",
+        icon: UsersRound,
         submenu: [
           { name: "নতুন গ্রুপ", href: "/groups/new" },
           { name: "গ্রুপ ব্যবস্থাপনা", href: "/groups/manage" },
@@ -137,8 +152,7 @@ const sidebarSections: Section[] = [
           { name: "গ্রুপ লেজার", href: "/groups/ledger" },
         ]
       },
-      { name: "Reports", href: "/reports", iconName: "analytics" },
-      { name: "Settings", href: "/settings", iconName: "settings" },
+      { name: "সেটিংস", href: "/settings", icon: Settings },
     ]
   }
 ]
@@ -192,7 +206,7 @@ export function Sidebar() {
       )}
       <aside 
         className={cn(
-          "fixed md:static inset-y-0 left-0 z-50 flex flex-col h-full bg-white border-r border-surface-200 transition-all duration-300 ease-in-out w-[80%] max-w-[320px] md:translate-x-0 shrink-0",
+          "fixed md:static inset-y-0 left-0 z-50 flex flex-col h-full bg-surface-0 border-r border-surface-200 transition-all duration-300 ease-in-out w-[80%] max-w-[320px] md:translate-x-0 shrink-0",
           isOpen ? "translate-x-0 animate-slide-left" : "-translate-x-full",
           isCollapsed ? "md:w-[80px]" : "md:w-[260px]"
         )}
@@ -200,7 +214,7 @@ export function Sidebar() {
         <div className="px-5 pt-5 pb-6 flex items-center justify-between border-b border-transparent">
           <div className={cn("flex items-center gap-3", isCollapsed ? "md:justify-center w-full" : "")}>
             <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/20">
-              <span className="material-symbols-outlined filled text-white" style={{fontSize:'18px'}}>diamond</span>
+              <Diamond className="text-white w-5 h-5" />
             </div>
             <div className={cn(isCollapsed && "md:hidden")}>
               <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight whitespace-nowrap">Foundation ERP</h1>
@@ -248,9 +262,7 @@ export function Sidebar() {
                         )}
                       >
                         <div className={cn("flex items-center", isCollapsed ? "md:justify-center w-full" : "gap-3")}>
-                          <span className={cn("material-symbols-outlined flex-shrink-0", isSectionActive ? "filled text-brand-500" : "text-surface-400")}>
-                            {item.iconName}
-                          </span>
+                          <item.icon className={cn("flex-shrink-0 w-5 h-5", isSectionActive ? "text-brand-500" : "text-surface-400")} />
                           <span className={cn(isCollapsed && "md:hidden")}>{item.name}</span>
                         </div>
                         <ChevronDown
@@ -301,9 +313,7 @@ export function Sidebar() {
                         : "text-surface-600 hover:text-surface-900 hover:bg-surface-50"
                     )}
                   >
-                    <span className={cn("material-symbols-outlined flex-shrink-0", isActive ? "filled text-brand-500" : "text-surface-400")}>
-                      {item.iconName}
-                    </span>
+                    <item.icon className={cn("flex-shrink-0 w-5 h-5", isActive ? "text-brand-500" : "text-surface-400")} />
                     <span className={cn(isCollapsed && "md:hidden")}>{item.name}</span>
                   </Link>
                 )
@@ -318,7 +328,17 @@ export function Sidebar() {
         <div className={cn("flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-50 cursor-pointer transition-colors", isCollapsed ? "md:justify-center px-0" : "")}>
           <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-[11px] font-bold shadow-sm overflow-hidden">
             {session?.user?.image ? (
-              <img src={session.user.image} alt="User" className="w-full h-full object-cover" />
+              <img 
+                src={session.user.image} 
+                alt="User" 
+                className="w-full h-full object-cover" 
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  if (e.currentTarget.parentElement) {
+                    e.currentTarget.parentElement.innerHTML = session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : 'EX';
+                  }
+                }}
+              />
             ) : (
               session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : 'EX'
             )}
@@ -327,7 +347,7 @@ export function Sidebar() {
             <p className="text-[13px] font-semibold text-surface-900 truncate">{session?.user?.name || 'Executive'}</p>
             <p className="text-[11px] text-surface-400 truncate">{session?.user?.email || 'admin@foundation.org'}</p>
           </div>
-          <span className={cn("material-symbols-outlined text-surface-400 shrink-0", isCollapsed && "md:hidden")} style={{fontSize:'16px'}}>settings</span>
+          <Settings className={cn("text-surface-400 shrink-0 w-[18px] h-[18px]", isCollapsed && "md:hidden")} />
         </div>
       </div>
 

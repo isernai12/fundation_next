@@ -16,7 +16,7 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Group Reports</h1>
@@ -36,7 +36,7 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-muted/30 p-4 rounded-lg border">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Select Report Type:</span>

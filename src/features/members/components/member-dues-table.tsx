@@ -191,7 +191,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-2 space-y-2 md:space-y-0 py-4 flex-wrap gap-y-2">
+      <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-2 space-y-2 md:space-y-0 py-2 flex-wrap gap-y-2">
         <Input
           placeholder="Search by name, ID or phone..."
           value={globalFilter ?? ""}
@@ -287,7 +287,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-2">
         <Button
           variant="outline"
           size="sm"

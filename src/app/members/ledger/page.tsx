@@ -19,7 +19,7 @@ export default async function MemberLedgerPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <MemberLedgerView members={formattedMembers} />
     </div>
   )

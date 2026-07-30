@@ -28,9 +28,18 @@ interface DashboardChartsProps {
   groupFundData: any[]
 }
 
+import { useTheme } from "next-themes"
+
 export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsProps) {
   const chartRef = useRef<ChartJS<"bar">>(null)
   const [chartData, setChartData] = useState<any>({ datasets: [] })
+  
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === "dark"
+  
+  const textColor = isDark ? "#8B93A3" : "#6b7194"
+  const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(213, 217, 232, 0.5)"
+  const tooltipBg = isDark ? "#1C1F26" : "#1e2035"
 
   useEffect(() => {
     const chart = chartRef.current
@@ -54,7 +63,7 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
       labels,
       datasets: [
         {
-          label: 'Income',
+          label: 'আয়',
           data: incomeData,
           backgroundColor: 'rgba(99, 88, 245, 0.8)',
           hoverBackgroundColor: 'rgba(99, 88, 245, 1)',
@@ -64,7 +73,7 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
           categoryPercentage: 0.7,
         },
         {
-          label: 'Expense',
+          label: 'ব্যয়',
           data: expenseData,
           backgroundColor: 'rgba(6, 182, 212, 0.7)',
           hoverBackgroundColor: 'rgba(6, 182, 212, 1)',
@@ -97,14 +106,14 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
       <div className="lg:col-span-2 bg-surface-0 rounded-2xl border border-surface-200 p-5">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-[15px] font-semibold text-surface-900">Financial Overview</h3>
-            <p className="text-[12px] text-surface-400 mt-0.5">Monthly income vs expenses</p>
+            <h3 className="text-[15px] font-semibold text-surface-900">আর্থিক সারসংক্ষেপ</h3>
+            <p className="text-[12px] text-surface-400 mt-0.5">মাসিক আয় বনাম ব্যয়</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-surface-50 rounded-lg p-0.5 border border-surface-200">
-              <button className="px-3 py-1.5 text-[11px] font-semibold bg-surface-0 text-surface-900 rounded-md shadow-sm border border-surface-200">6M</button>
-              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">1Y</button>
-              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">All</button>
+              <button className="px-3 py-1.5 text-[11px] font-semibold bg-surface-0 text-surface-900 rounded-md shadow-sm border border-surface-200">6 মাস</button>
+              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">1 বছর</button>
+              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">সব</button>
             </div>
           </div>
         </div>
@@ -122,20 +131,19 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
                 },
                 plugins: {
                   legend: {
-                    display: true,
-                    position: 'bottom',
+                    position: 'right',
                     labels: {
                       usePointStyle: true,
-                      pointStyle: 'rectRounded',
+                      pointStyle: 'circle',
                       padding: 20,
-                      font: { size: 12, family: 'Inter', weight: 'normal' },
-                      color: '#6b7194',
+                      font: { size: 12, family: 'Noto Sans Bengali' },
+                      color: textColor
                     }
                   },
                   tooltip: {
-                    backgroundColor: '#1e2035',
-                    titleFont: { size: 12, family: 'Inter', weight: 'bold' },
-                    bodyFont: { size: 12, family: 'Inter' },
+                    backgroundColor: tooltipBg,
+                    titleFont: { family: 'Noto Sans Bengali', size: 13 },
+                    bodyFont: { family: 'JetBrains Mono', size: 12 },
                     padding: 12,
                     cornerRadius: 8,
                     displayColors: true,
@@ -151,18 +159,18 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
                   x: {
                     grid: { display: false },
                     ticks: {
-                      font: { size: 11, family: 'Inter', weight: 'normal' },
-                      color: '#8b92ad',
+                      font: { size: 11, family: 'Noto Sans Bengali', weight: 'normal' },
+                      color: textColor,
                     },
                     border: { display: false }
                   },
                   y: {
                     grid: {
-                      color: 'rgba(213, 217, 232, 0.5)',
+                      color: gridColor,
                     },
                     ticks: {
                       font: { size: 11, family: 'JetBrains Mono' },
-                      color: '#8b92ad',
+                      color: textColor,
                       callback: function(value) { return '৳' + value; },
                       maxTicksLimit: 5,
                     },
@@ -180,8 +188,8 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
       <div className="bg-surface-0 rounded-2xl border border-surface-200 p-5 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[15px] font-semibold text-surface-900">Fund Distribution</h3>
-            <p className="text-[12px] text-surface-400 mt-0.5">By active groups</p>
+            <h3 className="text-[15px] font-semibold text-surface-900">তহবিল বণ্টন</h3>
+            <p className="text-[12px] text-surface-400 mt-0.5">সক্রিয় গ্রুপ অনুযায়ী</p>
           </div>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center">
@@ -195,9 +203,9 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: '#1e2035',
-                    titleFont: { size: 12, family: 'Inter', weight: 'bold' },
-                    bodyFont: { size: 12, family: 'Inter' },
+                    backgroundColor: tooltipBg,
+                    titleFont: { size: 12, family: 'Noto Sans Bengali', weight: 'bold' },
+                    bodyFont: { size: 12, family: 'Noto Sans Bengali' },
                     padding: 12,
                     cornerRadius: 8,
                     callbacks: {
@@ -217,7 +225,7 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
                 <div className="text-[28px] font-bold text-surface-950 tracking-tight">{activeGroups}</div>
-                <div className="text-[11px] text-surface-400 font-medium">Active Groups</div>
+                <div className="text-[11px] text-surface-400 font-medium">সক্রিয় গ্রুপ</div>
               </div>
             </div>
           </div>

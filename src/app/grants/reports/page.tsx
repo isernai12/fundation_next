@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react"
 
 export default function GrantReportsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/grants" className="hover:text-primary transition-colors">
           অনুদান
@@ -22,7 +22,7 @@ export default function GrantReportsPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex justify-end items-center space-x-2">
           <Button variant="outline" size="sm"><Printer className="mr-2 h-4 w-4" /> প্রিন্ট</Button>
           <Button variant="outline" size="sm"><FileText className="mr-2 h-4 w-4" /> পিডিএফ (PDF)</Button>

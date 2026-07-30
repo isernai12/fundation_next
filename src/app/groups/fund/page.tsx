@@ -11,7 +11,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: Pr
   const summary = groupId ? await getGroupFundSummary(groupId) : null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Group Fund</h1>
@@ -31,7 +31,7 @@ export default async function GroupFundPage({ searchParams }: { searchParams: Pr
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className="bg-muted/30">
             <CardContent className="p-4 flex flex-wrap items-center gap-4">
               <div className="font-medium flex items-center mr-4"><Filter className="h-4 w-4 mr-2"/> Filters:</div>

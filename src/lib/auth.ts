@@ -115,6 +115,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role.name,
+          image: user.photo,
           jti,
           expiresAt: Date.now() + maxAge,
           browser,
@@ -126,10 +127,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      if (trigger === "update" && session?.image !== undefined) {
+        token.picture = session.image
+      }
       if (user) {
         token.id = user.id
         token.role = (user as any).role
+        token.picture = (user as any).photo || (user as any).image
         token.sessionId = (user as any).jti
         token.expiresAt = (user as any).expiresAt
 
@@ -185,6 +190,7 @@ export const authOptions: NextAuthOptions = {
         ...(session.user || {}),
         id: token.id as string,
         role: token.role as string,
+        image: token.picture as string | null | undefined,
       } as any
       ;(session as any).jti = sessionId
       return session

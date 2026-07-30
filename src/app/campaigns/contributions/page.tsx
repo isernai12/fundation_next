@@ -15,7 +15,7 @@ export default async function CampaignContributionsManagePage() {
   const donorContributionsCount = contributions.filter(c => c.donorId).length
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Breadcrumbs */}
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/campaigns/manage" className="hover:text-primary transition-colors">

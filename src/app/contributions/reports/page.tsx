@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react"
 
 export default function ContributionReportsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
           Contributions
@@ -22,7 +22,7 @@ export default function ContributionReportsPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex justify-end items-center space-x-2">
           <Button variant="outline" size="sm"><Printer className="mr-2 h-4 w-4" /> Print</Button>
           <Button variant="outline" size="sm"><FileText className="mr-2 h-4 w-4" /> PDF</Button>

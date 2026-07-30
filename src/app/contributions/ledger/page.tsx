@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react"
 
 export default function ContributionLedgerPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
           মাসিক চাঁদা

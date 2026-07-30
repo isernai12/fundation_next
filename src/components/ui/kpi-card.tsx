@@ -5,9 +5,9 @@ export interface KpiCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string
   value: React.ReactNode
   subValue?: React.ReactNode
-  icon: string
+  icon: React.ElementType
   badgeLabel: React.ReactNode
-  badgeIcon?: string
+  badgeIcon?: React.ElementType
   badgeVariant?: "up" | "down" | "neutral" | "info"
   delayClass?: string
   accentColor?: string
@@ -19,9 +19,9 @@ export function KpiCard({
   title,
   value,
   subValue,
-  icon,
+  icon: Icon,
   badgeLabel,
-  badgeIcon,
+  badgeIcon: BadgeIcon,
   badgeVariant = "neutral",
   delayClass,
   accentColor = "#6366f1",
@@ -43,7 +43,7 @@ export function KpiCard({
       }
       {...props}
     >
-      <span className="material-symbols-outlined watermark">{icon}</span>
+      <Icon className="watermark" />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="wm-dot"></div>
@@ -52,10 +52,8 @@ export function KpiCard({
         <div className={cn("wm-badge", badgeVariant)}>
           {badgeVariant === "info" ? (
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-          ) : badgeIcon ? (
-            <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>
-              {badgeIcon}
-            </span>
+          ) : BadgeIcon ? (
+            <BadgeIcon className="w-3.5 h-3.5" />
           ) : null}
           {badgeLabel}
         </div>

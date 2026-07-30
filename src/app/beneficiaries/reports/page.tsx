@@ -10,7 +10,7 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
   const beneficiaryId = resolvedParams.beneficiaryId
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/beneficiaries" className="hover:text-primary transition-colors">
           Beneficiaries
@@ -36,7 +36,7 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex justify-end items-center space-x-2">
             <Button variant="outline" size="sm"><Printer className="mr-2 h-4 w-4" /> Print</Button>
             <Button variant="outline" size="sm"><FileText className="mr-2 h-4 w-4" /> PDF</Button>

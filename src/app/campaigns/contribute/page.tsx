@@ -12,7 +12,7 @@ export default async function CampaignContributeGlobalPage() {
   const activeCampaigns = campaigns.filter(c => c.status === "ACTIVE")
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/campaigns/manage" className="hover:text-primary transition-colors">
           তহবিল কার্যক্রম

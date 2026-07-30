@@ -8,7 +8,7 @@ export default async function ManageGrantsPage() {
   const grants = await getGrants()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/grants" className="hover:text-primary transition-colors">
           অনুদান

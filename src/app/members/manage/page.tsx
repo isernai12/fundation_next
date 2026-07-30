@@ -15,7 +15,7 @@ export default async function ManageMembersPage() {
   const isManage = userRole === "ADMIN" || userRole === "MANAGER" || userRole === "SUPER_ADMIN";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">সদস্য ব্যবস্থাপনা</h1>

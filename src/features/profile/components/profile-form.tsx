@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,7 @@ interface ProfileData {
 
 export function ProfileForm({ initialData }: { initialData: ProfileData }) {
   const router = useRouter()
+  const { update } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [profile, setProfile] = useState({
@@ -78,6 +79,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
       if (res.success) {
         toast.success("ছবি আপলোড সফল হয়েছে")
         setPhoto(res.url as string)
+        await update({ image: res.url as string })
         router.refresh()
       } else {
         toast.error(res.error)

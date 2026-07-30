@@ -61,10 +61,11 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
     // Clone and reverse to oldest first
     const oldestFirst = [...filteredData].reverse()
     let balance = 0
-    const calculated = oldestFirst.map(row => {
+    const calculated = []
+    for (const row of oldestFirst) {
       balance += row.amount
-      return { ...row, runningBalance: balance }
-    })
+      calculated.push({ ...row, runningBalance: balance })
+    }
     // Reverse back to newest first
     return calculated.reverse()
   }, [filteredData])
