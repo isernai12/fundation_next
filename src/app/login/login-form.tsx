@@ -27,9 +27,12 @@ const formSchema = z.object({
   rememberMe: z.boolean(),
 })
 
+import { useBranding } from "@/components/providers/branding-provider"
+
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const branding = useBranding()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,11 +73,15 @@ export function LoginForm() {
       <Card className="w-[400px]">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center">
-              <Building className="h-6 w-6 text-white" />
-            </div>
+            {branding.loginLogo || branding.logo ? (
+              <img src={branding.loginLogo || branding.logo!} alt="Logo" className="h-16 w-auto object-contain" />
+            ) : (
+              <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center">
+                <Building className="h-6 w-6 text-white" />
+              </div>
+            )}
           </div>
-          <CardTitle className="text-2xl font-bold">Foundation ERP</CardTitle>
+          <CardTitle className="text-2xl font-bold">{branding.foundationName || "Foundation ERP"}</CardTitle>
           <CardDescription>আপনার অ্যাকাউন্টে প্রবেশ করুন</CardDescription>
         </CardHeader>
         <CardContent>

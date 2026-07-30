@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { memberSchema, type MemberFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getMembers() {
+    await requirePermission("Members", "View");
   return prisma.member.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -18,6 +20,7 @@ export async function getMembers() {
 }
 
 export async function getMember(id: string) {
+    await requirePermission("Members", "View");
   return prisma.member.findUnique({
     where: { id },
     include: {
@@ -80,6 +83,7 @@ async function handleDocumentUpload(
 }
 
 export async function createMember(data: MemberFormValues) {
+    await requirePermission("Members", "Add");
   const parsed = memberSchema.safeParse(data)
   if (!parsed.success) {
     console.error("Zod Validation Error:", parsed.error);
@@ -175,6 +179,7 @@ export async function createMember(data: MemberFormValues) {
 }
 
 export async function updateMember(id: string, data: MemberFormValues) {
+    await requirePermission("Members", "Edit");
   const parsed = memberSchema.safeParse(data)
   if (!parsed.success) {
     console.error("Member update validation failed:", parsed.error);
@@ -266,6 +271,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
 }
 
 export async function deleteMemberDocument(memberId: string, title: string) {
+    await requirePermission("Members", "Delete");
   try {
     const doc = await prisma.document.findFirst({ 
       where: { memberId, title } 
@@ -287,6 +293,7 @@ export async function deleteMemberDocument(memberId: string, title: string) {
 }
 
 export async function toggleMemberStatus(id: string, newStatus: string) {
+    await requirePermission("Members", "Manage");
   try {
     await prisma.member.update({
       where: { id },
@@ -300,6 +307,7 @@ export async function toggleMemberStatus(id: string, newStatus: string) {
 }
 
 export async function deleteMember(id: string) {
+    await requirePermission("Members", "Delete");
   try {
     // Also delete associated documents from DB
     await prisma.document.deleteMany({ where: { memberId: id } });

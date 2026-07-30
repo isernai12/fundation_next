@@ -4,8 +4,10 @@ import { formatShortMonth } from "@/lib/format"
 
 import { prisma } from "@/lib/prisma"
 import { getNow, toDhakaTime } from "@/lib/date"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getDashboardStats() {
+    await requirePermission("Dashboard", "View");
   const now = getNow()
   const sixMonthsAgo = new Date(now)
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)

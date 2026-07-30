@@ -1,7 +1,7 @@
 "use client"
 
 import { ThemeToggle } from "@/components/theme-toggle"
-import { User, LogOut, Settings, KeyRound, Menu, HelpCircle } from "lucide-react"
+import { User, LogOut, Settings, KeyRound, Menu, HelpCircle, MonitorSmartphone } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { useSidebar } from "@/components/layout/sidebar-provider"
 import { usePathname } from "next/navigation"
@@ -15,10 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 
+import { useBranding } from "@/components/providers/branding-provider"
+
 export function Header() {
   const { data: session } = useSession()
   const { toggleSidebar } = useSidebar()
   const pathname = usePathname()
+  const branding = useBranding()
 
   const getPageTitle = () => {
     if (pathname === '/') return 'ড্যাশবোর্ড'
@@ -50,6 +53,9 @@ export function Header() {
           <Menu className="w-5 h-5" />
         </button>
         
+        {branding.headerLogo && (
+          <img src={branding.headerLogo} alt="Logo" className="h-6 w-auto object-contain hidden sm:block" />
+        )}
         <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight capitalize ml-2">{getPageTitle()}</h1>
       </div>
 
@@ -111,13 +117,19 @@ export function Header() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
+              <Link href="/profile/devices">
+                <MonitorSmartphone className="mr-2 h-4 w-4" />
+                <span>Device Management</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/profile/password">
                 <KeyRound className="mr-2 h-4 w-4" />
                 <span>Change Password</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-surface-200" />
-            <DropdownMenuItem onClick={() => signOut()} className="hover:bg-accent-red/10 focus:bg-accent-red/10 text-accent-red focus:text-accent-red text-[13px] font-medium cursor-pointer transition-colors">
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: window.location.origin + '/login' })} className="hover:bg-accent-red/10 focus:bg-accent-red/10 text-accent-red focus:text-accent-red text-[13px] font-medium cursor-pointer transition-colors">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

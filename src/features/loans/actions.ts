@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { loanSchema, type LoanFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { LedgerEngine } from "@/services/ledger"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getLoans() {
+    await requirePermission("Loans", "View");
   return prisma.loan.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -19,6 +21,7 @@ export async function getLoans() {
 }
 
 export async function getLoan(id: string) {
+    await requirePermission("Loans", "View");
   return prisma.loan.findUnique({
     where: { id },
     include: {
@@ -37,6 +40,7 @@ async function generateLoanNumber(tx: any = prisma) {
 }
 
 export async function createLoanRequest(data: LoanFormValues) {
+    await requirePermission("Loans", "Add");
   const parsed = loanSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   const pd = parsed.data
@@ -153,6 +157,7 @@ export async function createLoanRequest(data: LoanFormValues) {
 }
 
 export async function editLoanRequest(id: string, data: LoanFormValues) {
+    await requirePermission("Loans", "Edit");
   const parsed = loanSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   const pd = parsed.data
@@ -193,6 +198,7 @@ export async function repayLoan(
   paymentDate?: Date,
   receiptUrl?: string
 ) {
+    await requirePermission("Loans", "Manage");
   try {
     await prisma.$transaction(async (tx) => {
       const loan = await tx.loan.findUnique({
@@ -287,6 +293,7 @@ export async function repayLoan(
 }
 
 export async function deleteLoanAction(id: string) {
+    await requirePermission("Loans", "Delete");
   try {
     const loan = await prisma.loan.findUnique({
       where: { id },

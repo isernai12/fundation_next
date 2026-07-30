@@ -1,4 +1,4 @@
-import { getNow, formatDate } from "@/lib/date";
+import { getNow, formatDate , formatDateBanglaLocal} from "@/lib/date";
 import { getCampaigns, getCampaign } from "@/features/campaigns/actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpen, ChevronRight, Download, Printer, Filter, ReceiptText, Users, HandHeart } from "lucide-react"
@@ -160,7 +160,7 @@ export default async function CampaignLedgerPage({
 
                       return displayData.length > 0 ? displayData.map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell>{new Date(c.date).toLocaleDateString('bn-BD')}</TableCell>
+                          <TableCell>{formatDateBanglaLocal(c.date)}</TableCell>
                           <TableCell className="font-mono text-xs">{c.ledgerTransactionId.slice(0, 8)}</TableCell>
                           <TableCell>
                             {c.member ? c.member.fullName : c.donor ? c.donor.fullName : "অজানা"}

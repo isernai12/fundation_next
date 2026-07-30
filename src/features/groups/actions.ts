@@ -4,8 +4,10 @@ import { FinancialService } from "@/services/finance"
 import { prisma } from "@/lib/prisma"
 import { groupSchema, type GroupFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getGroups() {
+    await requirePermission("Groups", "View");
   const groups = await prisma.group.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -30,6 +32,7 @@ export async function getGroups() {
 }
 
 export async function getGroup(id: string) {
+    await requirePermission("Groups", "View");
   return prisma.group.findUnique({
     where: { id },
     include: {
@@ -42,6 +45,7 @@ export async function getGroup(id: string) {
 }
 
 export async function createGroup(data: GroupFormValues) {
+    await requirePermission("Groups", "Add");
   const parsed = groupSchema.safeParse(data)
   if (!parsed.success) {
     return { success: false, error: "Invalid data" }
@@ -83,6 +87,7 @@ export async function createGroup(data: GroupFormValues) {
 }
 
 export async function updateGroup(id: string, data: GroupFormValues) {
+    await requirePermission("Groups", "Edit");
   const parsed = groupSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
 
@@ -112,6 +117,7 @@ export async function updateGroup(id: string, data: GroupFormValues) {
 }
 
 export async function archiveGroup(id: string) {
+    await requirePermission("Groups", "Manage");
   try {
     // Check if group has members
     const group = await prisma.group.findUnique({
@@ -138,6 +144,7 @@ export async function archiveGroup(id: string) {
 }
 
 export async function deleteGroup(id: string) {
+    await requirePermission("Groups", "Delete");
   try {
     const group = await prisma.group.findUnique({
       where: { id },
@@ -163,6 +170,7 @@ export async function deleteGroup(id: string) {
 }
 
 export async function getGroupMembers(groupId: string) {
+    await requirePermission("Groups", "View");
   if (!groupId) return []
   return prisma.member.findMany({
     where: { groupId },
@@ -171,15 +179,18 @@ export async function getGroupMembers(groupId: string) {
 }
 
 export async function removeMemberFromGroup(memberId: string) {
+    await requirePermission("Groups", "Delete");
   return { success: false, error: "Members must belong to a group. Please reassign the member instead of removing them." }
 }
 
 export async function getGroupFundSummary(groupId: string) {
+    await requirePermission("Groups", "View");
   
   return await FinancialService.getGroupFundSummary(groupId)
 }
 
 export async function getGroupLedger(groupId: string) {
+    await requirePermission("Groups", "View");
   if (!groupId) return []
   
   const groupFund = await prisma.fund.findFirst({
@@ -217,6 +228,7 @@ export async function getGroupLedger(groupId: string) {
 }
 
 export async function getGroupTransactions(groupId: string) {
+    await requirePermission("Groups", "View");
   if (!groupId) return []
   
   const groupFund = await prisma.fund.findFirst({
@@ -245,6 +257,7 @@ export async function getGroupTransactions(groupId: string) {
 }
 
 export async function getGroupLoans(groupId: string) {
+    await requirePermission("Groups", "View");
   if (!groupId) return []
   
   const fund = await prisma.fund.findFirst({ where: { groupId } })
@@ -264,6 +277,7 @@ export async function getGroupLoans(groupId: string) {
 }
 
 export async function getGroupLoanSummary(groupId: string) {
+    await requirePermission("Groups", "View");
   if (!groupId) return { totalLent: 0, totalOutstanding: 0, activeLoans: 0 }
   
   const fund = await prisma.fund.findFirst({ where: { groupId } })

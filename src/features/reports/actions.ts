@@ -1,8 +1,10 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getFoundationSummaryReport() {
+    await requirePermission("Reports", "View");
   const funds = await prisma.fund.findMany({
     include: { group: true, ledgerLines: true }
   })
@@ -33,6 +35,7 @@ export async function getFoundationSummaryReport() {
 }
 
 export async function getGeneralLedgerReport() {
+    await requirePermission("Reports", "View");
   const entries = await prisma.ledgerTransaction.findMany({
     include: {
       entries: { include: { fund: { include: { group: true } } } }
@@ -62,6 +65,7 @@ export async function getGeneralLedgerReport() {
 }
 
 export async function getMemberDirectoryReport() {
+    await requirePermission("Reports", "View");
   const members = await prisma.member.findMany({
     include: { group: true },
     orderBy: { memberId: "asc" }

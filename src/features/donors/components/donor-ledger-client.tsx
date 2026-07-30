@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Printer, Download, Search, FilterX, Users, FileText, Banknote } from "lucide-react"
 import type { DonationTransactionItem } from "../actions"
+import { useBranding } from "@/components/providers/branding-provider"
 
 interface DonorLedgerClientProps {
   data: DonationTransactionItem[]
@@ -18,6 +19,7 @@ interface DonorLedgerClientProps {
 }
 
 export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientProps) {
+  const branding = useBranding()
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDonor, setSelectedDonor] = useState("ALL")
@@ -240,7 +242,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
 
         {/* Print Header (Hidden on screen) */}
         <div className="hidden print:block text-center pb-6 mb-6 border-b">
-          <h1 className="text-2xl font-bold">Foundation ERP</h1>
+          <h1 className="text-2xl font-bold">{branding?.foundationName || "Foundation ERP"}</h1>
           <h2 className="text-xl font-semibold mt-1">অনুদানদাতার লেজার (Master Ledger)</h2>
           {selectedDonor !== "ALL" && activeDonor && (
             <div className="mt-2 text-sm">

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { grantSchema, type GrantFormValues } from "./schema"
 import { LedgerEngine, LedgerEntryInput } from "@/services/ledger"
 import { revalidatePath } from "next/cache"
+import { requirePermission } from "@/lib/rbac";
 
 async function generateGrantNumber() {
   const count = await prisma.grant.count()
@@ -13,6 +14,7 @@ async function generateGrantNumber() {
 }
 
 export async function createGrant(data: GrantFormValues) {
+    await requirePermission("Grants", "Add");
   const parsed = grantSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   
@@ -77,6 +79,7 @@ export async function createGrant(data: GrantFormValues) {
 }
 
 export async function updateGrant(id: string, data: GrantFormValues) {
+    await requirePermission("Grants", "Edit");
   const parsed = grantSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   
@@ -129,6 +132,7 @@ export async function updateGrant(id: string, data: GrantFormValues) {
 }
 
 export async function getGrants() {
+    await requirePermission("Grants", "View");
   return prisma.grant.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -147,6 +151,7 @@ export async function getGrants() {
 }
 
 export async function getGrant(id: string) {
+    await requirePermission("Grants", "View");
   return prisma.grant.findUnique({
     where: { id },
     include: {
@@ -163,6 +168,7 @@ export async function getGrant(id: string) {
 }
 
 export async function deleteGrant(id: string) {
+    await requirePermission("Grants", "Delete");
   try {
     const grant = await prisma.grant.findUnique({
       where: { id },

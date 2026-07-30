@@ -2,6 +2,7 @@ import { formatCurrency } from "@/lib/format"
 import { getDashboardStats } from "@/features/dashboard/actions"
 
 import { getAuthSession } from "@/lib/auth"
+import { getUserPermissions, hasPermission } from "@/lib/rbac"
 import { redirect } from "next/navigation"
 import { KpiCard } from "@/components/ui/kpi-card"
 import { Wallet, TrendingUp, Coins, Minus, LineChart, RefreshCcw, TrendingDown, Users, Building2, Landmark, Gift } from "lucide-react"
@@ -10,6 +11,18 @@ export default async function DashboardPage() {
   const session = await getAuthSession()
   const user = session?.user as any
   if (!user?.id) redirect("/login")
+  
+  const permissions = await getUserPermissions(user.id)
+  
+  // Base dashboard permission check
+  if (!hasPermission(permissions, "Dashboard", "View Dashboard")) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+        <h2 className="text-2xl font-bold text-surface-900 mb-2">অনুমতি নেই</h2>
+        <p className="text-surface-500">আপনার এই ড্যাশবোর্ডটি দেখার অনুমতি নেই।</p>
+      </div>
+    )
+  }
 
   const stats = await getDashboardStats()
 
@@ -33,6 +46,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           
           {/* Total Cash Balance */}
+          {hasPermission(permissions, "Dashboard", "View Financial Cards") && (
           <KpiCard
             title="মোট নগদ স্থিতি"
             value={<>৳{formatCurrency(stats.currentCashBalance)}<span className="text-[18px] text-surface-500 font-medium">.00</span></>}
@@ -46,8 +60,10 @@ export default async function DashboardPage() {
             shadowHover="rgba(99, 102, 241, 0.1)"
             dotColor="#6366f1"
           />
+          )}
 
           {/* Foundation Fund */}
+          {hasPermission(permissions, "Dashboard", "View Donation Summary") && (
           <KpiCard
             title="ফাউন্ডেশন তহবিল"
             value={<>৳{formatCurrency(stats.foundationTotalFund)}<span className="text-[18px] text-surface-500 font-medium">.00</span></>}
@@ -61,8 +77,10 @@ export default async function DashboardPage() {
             shadowHover="rgba(236, 72, 153, 0.1)"
             dotColor="#ec4899"
           />
+          )}
 
           {/* Group Funds */}
+          {hasPermission(permissions, "Dashboard", "View Financial Cards") && (
           <KpiCard
             title="গ্রুপ তহবিল"
             value={<>৳{formatCurrency(stats.totalGroupFunds)}<span className="text-[18px] text-surface-500 font-medium">.00</span></>}
@@ -76,8 +94,10 @@ export default async function DashboardPage() {
             shadowHover="rgba(6, 182, 212, 0.1)"
             dotColor="#06b6d4"
           />
+          )}
 
           {/* Monthly Contributions */}
+          {hasPermission(permissions, "Dashboard", "View Financial Cards") && (
           <KpiCard
             title="মাসিক চাঁদা"
             value={<>৳{formatCurrency(stats.totalContributions)}<span className="text-[18px] text-surface-500 font-medium">.00</span></>}
@@ -91,12 +111,14 @@ export default async function DashboardPage() {
             shadowHover="rgba(245, 158, 11, 0.1)"
             dotColor="#f59e0b"
           />
+          )}
         </div>
 
         {/* KPI Cards Row 2 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-4 sm:mt-6">
           
           {/* Members */}
+          {hasPermission(permissions, "Members", "View") && (
           <KpiCard
             title="সদস্য"
             value={stats.totalMembers.toString()}
@@ -109,8 +131,10 @@ export default async function DashboardPage() {
             shadowHover="rgba(59, 130, 246, 0.1)"
             dotColor="#3b82f6"
           />
+          )}
 
           {/* Groups / Beneficiaries */}
+          {hasPermission(permissions, "Groups", "View") && (
           <KpiCard
             title="গ্রুপ / উপকারভোগী"
             value={<>{stats.totalGroups} <span className="text-[18px] text-surface-400 font-normal">/</span> <span className="text-[32px]">{stats.totalBeneficiaries}</span></>}
@@ -123,8 +147,10 @@ export default async function DashboardPage() {
             shadowHover="rgba(244, 63, 94, 0.1)"
             dotColor="#f43f5e"
           />
+          )}
 
           {/* Active Loans */}
+          {hasPermission(permissions, "Dashboard", "View Loan Summary") && (
           <KpiCard
             title="সক্রিয় ঋণ"
             value={stats.totalActiveLoans.toString()}
@@ -137,8 +163,10 @@ export default async function DashboardPage() {
             shadowHover="rgba(16, 185, 129, 0.1)"
             dotColor="#10b981"
           />
+          )}
 
           {/* Total Grants */}
+          {hasPermission(permissions, "Grants", "View") && (
           <KpiCard
             title="মোট অনুদান"
             value={stats.totalGrants.toString()}
@@ -151,6 +179,7 @@ export default async function DashboardPage() {
             shadowHover="rgba(168, 85, 247, 0.1)"
             dotColor="#a855f7"
           />
+          )}
         </div>
 
 

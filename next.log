@@ -1,14 +1,10 @@
 
-> temp_app@0.1.0 dev
-> next dev
+> temp_app@0.1.0 start
+> next start
 
-▲ Next.js 16.2.10 (Turbopack)
+▲ Next.js 16.2.10
 - Local:         http://localhost:3000
-- Network:       http://10.0.1.37:3000
-- Environments: .env.local, .env
-✓ Ready in 554ms
-⚠ Slow filesystem detected. The benchmark took 1111ms. If /workspaces/fundation_next/.next/dev is a network drive, consider moving it to a local folder.
-See more: https://nextjs.org/docs/app/guides/local-development
-- Experiments (use with caution):
-  · serverActions
-
+- Network:       http://10.0.17.171:3000
+✓ Ready in 212ms
+[next-auth][warn][NEXTAUTH_URL] 
+https://next-auth.js.org/warnings#nextauth_url

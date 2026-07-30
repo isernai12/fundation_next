@@ -1,8 +1,9 @@
 "use server"
 import { prisma } from "@/lib/prisma"
-
+import { requirePermission } from "@/lib/rbac";
 
 export async function getMemberLedger(memberId: string) {
+    await requirePermission("Reports", "View");
   // Fetch member info
   const member = await prisma.member.findUnique({
     where: { id: memberId },

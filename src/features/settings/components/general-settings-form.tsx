@@ -11,10 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export function GeneralSettingsForm({ initialData }: { initialData: Record<string, string> }) {
   const [data, setData] = useState({
-    appName: initialData.appName || "Foundation ERP",
-    dateFormat: initialData.dateFormat || "MM/DD/YYYY",
-    paginationSize: initialData.paginationSize || "10",
-    theme: initialData.theme || "system",
+    APP_TIMEZONE: initialData.APP_TIMEZONE || "UTC",
+    APP_DATE_FORMAT: initialData.APP_DATE_FORMAT || "DD/MM/YYYY",
+    APP_THEME: initialData.APP_THEME || "system",
   })
   const [isSaving, setIsSaving] = useState(false)
 
@@ -41,39 +40,39 @@ export function GeneralSettingsForm({ initialData }: { initialData: Record<strin
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Application Name</Label>
-              <Input value={data.appName} onChange={e => setData({...data, appName: e.target.value})} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Date Format</Label>
-              <Select value={data.dateFormat} onValueChange={(val) => setData({...data, dateFormat: val})}>
+              <Label>Time Zone</Label>
+              <Select value={data.APP_TIMEZONE} onValueChange={(val) => setData({...data, APP_TIMEZONE: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select date format" />
+                  <SelectValue placeholder="Select time zone" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                  <SelectItem value="Asia/Dhaka">Asia/Dhaka</SelectItem>
+                  <SelectItem value="Asia/Kolkata">Asia/Kolkata</SelectItem>
+                  <SelectItem value="Asia/Dubai">Asia/Dubai</SelectItem>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                  <SelectItem value="Europe/London">Europe/London</SelectItem>
+                  <SelectItem value="America/New_York">America/New_York</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Default Pagination Size</Label>
-              <Select value={data.paginationSize} onValueChange={(val) => setData({...data, paginationSize: val})}>
+              <Label>Date Format</Label>
+              <Select value={data.APP_DATE_FORMAT} onValueChange={(val) => setData({...data, APP_DATE_FORMAT: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select size" />
+                  <SelectValue placeholder="Select date format" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">10 Rows</SelectItem>
-                  <SelectItem value="25">25 Rows</SelectItem>
-                  <SelectItem value="50">50 Rows</SelectItem>
-                  <SelectItem value="100">100 Rows</SelectItem>
+                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                  <SelectItem value="DD MMM YYYY">DD MMM YYYY</SelectItem>
+                  <SelectItem value="DD MMMM YYYY">DD MMMM YYYY</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Default Theme</Label>
-              <Select value={data.theme} onValueChange={(val) => setData({...data, theme: val})}>
+              <Select value={data.APP_THEME} onValueChange={(val) => setData({...data, APP_THEME: val})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select theme" />
                 </SelectTrigger>

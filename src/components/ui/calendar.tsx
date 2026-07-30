@@ -1,5 +1,8 @@
 "use client"
 
+import { formatDateInput } from "@/lib/date";
+import { formatShortMonth } from "@/lib/format";
+
 import * as React from "react"
 import {
   ChevronDownIcon,
@@ -37,7 +40,7 @@ function Calendar({
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+          formatShortMonth(date.getMonth()),
         ...formatters,
       }}
       classNames={{
@@ -190,7 +193,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={formatDateInput(day.date)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

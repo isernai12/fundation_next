@@ -52,7 +52,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
         toast.success("প্রোফাইল আপডেট করা হয়েছে")
         if (res.requireReauth) {
           toast.info("আপনার ইউজারনেম পরিবর্তন হয়েছে। দয়া করে পুনরায় লগইন করুন।")
-          setTimeout(() => signOut(), 2000)
+          setTimeout(() => signOut({ callbackUrl: window.location.origin + '/login' }), 2000)
         } else {
           router.refresh()
         }
@@ -106,7 +106,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
       const res = await changeUserPassword({ current: passwords.current, new: passwords.new })
       if (res.success) {
         toast.success("পাসওয়ার্ড পরিবর্তন সফল হয়েছে। পুনরায় লগইন করুন।")
-        setTimeout(() => signOut(), 2000)
+        setTimeout(() => signOut({ callbackUrl: window.location.origin + '/login' }), 2000)
       } else {
         toast.error(res.error)
       }

@@ -20,7 +20,7 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
       await logoutDevice(jti)
       toast.success("ডিভাইসটি সফলভাবে লগআউট করা হয়েছে")
       if (jti === currentJti) {
-        signOut()
+        signOut({ callbackUrl: window.location.origin + '/login' })
       } else {
         router.refresh()
       }
@@ -51,7 +51,7 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
       const res = await logoutAllDevices()
       if (res.requireReauth) {
         toast.success("সকল ডিভাইস থেকে লগআউট করা হয়েছে")
-        signOut()
+        signOut({ callbackUrl: window.location.origin + '/login' })
       }
     } catch (err) {
       toast.error("লগআউট ব্যর্থ হয়েছে")

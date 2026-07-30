@@ -4,8 +4,10 @@ import { prisma } from "@/lib/prisma"
 import { contributionSchema, type ContributionFormValues } from "./schema"
 import { LedgerEngine } from "@/services/ledger"
 import { revalidatePath } from "next/cache"
+import { requirePermission } from "@/lib/rbac";
 
 export async function createContribution(data: ContributionFormValues) {
+    await requirePermission("Fund Collection", "Add");
   const parsed = contributionSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" }
   
@@ -99,6 +101,7 @@ export async function createContribution(data: ContributionFormValues) {
 }
 
 export async function getContributions() {
+    await requirePermission("Fund Collection", "View");
   return prisma.monthlyContribution.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -111,6 +114,7 @@ export async function getContributions() {
 }
 
 export async function updateContribution(id: string, data: ContributionFormValues) {
+    await requirePermission("Fund Collection", "Edit");
   const parsed = contributionSchema.safeParse(data);
   if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" };
   const pd = parsed.data;
@@ -230,6 +234,7 @@ export async function updateContribution(id: string, data: ContributionFormValue
 }
 
 export async function deleteContribution(id: string) {
+    await requirePermission("Fund Collection", "Delete");
   try {
     return await prisma.$transaction(async (tx) => {
       const contribution = await tx.monthlyContribution.findUnique({

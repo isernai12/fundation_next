@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache"
 import { writeFile, mkdir, unlink } from "fs/promises"
 import { join } from "path"
 import crypto from "crypto"
+import { requirePermission } from "@/lib/rbac";
 
 export async function replaceDocument(documentId: string, formData: FormData) {
+    await requirePermission("Settings", "Manage");
   const file = formData.get("file") as File | null
   
   if (!file) return { success: false, error: "No file provided" }

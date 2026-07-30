@@ -6,13 +6,16 @@ import { revalidatePath } from "next/cache"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 import crypto from "crypto"
+import { requirePermission } from "@/lib/rbac";
 
 // Document Categories
 export async function getDocumentCategories() {
+    await requirePermission("Settings", "View");
   return prisma.documentCategory.findMany({ orderBy: { name: "asc" } })
 }
 
 export async function createDocumentCategory(name: string, description?: string) {
+    await requirePermission("Settings", "Add");
   try {
     const category = await prisma.documentCategory.create({
       data: { name, description }
@@ -32,6 +35,7 @@ async function generateDocumentNumber() {
 }
 
 export async function uploadDocument(formData: FormData) {
+    await requirePermission("Settings", "Manage");
   const file = formData.get("file") as File | null
   const title = formData.get("title") as string
   const categoryId = formData.get("categoryId") as string
@@ -107,6 +111,7 @@ export async function uploadDocument(formData: FormData) {
 }
 
 export async function getDocumentsByEntity(targetType: any, entityId: string) {
+    await requirePermission("Settings", "View");
   return prisma.document.findMany({
     where: { targetType, entityId },
     include: { category: true },
@@ -115,6 +120,7 @@ export async function getDocumentsByEntity(targetType: any, entityId: string) {
 }
 
 export async function getAllDocuments() {
+    await requirePermission("Settings", "View");
   return prisma.document.findMany({
     include: { category: true },
     orderBy: { createdAt: "desc" }
@@ -122,6 +128,7 @@ export async function getAllDocuments() {
 }
 
 export async function deleteDocumentById(id: string) {
+    await requirePermission("Settings", "Delete");
   try {
     await prisma.document.delete({ where: { id } })
     return { success: true }

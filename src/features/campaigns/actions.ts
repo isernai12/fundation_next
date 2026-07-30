@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache"
 import { campaignSchema, CampaignFormValues, campaignContributionSchema, CampaignContributionFormValues } from "./schema"
 // generateEntityId removed
 import { LedgerEngine } from "@/services/ledger"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getCampaigns() {
+    await requirePermission("Fund Collection", "View");
   return await prisma.campaign.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
@@ -16,6 +18,7 @@ export async function getCampaigns() {
 }
 
 export async function getCampaign(id: string) {
+    await requirePermission("Fund Collection", "View");
   return await prisma.campaign.findUnique({
     where: { id },
     include: {
@@ -31,6 +34,7 @@ export async function getCampaign(id: string) {
 }
 
 export async function getAllCampaignContributions() {
+    await requirePermission("Fund Collection", "View");
   return await prisma.campaignContribution.findMany({
     orderBy: { date: 'desc' },
     include: {
@@ -60,6 +64,7 @@ async function generateCampaignId() {
 }
 
 export async function createCampaign(data: CampaignFormValues) {
+    await requirePermission("Fund Collection", "Add");
   const parsed = campaignSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" }
   
@@ -91,6 +96,7 @@ export async function createCampaign(data: CampaignFormValues) {
 }
 
 export async function createCampaignContribution(data: CampaignContributionFormValues) {
+    await requirePermission("Fund Collection", "Add");
   const parsed = campaignContributionSchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" }
   
@@ -177,6 +183,7 @@ export async function createCampaignContribution(data: CampaignContributionFormV
 }
 
 export async function deleteCampaignContribution(id: string) {
+    await requirePermission("Fund Collection", "Delete");
   try {
     return await prisma.$transaction(async (tx) => {
       const contribution = await tx.campaignContribution.findUnique({ where: { id } })
@@ -205,6 +212,7 @@ export async function deleteCampaignContribution(id: string) {
 }
 
 export async function updateCampaignContribution(id: string, data: Partial<CampaignContributionFormValues>) {
+    await requirePermission("Fund Collection", "Edit");
   try {
     return await prisma.$transaction(async (tx) => {
       const contribution = await tx.campaignContribution.findUnique({ where: { id }, include: { campaign: true } })

@@ -1,14 +1,32 @@
-import { getFoundationProfile } from "@/features/settings/actions"
-import { ProfileForm } from "@/features/settings/components/profile-form"
+import { getSystemSettings } from "@/features/settings/actions"
+import { PersonalProfileForm } from "@/features/settings/components/personal-profile-form"
+import { FoundationBrandingForm } from "@/features/settings/components/foundation-branding-form"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+import { getAuthSession } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { redirect } from "next/navigation"
 
-export default async function FoundationProfilePage() {
-  const profile = await getFoundationProfile()
+export default async function SettingsProfilePage() {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    redirect("/login")
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  })
+
+  if (!dbUser) {
+    redirect("/login")
+  }
+
+  const systemSettings = await getSystemSettings()
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/settings">
@@ -16,14 +34,33 @@ export default async function FoundationProfilePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Foundation Profile</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Profile & Branding</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Manage your organization's core information.
+            Manage your personal profile and the foundation's visual identity.
           </p>
         </div>
       </div>
 
-      <ProfileForm initialData={profile} />
+      <Tabs defaultValue="personal" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="personal">Personal Profile</TabsTrigger>
+          <TabsTrigger value="branding">Foundation Branding</TabsTrigger>
+        </TabsList>
+        <TabsContent value="personal">
+          <PersonalProfileForm 
+            user={{
+              id: dbUser.id,
+              name: dbUser.name,
+              email: dbUser.email || "",
+              mobile: dbUser.mobile || "",
+              photo: dbUser.photo || "",
+            }} 
+          />
+        </TabsContent>
+        <TabsContent value="branding">
+          <FoundationBrandingForm initialSettings={systemSettings} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

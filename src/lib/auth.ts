@@ -128,11 +128,13 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      if (trigger === "update" && session?.image !== undefined) {
-        token.picture = session.image
+      if (trigger === "update" && session) {
+        if (session.image !== undefined) token.picture = session.image
+        if (session.name !== undefined) token.name = session.name
       }
       if (user) {
         token.id = user.id
+        token.name = user.name
         token.role = (user as any).role
         token.picture = (user as any).photo || (user as any).image
         token.sessionId = (user as any).jti
@@ -189,6 +191,7 @@ export const authOptions: NextAuthOptions = {
       session.user = {
         ...(session.user || {}),
         id: token.id as string,
+        name: token.name as string | null | undefined,
         role: token.role as string,
         image: token.picture as string | null | undefined,
       } as any

@@ -1,4 +1,4 @@
-import { getNow } from "@/lib/date";
+import { getNow , formatDateInput} from "@/lib/date";
 import { GrantForm } from "@/features/grants/components/grant-form"
 import { getBeneficiaries } from "@/features/beneficiaries/actions"
 import { getGroups } from "@/features/groups/actions"
@@ -21,7 +21,7 @@ export default async function EditGrantPage({ params }: { params: Promise<{ id: 
   // Format initial data to match GrantFormValues
   const initialData = {
     beneficiaryId: grant.beneficiaryId,
-    grantDate: grant.dateApproved ? grant.dateApproved.toISOString().split("T")[0] : getNow().toLocaleDateString('en-CA'),
+    grantDate: grant.dateApproved ? grant.dateApproved.toISOString().split("T")[0] : formatDateInput(getNow()),
     amount: grant.amount,
     grantReason: grant.purpose,
     comment: grant.notes || "",

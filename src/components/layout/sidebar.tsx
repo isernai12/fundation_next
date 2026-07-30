@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 
 import { useSidebar } from "@/components/layout/sidebar-provider"
+import { useRbac } from "@/components/providers/rbac-provider"
 
 import {
   Collapsible,
@@ -33,12 +34,14 @@ import {
 type SubMenuItem = {
   name: string
   href: string
+  permission?: string
 }
 
 type MenuItem = {
   name: string
   href: string
   icon: React.ElementType
+  permission?: string
   submenu?: SubMenuItem[]
 }
 
@@ -157,14 +160,29 @@ const sidebarSections: Section[] = [
   }
 ]
 
+import { useBranding } from "@/components/providers/branding-provider"
+
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { isOpen, setIsOpen, isCollapsed } = useSidebar()
+  const { permissions, can } = useRbac()
+  const branding = useBranding()
+
+  const filteredSections = React.useMemo(() => {
+    if (permissions.includes("*")) return sidebarSections;
+    return sidebarSections.map((section: any) => ({
+      ...section,
+      items: section.items.filter((item: any) => !item.permission || can(item.permission.split(":")[0], item.permission.split(":")[1])).map((item: any) => ({
+        ...item,
+        submenu: item.submenu?.filter((sub: any) => !sub.permission || can(sub.permission.split(":")[0], sub.permission.split(":")[1]))
+      }))
+    })).filter((section: any) => section.items.length > 0)
+  }, [permissions, can])
 
   const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {}
-    sidebarSections.flatMap(s => s.items).forEach(item => {
+    filteredSections.flatMap((s: any) => s.items).forEach((item: any) => {
       if (item.submenu) {
         initialState[item.name] = pathname.startsWith(item.href)
       }
@@ -176,7 +194,7 @@ export function Sidebar() {
     setOpenItems(prev => {
       const next = { ...prev }
       let changed = false
-      sidebarSections.flatMap(s => s.items).forEach(item => {
+      filteredSections.flatMap((s: any) => s.items).forEach((item: any) => {
         if (item.submenu && pathname.startsWith(item.href)) {
           if (!next[item.name]) {
             next[item.name] = true
@@ -213,12 +231,16 @@ export function Sidebar() {
       >
         <div className="px-5 pt-5 pb-6 flex items-center justify-between border-b border-transparent">
           <div className={cn("flex items-center gap-3", isCollapsed ? "md:justify-center w-full" : "")}>
-            <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/20">
-              <Diamond className="text-white w-5 h-5" />
-            </div>
+            {branding.sidebarLogo || branding.logo ? (
+              <img src={branding.sidebarLogo || branding.logo!} alt="Logo" className="w-9 h-9 object-contain" />
+            ) : (
+              <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                <Diamond className="text-white w-5 h-5" />
+              </div>
+            )}
             <div className={cn(isCollapsed && "md:hidden")}>
-              <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight whitespace-nowrap">Foundation ERP</h1>
-              <span className="text-[10px] font-semibold text-surface-400 uppercase tracking-[0.08em]">Enterprise Suite</span>
+              <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight whitespace-nowrap">{branding.foundationName}</h1>
+              <span className="text-[10px] font-semibold text-surface-400 uppercase tracking-[0.08em]">{branding.shortName}</span>
             </div>
           </div>
           <button 
@@ -232,17 +254,17 @@ export function Sidebar() {
 
       <div className="flex-1 overflow-auto pb-4">
         <nav className="space-y-0.5 px-3">
-          {sidebarSections.map((section, sIdx) => (
+          {filteredSections.map((section: any, sIdx: number) => (
             <React.Fragment key={sIdx}>
               <div className={cn("px-3 pt-4 pb-2", isCollapsed && "md:hidden")}>
                 <span className="text-[10px] font-bold text-surface-400 uppercase tracking-[0.1em]">{section.title}</span>
               </div>
-              {section.items.map((item) => {
+              {section.items.map((item: any) => {
                 const isActive = pathname === item.href
 
                 if (item.submenu) {
                   const isMenuOpen = openItems[item.name]
-                  const isChildActive = item.submenu.some(sub => pathname === sub.href)
+                  const isChildActive = item.submenu.some((sub: any) => pathname === sub.href)
                   const isSectionActive = isChildActive || isActive
 
                   return (
@@ -275,7 +297,7 @@ export function Sidebar() {
                       </CollapsibleTrigger>
                       <CollapsibleContent className={cn("space-y-0.5 overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down", isCollapsed && "md:hidden")}>
                         <div className="pt-1 pb-1">
-                          {item.submenu.map((sub) => {
+                          {item.submenu.map((sub: any) => {
                             const isSubActive = pathname === sub.href
                             return (
                               <Link

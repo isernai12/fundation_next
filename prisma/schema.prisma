@@ -540,12 +540,14 @@ model User {
   status    String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
   lastLogin DateTime?
   photo     String?
+  preferences String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   role      Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
   auditLogs AuditLog[]
   sessions  UserSession[]
+  userPermissions UserPermission[]
 }
 
 model UserSession {
@@ -581,6 +583,7 @@ model Permission {
   description String?
 
   roles RolePermission[]
+  userPermissions UserPermission[]
 
   @@unique([module, action])
 }
@@ -645,4 +648,15 @@ model FoundationProfile {
   status             String   @default("ACTIVE")
   updatedAt          DateTime @updatedAt
   updatedBy          String?
+}
+
+
+model UserPermission {
+  userId       String
+  permissionId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
 }

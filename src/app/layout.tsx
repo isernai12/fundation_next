@@ -9,6 +9,8 @@ import { SidebarProvider } from "@/components/layout/sidebar-provider"
 import { getAuthSession } from "@/lib/auth"
 
 import { AuthProvider } from "@/components/auth-provider"
+import { RbacProvider } from "@/components/providers/rbac-provider"
+import { getUserPermissions } from "@/lib/rbac"
 import { Toaster } from "sonner"
 
 const notoSansBengali = Noto_Sans_Bengali({
@@ -16,10 +18,47 @@ const notoSansBengali = Noto_Sans_Bengali({
   weight: ["400", "500", "600", "700"],
 })
 
-export const metadata: Metadata = {
-  title: "Foundation ERP",
-  description: "Foundation Management System",
+import { getBrandingSettings } from "@/lib/branding"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getBrandingSettings()
+  
+  let icons: any = undefined
+  if (branding.favicon) {
+    const v = Date.now();
+    const isCloudinary = branding.favicon.includes('res.cloudinary.com');
+    
+    if (isCloudinary) {
+      const parts = branding.favicon.split('/upload/');
+      if (parts.length === 2) {
+        icons = {
+          icon: [16, 32, 48, 192, 512].map(size => ({
+            url: `${parts[0]}/upload/w_${size},h_${size},c_scale/${parts[1]}?v=${v}`,
+            sizes: `${size}x${size}`,
+            type: 'image/png'
+          })),
+          apple: [
+            { url: `${parts[0]}/upload/w_180,h_180,c_scale/${parts[1]}?v=${v}`, sizes: '180x180', type: 'image/png' }
+          ]
+        };
+      }
+    }
+    
+    if (!icons) {
+      icons = { icon: `${branding.favicon}?v=${v}` };
+    }
+  }
+
+  return {
+    title: branding.foundationName || "Foundation ERP",
+    description: "Foundation Management System",
+    icons,
+  }
 }
+
+import { BrandingProvider } from "@/components/providers/branding-provider"
+
+import { prisma } from "@/lib/prisma"
 
 export default async function RootLayout({
   children,
@@ -29,32 +68,62 @@ export default async function RootLayout({
   const session = await getAuthSession()
   const user = session?.user as any
   const isLoggedIn = !!user?.id
+  const permissions = isLoggedIn ? await getUserPermissions(user.id) : []
+  const branding = await getBrandingSettings()
+
+  let userDateFormat = branding.dateFormat || 'dd MMM yyyy';
+  let userTimezone = branding.timezone || 'Asia/Dhaka';
+
+  if (isLoggedIn && user?.id) {
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (dbUser?.preferences) {
+      try {
+        const prefs = JSON.parse(dbUser.preferences);
+        if (prefs.dateFormat) userDateFormat = prefs.dateFormat;
+        // if (prefs.timezone) userTimezone = prefs.timezone; // if user can override timezone
+      } catch (e) {}
+    }
+  }
+
+  if (typeof globalThis !== 'undefined') {
+    (globalThis as any).APP_TIMEZONE = userTimezone;
+    (globalThis as any).APP_DATE_FORMAT = userDateFormat;
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.6/index.min.css" rel="stylesheet" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.APP_TIMEZONE = "${userTimezone}"; window.APP_DATE_FORMAT = "${userDateFormat}";`
+          }}
+        />
       </head>
       <body className={`${notoSansBengali.className} h-screen overflow-hidden flex`} suppressHydrationWarning>
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <SidebarProvider>
-              {isLoggedIn && <Sidebar />}
-              <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {isLoggedIn && <Header />}
-                <main className="flex-1 overflow-auto p-6 bg-muted/20">
-                  {children}
-                </main>
-              </div>
-            </SidebarProvider>
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+        <BrandingProvider branding={branding}>
+          <AuthProvider>
+            <RbacProvider permissions={permissions}>
+              <ThemeProvider
+                attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <SidebarProvider>
+                {isLoggedIn && <Sidebar />}
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                  {isLoggedIn && <Header />}
+                  <main className="flex-1 overflow-auto p-6 bg-muted/20">
+                    {children}
+                  </main>
+                </div>
+              </SidebarProvider>
+              <Toaster />
+            </ThemeProvider>
+            </RbacProvider>
+          </AuthProvider>
+        </BrandingProvider>
       </body>
     </html>
   )

@@ -6,9 +6,12 @@ import { revalidatePath } from "next/cache"
 import { getAuthSession } from "@/lib/auth"
 
 import { z } from "zod"
+import { requirePermission } from "@/lib/rbac";
+
 // generateEntityId removed
 
 export async function getDonors() {
+    await requirePermission("Donors", "View");
   return await prisma.donor.findMany({
     orderBy: { createdAt: "desc" }
   })
@@ -20,6 +23,7 @@ async function generateDonorId() {
 }
 
 export async function getDonor(id: string) {
+    await requirePermission("Donors", "View");
   return await prisma.donor.findUnique({
     where: { id },
     include: {
@@ -29,6 +33,7 @@ export async function getDonor(id: string) {
 }
 
 export async function createDonor(data: any) {
+    await requirePermission("Donors", "Add");
   const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
@@ -79,6 +84,7 @@ export async function createDonor(data: any) {
 }
 
 export async function updateDonor(id: string, data: any) {
+    await requirePermission("Donors", "Edit");
   const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
@@ -128,6 +134,7 @@ export async function updateDonor(id: string, data: any) {
 }
 
 export async function deleteDonor(id: string) {
+    await requirePermission("Donors", "Delete");
   try {
     // Check if there are any ledger entries (donations) for this donor
     const donations = await prisma.ledgerTransaction.findMany({
@@ -153,6 +160,7 @@ export async function deleteDonor(id: string) {
 }
 
 export async function getDonorLedger(donorId: string) {
+    await requirePermission("Donors", "View");
   const donor = await prisma.donor.findUnique({
     where: { id: donorId }
   })
@@ -211,6 +219,7 @@ export async function receiveDonation(data: {
   date: string,
   remarks?: string
 }) {
+    await requirePermission("Donors", "Receive Installment");
   const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
@@ -270,6 +279,7 @@ export type DonationTransactionItem = {
 }
 
 export async function getReceivedDonations(): Promise<DonationTransactionItem[]> {
+    await requirePermission("Donors", "View");
   const transactions = await prisma.ledgerTransaction.findMany({
     where: { type: "DONATION" },
     orderBy: { date: "desc" },
@@ -326,6 +336,7 @@ export async function updateDonationTransaction(transactionId: string, data: {
   date: string,
   remarks?: string
 }) {
+    await requirePermission("Donors", "Edit");
   const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id || null
@@ -403,6 +414,7 @@ export async function updateDonationTransaction(transactionId: string, data: {
 }
 
 export async function deleteDonationTransaction(transactionId: string) {
+    await requirePermission("Donors", "Delete");
   try {
     return await prisma.$transaction(async (tx) => {
       const existingTx = await tx.ledgerTransaction.findUnique({

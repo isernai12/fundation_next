@@ -1,20 +1,34 @@
 import { format as formatTz, toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, addDays } from 'date-fns';
 
-export const TIMEZONE = 'Asia/Dhaka';
+export function getTimezone(): string {
+  if (typeof window !== 'undefined') {
+    return (window as any).APP_TIMEZONE || 'Asia/Dhaka';
+  } else {
+    return (globalThis as any).APP_TIMEZONE || 'Asia/Dhaka';
+  }
+}
 
-/**
- * Returns the current date in Asia/Dhaka timezone.
- */
-export function getNow(): Date {
-  return toZonedTime(new Date(), TIMEZONE);
+export function getDateFormat(): string {
+  if (typeof window !== 'undefined') {
+    return (window as any).APP_DATE_FORMAT || 'dd MMM yyyy';
+  } else {
+    return (globalThis as any).APP_DATE_FORMAT || 'dd MMM yyyy';
+  }
 }
 
 /**
- * Converts any UTC or local date to Asia/Dhaka time.
+ * Returns the current date in the application timezone.
+ */
+export function getNow(): Date {
+  return toZonedTime(new Date(), getTimezone());
+}
+
+/**
+ * Converts any UTC or local date to application time.
  */
 export function toDhakaTime(date: Date | string | number): Date {
-  return toZonedTime(date, TIMEZONE);
+  return toZonedTime(date, getTimezone());
 }
 
 /**
@@ -23,7 +37,7 @@ export function toDhakaTime(date: Date | string | number): Date {
  * but this is useful if you construct a local time and need it in UTC.
  */
 export function fromDhakaTime(date: Date | string | number): Date {
-  return fromZonedTime(date, TIMEZONE);
+  return fromZonedTime(date, getTimezone());
 }
 
 // ------------------------------------------------------------------
@@ -44,7 +58,15 @@ function toBanglaDigits(str: string): string {
  */
 export function formatDate(date: Date | string | number): string {
   const dhakaDate = toDhakaTime(date);
-  return formatTz(dhakaDate, 'dd MMM yyyy', { timeZone: TIMEZONE });
+  // Reformat the date formatting string based on what we store
+  let fmt = getDateFormat();
+  if (fmt === 'DD/MM/YYYY') fmt = 'dd/MM/yyyy';
+  if (fmt === 'MM/DD/YYYY') fmt = 'MM/dd/yyyy';
+  if (fmt === 'YYYY-MM-DD') fmt = 'yyyy-MM-dd';
+  if (fmt === 'DD MMM YYYY') fmt = 'dd MMM yyyy';
+  if (fmt === 'DD MMMM YYYY') fmt = 'dd MMMM yyyy';
+
+  return formatTz(dhakaDate, fmt, { timeZone: getTimezone() });
 }
 
 /**
@@ -68,7 +90,7 @@ export function formatTimeBangla(date: Date | string | number): string {
   }
 
   // Formatting to h:mm
-  const timeStr = formatTz(dhakaDate, 'h:mm', { timeZone: TIMEZONE });
+  const timeStr = formatTz(dhakaDate, 'h:mm', { timeZone: getTimezone() });
   const banglaTimeStr = toBanglaDigits(timeStr);
 
   return `${label} ${banglaTimeStr}`;
@@ -135,4 +157,31 @@ export function getNext7DaysBounds() {
     start: fromDhakaTime(startOfDay(now)),
     end: fromDhakaTime(endOfDay(addDays(now, 7)))
   };
+}
+
+
+/**
+ * Formats date and time like toLocaleString('bn-BD')
+ */
+export function formatDateTimeBanglaLocal(date: Date | string | number): string {
+  const dhakaDate = toDhakaTime(date);
+  const timeStr = formatTz(dhakaDate, 'd/M/yyyy, h:mm:ss a', { timeZone: getTimezone() });
+  return toBanglaDigits(timeStr);
+}
+
+/**
+ * Formats date like toLocaleDateString('bn-BD')
+ */
+export function formatDateBanglaLocal(date: Date | string | number): string {
+  const dhakaDate = toDhakaTime(date);
+  const timeStr = formatTz(dhakaDate, 'd/M/yyyy', { timeZone: getTimezone() });
+  return toBanglaDigits(timeStr);
+}
+
+/**
+ * Formats date as YYYY-MM-DD for HTML inputs
+ */
+export function formatDateInput(date: Date | string | number): string {
+  const dhakaDate = toDhakaTime(date);
+  return formatTz(dhakaDate, 'yyyy-MM-dd', { timeZone: getTimezone() });
 }

@@ -34,8 +34,7 @@ const adminCategories = [
     title: "Preferences",
     icon: LayoutTemplate,
     links: [
-      { name: "Appearance", href: "/settings/appearance" },
-      { name: "Notifications", href: "/settings/notifications" },
+      { name: "Preferences", href: "/settings/preferences" },
     ]
   }
 ]

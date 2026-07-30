@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { beneficiarySchema, type BeneficiaryFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
+import { requirePermission } from "@/lib/rbac";
 
 export async function getBeneficiaries() {
+    await requirePermission("Beneficiaries", "View");
   return prisma.beneficiary.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -16,6 +18,7 @@ export async function getBeneficiaries() {
 }
 
 export async function getBeneficiary(id: string) {
+    await requirePermission("Beneficiaries", "View");
   return prisma.beneficiary.findUnique({
     where: { id },
     include: {
@@ -88,6 +91,7 @@ async function handleDocumentUpload(
 }
 
 export async function createBeneficiary(data: BeneficiaryFormValues) {
+    await requirePermission("Beneficiaries", "Add");
   const parsed = beneficiarySchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   
@@ -157,6 +161,7 @@ export async function createBeneficiary(data: BeneficiaryFormValues) {
 }
 
 export async function updateBeneficiary(id: string, data: BeneficiaryFormValues) {
+    await requirePermission("Beneficiaries", "Edit");
   const parsed = beneficiarySchema.safeParse(data)
   if (!parsed.success) return { success: false, error: "Invalid data" }
   
@@ -223,6 +228,7 @@ export async function updateBeneficiary(id: string, data: BeneficiaryFormValues)
 }
 
 export async function deleteBeneficiaryDocument(beneficiaryId: string, title: string) {
+    await requirePermission("Beneficiaries", "Delete");
   try {
     const doc = await prisma.document.findFirst({ 
       where: { beneficiaryId, title } 
@@ -267,6 +273,7 @@ export async function deleteBeneficiaryDocument(beneficiaryId: string, title: st
 }
 
 export async function deleteBeneficiary(id: string) {
+    await requirePermission("Beneficiaries", "Delete");
   try {
     const beneficiary = await prisma.beneficiary.findUnique({
       where: { id },

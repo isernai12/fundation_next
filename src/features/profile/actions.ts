@@ -10,6 +10,7 @@ import crypto from "crypto"
 import { revalidatePath } from "next/cache"
 
 import { redirect } from "next/navigation"
+import { requirePermission } from "@/lib/rbac";
 
 async function getSessionUser() {
   const session = await getAuthSession()
@@ -19,6 +20,7 @@ async function getSessionUser() {
 }
 
 export async function getUserProfile() {
+    await requirePermission("Users", "View");
   const session = await getSessionUser()
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -37,6 +39,7 @@ export async function getUserProfile() {
 }
 
 export async function updateUserProfile(data: { name: string, username: string, mobile: string }) {
+    await requirePermission("Users", "Edit");
   const session = await getSessionUser()
   const user = await prisma.user.findUnique({ where: { id: session.user.id } })
   if (!user) throw new Error("User not found")
@@ -66,6 +69,7 @@ export async function updateUserProfile(data: { name: string, username: string, 
 }
 
 export async function uploadProfilePhoto(formData: FormData) {
+    await requirePermission("Users", "Manage");
   const session = await getSessionUser()
   const file = formData.get("file") as File | null
   
@@ -104,6 +108,7 @@ export async function uploadProfilePhoto(formData: FormData) {
 }
 
 export async function changeUserPassword(data: { current: string, new: string }) {
+    await requirePermission("Users", "Manage");
   const session = await getSessionUser()
   const user = await prisma.user.findUnique({ where: { id: session.user.id } })
   if (!user) throw new Error("User not found")
@@ -132,6 +137,7 @@ export async function changeUserPassword(data: { current: string, new: string })
 }
 
 export async function getUserSessions() {
+    await requirePermission("Users", "View");
   const session = await getSessionUser()
   const sessions = await prisma.userSession.findMany({
     where: { userId: session.user.id },
@@ -146,6 +152,7 @@ export async function getUserSessions() {
 }
 
 export async function logoutDevice(jti: string) {
+    await requirePermission("Users", "Manage");
   const session = await getSessionUser()
   await prisma.userSession.deleteMany({
     where: { jti, userId: session.user.id }
@@ -155,6 +162,7 @@ export async function logoutDevice(jti: string) {
 }
 
 export async function logoutOtherDevices() {
+    await requirePermission("Users", "Manage");
   const session = await getSessionUser()
   // @ts-ignore
   const currentJti = session.jti as string
@@ -170,6 +178,7 @@ export async function logoutOtherDevices() {
 }
 
 export async function logoutAllDevices() {
+    await requirePermission("Users", "Manage");
   const session = await getSessionUser()
   await prisma.userSession.deleteMany({
     where: { userId: session.user.id }

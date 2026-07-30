@@ -2,8 +2,10 @@
 import { getNow } from "@/lib/date";
 
 import { prisma } from "@/lib/prisma"
+import { requirePermission } from "@/lib/rbac";
 
 export async function generateMissingContributions() {
+    await requirePermission("Members", "Manage");
   const members = await prisma.member.findMany({
     where: { status: "ACTIVE" },
     select: { id: true, joinDate: true }
@@ -63,6 +65,7 @@ export async function generateMissingContributions() {
 }
 
 export async function getMemberDuesList() {
+    await requirePermission("Members", "View");
   await generateMissingContributions();
 
   const members = await prisma.member.findMany({
