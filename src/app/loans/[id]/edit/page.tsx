@@ -31,6 +31,10 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
     purpose: loan.purpose,
     amount: loan.amount,
     notes: loan.notes || "",
+    installmentType: (loan.installmentType as "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM") || undefined,
+    installmentAmount: loan.installmentAmount || undefined,
+    totalInstallments: loan.totalInstallments || undefined,
+    firstInstallmentDate: loan.firstInstallmentDate || undefined,
     isMultiGroup: loan.allocations.length > 1,
     fundAllocations: loan.allocations.length > 0 
       ? loan.allocations.map(a => ({ groupId: a.fund.groupId || "", amount: a.amount }))

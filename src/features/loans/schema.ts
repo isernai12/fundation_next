@@ -5,19 +5,19 @@ export const loanSchema = z.object({
   loanType: z.enum(["BUSINESS", "OTHER"]),
   businessType: z.string().optional(),
   purpose: z.string().optional(),
-  amount: z.coerce.number().min(1, "ঋণের পরিমাণ শূন্যের বেশি হতে হবে"),
+  amount: z.number().min(1, "ঋণের পরিমাণ শূন্যের বেশি হতে হবে"),
   notes: z.string().optional(),
   
   // Installment Details
   installmentType: z.enum(["DAILY", "WEEKLY", "MONTHLY", "CUSTOM"]).optional(),
-  installmentAmount: z.coerce.number().optional(),
-  totalInstallments: z.coerce.number().optional(),
+  installmentAmount: z.number().optional(),
+  totalInstallments: z.number().optional(),
   firstInstallmentDate: z.date().optional(),
   
-  isMultiGroup: z.boolean().default(false),
+  isMultiGroup: z.boolean(),
   fundAllocations: z.array(z.object({
     groupId: z.string().min(1, "গ্রুপ নির্বাচন করুন"),
-    amount: z.coerce.number().min(1, "পরিমাণ শূন্যের বেশি হতে হবে")
+    amount: z.number().min(1, "পরিমাণ শূন্যের বেশি হতে হবে")
   })).min(1, "অন্তত একটি ফান্ডের উৎস নির্বাচন করতে হবে"),
 
 }).superRefine((data, ctx) => {

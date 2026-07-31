@@ -39,7 +39,26 @@ const formSchema = z.object({
   receiptUrl: z.string().optional(),
 })
 
-export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: any[], initialLoanId?: string }) {
+interface Loan {
+  id: string;
+  loanNumber: string;
+  remainingBalance: number;
+  installmentAmount: number | null;
+  nextDueDate: Date | null;
+  beneficiary?: {
+    fullName: string | null;
+    phone: string | null;
+    member?: { group?: { name: string } | null } | null;
+  } | null;
+  loanType: string;
+  disbursedDate: Date | null;
+  installmentType: string | null;
+  amount: number;
+  totalPaidAmount: number;
+  repayments?: unknown[];
+}
+
+export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[], initialLoanId?: string }) {
     const { t } = useLanguage();
   const router = useRouter()
   const [selectedLoanId, setSelectedLoanId] = useState<string>(initialLoanId || "")
@@ -56,7 +75,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: any[],
       referenceNumber: "",
       collectedBy: "",
       notes: "",
-      paymentDate: "",
+      paymentDate: new Date(),
       receiptUrl: ""
     }
   })
@@ -133,8 +152,8 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: any[],
       } else {
         toast.error(result.error)
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to record payment")
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to record payment")
     } finally {
       setIsSubmitting(false)
     }

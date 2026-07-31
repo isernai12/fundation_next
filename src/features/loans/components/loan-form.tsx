@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Beneficiary } from "@prisma/client"
+import type { Beneficiary, Document } from "@prisma/client"
 import { MemberCombobox } from "@/components/member-combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -39,9 +39,9 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface LoanFormProps {
   beneficiaries: Beneficiary[]
-  groups?: any[]
+  groups?: { id: string; name: string; currentFund?: number }[]
   initialData?: LoanFormValues & { id: string }
-  initialDocuments?: any[]
+  initialDocuments?: Document[]
 }
 
 export function LoanForm({ beneficiaries, groups, initialData, initialDocuments = [] }: LoanFormProps) {
@@ -50,14 +50,14 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
   const [isLoading, setIsLoading] = useState(false)
   
   // Documents State
-  const [existingDocs, setExistingDocs] = useState<any[]>(initialDocuments)
+  const [existingDocs, setExistingDocs] = useState<Document[]>(initialDocuments)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isEditMode = !!initialData
 
   const form = useForm<LoanFormValues>({
-    resolver: zodResolver(loanSchema as any),
+    resolver: zodResolver(loanSchema),
     defaultValues: initialData || {
       beneficiaryId: "",
       loanType: "OTHER", // Let's use OTHER as a default if not set
@@ -68,7 +68,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
       installmentType: "MONTHLY",
       installmentAmount: 0,
       totalInstallments: 0,
-      firstInstallmentDate: "",
+      firstInstallmentDate: undefined,
       isMultiGroup: false,
       fundAllocations: [{ groupId: "", amount: 0 }]
     },
@@ -121,7 +121,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
     setIsLoading(false)
 
     if (result.success) {
-      const currentLoanId = isEditMode ? initialData?.id : (result as any).data?.id
+      const currentLoanId = isEditMode ? initialData?.id : (result.success && 'data' in result && result.data && typeof result.data === 'object' && 'id' in result.data ? String(result.data.id) : undefined)
 
       if (currentLoanId && pendingFiles.length > 0) {
         toast.info(t("loans.k_c49823"))
@@ -562,7 +562,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                                       <Card key={doc.id} className="relative overflow-hidden group">
                                         {doc.type === "IMAGE" ? (
                                           <div className="relative h-32 w-full bg-muted">
-                                            <img src={doc.secureUrl || doc.url} alt={doc.title} className="object-cover h-full w-full" />
+                                            <img src={doc.secureUrl} alt={doc.title} className="object-cover h-full w-full" />
                                           </div>
                                         ) : (
                                           <div className="flex items-center justify-center h-32 w-full bg-muted/50">
@@ -581,7 +581,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                                           
                                           <div className="flex space-x-2 pt-2 border-t">
                                             <Button type="button" variant="outline" size="sm" className="w-full" asChild>
-                                              <a href={doc.secureUrl || doc.url} target="_blank" rel="noreferrer">
+                                              <a href={doc.secureUrl} target="_blank" rel="noreferrer">
                                                 <Eye className="mr-2 h-4 w-4" /> {t("loans.k_cb4158")}</a>
                                             </Button>
                                             <Button type="button" variant="destructive" size="sm" className="w-full" onClick={() => handleDeleteExistingDoc(doc.id)}>

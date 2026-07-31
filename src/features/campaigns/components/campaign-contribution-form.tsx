@@ -51,11 +51,8 @@ export function CampaignContributionForm({
     },
   })
 
-  
   useEffect(() => {
-    form.setValue("month", getNow().getMonth() + 1)
-    form.setValue("year", getNow().getFullYear())
-    form.setValue("paymentDate", getNow().toLocaleDateString("en-CA"))
+    form.setValue("date", getNow().toLocaleDateString("en-CA"))
   }, [form])
 
   async function onSubmit(data: CampaignContributionFormValues) {

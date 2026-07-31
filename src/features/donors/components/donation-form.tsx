@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,7 +25,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 const formSchema = z.object({
   donorId: z.string().min(1, "Donor is required"),
   groupId: z.string().min(1, "Group is required"),
-  amount: z.coerce.number().min(1, "Amount is required"),
+  amount: z.number().min(1, "Amount is required"),
   date: z.string().min(1, "Date is required"),
   remarks: z.string().optional(),
 })
@@ -42,7 +42,7 @@ export function DonationForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       donorId: "",
       groupId: "",
@@ -72,14 +72,14 @@ export function DonationForm({
     if (res.success) {
       toast.success(t("donors.k_a37172"))
       router.push("/donors/donations")
-    } else {
-      toast.error((res as any).error)
+    } else if (res && 'error' in res) {
+      toast.error(String(res.error))
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8 max-w-2xl">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl">
         <Card>
           <CardHeader>
             <CardTitle>{t("donors.receive_donation_9b92b8")}</CardTitle>
@@ -147,7 +147,7 @@ export function DonationForm({
                   return ((
                                   <FormItem>
                                     <FormLabel>{t("donors.amount_5fb1f4")}</FormLabel>
-                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                    <FormControl><Input type="number" {...field} value={field.value || ""} onChange={e => field.onChange(parseInt(e.target.value) || 0)} /></FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 ));
