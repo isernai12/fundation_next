@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 type MemberDue = {
   id: string
@@ -51,6 +52,7 @@ type MemberDue = {
 }
 
 export function MemberDuesTable({ data }: { data: MemberDue[] }) {
+    const { t } = useLanguage();
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState("")
@@ -58,7 +60,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
   const columns: ColumnDef<MemberDue>[] = [
     {
       accessorKey: "name",
-      header: "Member Name",
+      header: t("members.table.member_name"),
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.getValue("name")}</div>
@@ -68,11 +70,11 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     },
     {
       accessorKey: "group",
-      header: "Group",
+      header: t("members.table.group"),
     },
     {
       accessorKey: "joinDate",
-      header: "Join Date",
+      header: t("members.table.join_date"),
       cell: ({ row }) => {
         const d = row.getValue("joinDate") as Date | null
         return d ? formatDate(d) : 'N/A'
@@ -87,22 +89,22 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     },
     {
       accessorKey: "monthlyContribution",
-      header: "Monthly Contribution",
+      header: t("members.table.monthly_contribution"),
       cell: ({ row }) => `৳${formatCurrency(row.getValue("monthlyContribution") as number || 0)}`
     },
     {
       accessorKey: "expectedContribution",
-      header: "Expected",
+      header: t("members.table.expected"),
       cell: ({ row }) => `৳${formatCurrency(row.getValue("expectedContribution") as number)}`
     },
     {
       accessorKey: "paid",
-      header: "Paid",
+      header: t("members.table.paid"),
       cell: ({ row }) => `৳${formatCurrency(row.getValue("paid") as number)}`
     },
     {
       accessorKey: "advanceBalance",
-      header: "Advance",
+      header: t("members.table.advance"),
       cell: ({ row }) => {
         const amt = row.getValue("advanceBalance") as number
         return amt > 0 ? <span className="text-green-600 font-medium">৳{formatCurrency(amt)}</span> : "৳0.00"
@@ -110,7 +112,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     },
     {
       accessorKey: "currentDue",
-      header: "Due",
+      header: t("members.table.due"),
       cell: ({ row }) => {
         const amount = row.getValue("currentDue") as number
         return (
@@ -122,7 +124,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: t("members.table.status"),
       cell: ({ row }) => {
         const status = row.getValue("status") as string
         let variant: "default" | "secondary" | "destructive" | "outline" = "default"
@@ -137,7 +139,7 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     },
     {
       accessorKey: "lastCollectionDate",
-      header: "Last Payment",
+      header: t("members.table.last_payment"),
       cell: ({ row }) => {
         const d = row.getValue("lastCollectionDate") as Date
         return d ? formatDate(d) : 'N/A'
@@ -151,13 +153,11 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
           <div className="flex space-x-2">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/members/ledger?memberId=${member.id}`}>
-                <BookOpen className="mr-2 h-4 w-4" /> Ledger
-              </Link>
+                <BookOpen className="mr-2 h-4 w-4" /> {t("members.actions.ledger")}</Link>
             </Button>
             <Button size="sm" asChild>
               <Link href={`/contributions/new?memberId=${member.id}`}>
-                <Wallet className="mr-2 h-4 w-4" /> Collect
-              </Link>
+                <Wallet className="mr-2 h-4 w-4" /> {t("members.actions.collect")}</Link>
             </Button>
           </div>
         )
@@ -193,13 +193,13 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
     <div>
       <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-2 space-y-2 md:space-y-0 py-2 flex-wrap gap-y-2">
         <Input
-          placeholder="Search by name, ID or phone..."
+          placeholder={t("members.table.search_dues")}
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
         <Input
-          placeholder="Filter by group..."
+          placeholder={t("members.table.filter_group")}
           value={(table.getColumn("group")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("group")?.setFilterValue(event.target.value)
@@ -211,13 +211,13 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
           onValueChange={(value) => table.getColumn("status")?.setFilterValue(value === "all" ? "" : value)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Due Status" />
+            <SelectValue placeholder={t("members.table.due_status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="Paid">Paid</SelectItem>
-            <SelectItem value="Due">Due</SelectItem>
-            <SelectItem value="Advance">Advance</SelectItem>
+            <SelectItem value="all">{t("members.table.all_statuses")}</SelectItem>
+            <SelectItem value="Paid">{t("members.status.paid")}</SelectItem>
+            <SelectItem value="Due">{t("members.status.due")}</SelectItem>
+            <SelectItem value="Advance">{t("members.status.advance")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -226,62 +226,65 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
           onValueChange={(value) => table.getColumn("joinDate")?.setFilterValue(value === "all" ? "" : value)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Join Month" />
+            <SelectValue placeholder={t("members.table.join_month")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Months</SelectItem>
-            <SelectItem value="1">January</SelectItem>
-            <SelectItem value="2">February</SelectItem>
-            <SelectItem value="3">March</SelectItem>
-            <SelectItem value="4">April</SelectItem>
-            <SelectItem value="5">May</SelectItem>
-            <SelectItem value="6">June</SelectItem>
-            <SelectItem value="7">July</SelectItem>
-            <SelectItem value="8">August</SelectItem>
-            <SelectItem value="9">September</SelectItem>
-            <SelectItem value="10">October</SelectItem>
-            <SelectItem value="11">November</SelectItem>
-            <SelectItem value="12">December</SelectItem>
+            <SelectItem value="all">{t("members.table.all_months")}</SelectItem>
+            <SelectItem value="1">{t("members.months.jan")}</SelectItem>
+            <SelectItem value="2">{t("members.months.feb")}</SelectItem>
+            <SelectItem value="3">{t("members.months.mar")}</SelectItem>
+            <SelectItem value="4">{t("members.months.apr")}</SelectItem>
+            <SelectItem value="5">{t("members.months.may")}</SelectItem>
+            <SelectItem value="6">{t("members.months.jun")}</SelectItem>
+            <SelectItem value="7">{t("members.months.jul")}</SelectItem>
+            <SelectItem value="8">{t("members.months.aug")}</SelectItem>
+            <SelectItem value="9">{t("members.months.sep")}</SelectItem>
+            <SelectItem value="10">{t("members.months.oct")}</SelectItem>
+            <SelectItem value="11">{t("members.months.nov")}</SelectItem>
+            <SelectItem value="12">{t("members.months.dec")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                              >
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
-                </TableCell>
+                  {t("members.table.no_results")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -294,16 +297,14 @@ export function MemberDuesTable({ data }: { data: MemberDue[] }) {
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
-        </Button>
+          {t("members.table.previous")}</Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
-        </Button>
+          {t("members.table.next")}</Button>
       </div>
     </div>
   )

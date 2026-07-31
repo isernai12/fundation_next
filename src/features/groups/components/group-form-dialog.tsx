@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import type { Group } from "@prisma/client"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface GroupFormDialogProps {
   group?: Group
@@ -32,6 +33,7 @@ interface GroupFormDialogProps {
 }
 
 export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
+    const { t } = useLanguage();
   const [open, setOpen] = useState(false)
   const isEditing = !!group
 
@@ -66,7 +68,7 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button>Create Group</Button>}
+        {trigger || <Button>{t("groups.create_group_e3be07")}</Button>}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -77,70 +79,77 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Alpha Group" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("groups.name_49ee30")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("groups.alpha_group_fb1484")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="G-ALPHA" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("groups.code_ca0dba")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("groups.g_alpha_3caa0a")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Optional description" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("groups.description_b5a7ad")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("groups.optional_description_d196d2")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             {isEditing && (
               <FormField
                 control={form.control}
                 name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">Active</SelectItem>
-                        <SelectItem value="INACTIVE">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("groups.status_ec53a8")}</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder={t("groups.select_a_status_5ed7d8")} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="ACTIVE">{t("groups.active_4d3d76")}</SelectItem>
+                                        <SelectItem value="INACTIVE">{t("groups.inactive_3cab03")}</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             )}
             <div className="flex justify-end space-x-2 pt-4">
               <Button variant="outline" type="button" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
+                {t("groups.cancel_ea4788")}</Button>
+              <Button type="submit">{t("groups.save_c9cc8c")}</Button>
             </div>
           </form>
         </Form>

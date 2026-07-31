@@ -1,7 +1,7 @@
 "use client"
 import { getNow } from "@/lib/date";
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -22,8 +22,10 @@ import { toast } from "sonner"
 import { createCampaign } from "../actions"
 import { campaignSchema, CampaignFormValues } from "../schema"
 import { Loader2 } from "lucide-react"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function CampaignForm() {
+    const { t } = useLanguage();
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -34,12 +36,17 @@ export function CampaignForm() {
       purpose: "",
       description: "",
       targetAmount: 0,
-      startDate: getNow().toLocaleDateString('en-CA'),
+      startDate: "",
       endDate: "",
       status: "ACTIVE",
       remarks: "",
     },
   })
+
+  
+  useEffect(() => {
+    form.setValue("startDate", getNow().toLocaleDateString('en-CA'))
+  }, [form])
 
   async function onSubmit(data: CampaignFormValues) {
     setLoading(true)
@@ -47,7 +54,7 @@ export function CampaignForm() {
     setLoading(false)
 
     if (result.success) {
-      toast.success("তহবিল কার্যক্রম সফলভাবে তৈরি হয়েছে")
+      toast.success(t("campaigns.k_18d302"))
       router.push("/campaigns/manage")
     } else {
       toast.error(result.error)
@@ -57,8 +64,8 @@ export function CampaignForm() {
   return (
     <Card className="max-w-3xl mx-auto shadow-sm border mt-4">
       <CardHeader className="border-b mb-6 pb-4">
-        <CardTitle className="text-xl font-bold">নতুন তহবিল কার্যক্রম</CardTitle>
-        <CardDescription>নতুন একটি তহবিল সংগ্রহের কার্যক্রম বা ক্যাম্পেইন শুরু করুন</CardDescription>
+        <CardTitle className="text-xl font-bold">{t("campaigns.k_7446b5")}</CardTitle>
+        <CardDescription>{t("campaigns.k_1e0185")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -67,133 +74,147 @@ export function CampaignForm() {
               <FormField
                 control={form.control}
                 name="name"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>কার্যক্রমের নাম *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="উদা: বিবাহ সহায়তা তহবিল" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="md:col-span-2">
+                                    <FormLabel>{t("campaigns.k_f78574")}</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder={t("campaigns.k_896249")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="purpose"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>উদ্দেশ্য *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="কার্যক্রমের মূল উদ্দেশ্য লিখুন" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="md:col-span-2">
+                                    <FormLabel>{t("campaigns.k_93721f")}</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder={t("campaigns.k_94d815")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="description"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>বিস্তারিত বিবরণ</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="বিস্তারিত তথ্য লিখুন" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="md:col-span-2">
+                                    <FormLabel>{t("campaigns.k_ead56b")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("campaigns.k_6781f2")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="targetAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>লক্ষ্যমাত্রা (টাকা) (ঐচ্ছিক)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} value={field.value || ""} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("campaigns.k_f6bd64")}</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" {...field} value={field.value || ""} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>স্ট্যাটাস</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="স্ট্যাটাস নির্বাচন করুন" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">চলমান (Active)</SelectItem>
-                        <SelectItem value="COMPLETED">সম্পন্ন (Completed)</SelectItem>
-                        <SelectItem value="CANCELLED">বাতিল (Cancelled)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("campaigns.k_5f429a")}</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder={t("campaigns.k_943add")} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="ACTIVE">{t("campaigns.active_fe0b1d")}</SelectItem>
+                                        <SelectItem value="COMPLETED">{t("campaigns.completed_c17809")}</SelectItem>
+                                        <SelectItem value="CANCELLED">{t("campaigns.cancelled_4890e5")}</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>শুরুর তারিখ *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("campaigns.k_b4bc76")}</FormLabel>
+                                    <FormControl>
+                                      <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>শেষের তারিখ (ঐচ্ছিক)</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("campaigns.k_aa85e4")}</FormLabel>
+                                    <FormControl>
+                                      <Input type="date" {...field} value={field.value || ""} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               
               <FormField
                 control={form.control}
                 name="remarks"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>মন্তব্য</FormLabel>
-                    <FormControl>
-                      <Input placeholder="যেকোনো মন্তব্য (যদি থাকে)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="md:col-span-2">
+                                    <FormLabel>{t("campaigns.k_550c03")}</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder={t("campaigns.k_865b82")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
             <div className="flex justify-end space-x-4 pt-6 border-t">
               <Button type="button" variant="outline" onClick={() => router.push("/campaigns/manage")}>
-                বাতিল করুন
-              </Button>
+                {t("campaigns.k_c94621")}</Button>
               <Button type="submit" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                সংরক্ষণ করুন
-              </Button>
+                {t("campaigns.k_f0d438")}</Button>
             </div>
           </form>
         </Form>

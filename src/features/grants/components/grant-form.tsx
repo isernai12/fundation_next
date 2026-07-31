@@ -1,7 +1,7 @@
 "use client"
 import { getNow } from "@/lib/date";
 
-import { useState, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -21,6 +21,7 @@ import { grantSchema, type GrantFormValues } from "../schema"
 import { uploadDocument, deleteDocumentById } from "@/features/documents/actions"
 import { MemberCombobox } from "@/components/member-combobox"
 import { GroupCombobox } from "@/components/group-combobox"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const SectionCard = ({
   title,
@@ -32,26 +33,29 @@ const SectionCard = ({
   isOpen: boolean
   onToggle: () => void
   children: React.ReactNode
-}) => (
-  <Collapsible open={isOpen} onOpenChange={onToggle}>
-    <Card className="mb-6 shadow-sm border-muted">
-      <CardHeader className="py-4 border-b bg-muted/10">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <CollapsibleTrigger asChild>
-            <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
-              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              <span className="sr-only">টগল করুন</span>
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-      </CardHeader>
-      <CollapsibleContent>
-        <CardContent className="pt-6">{children}</CardContent>
-      </CollapsibleContent>
-    </Card>
-  </Collapsible>
-)
+}) => {
+      const { t } = useLanguage();
+      return ((
+      <Collapsible open={isOpen} onOpenChange={onToggle}>
+        <Card className="mb-6 shadow-sm border-muted">
+          <CardHeader className="py-4 border-b bg-muted/10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+              <CollapsibleTrigger asChild>
+                <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
+                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <span className="sr-only">{t("grants.k_7b5f74")}</span>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-6">{children}</CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+    ));
+    }
 
 export function GrantForm({ 
   beneficiaries, 
@@ -66,6 +70,7 @@ export function GrantForm({
   initialDocuments?: any[]
   grantId?: string
 }) {
+    const { t } = useLanguage();
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const isEditing = !!grantId
@@ -88,7 +93,7 @@ export function GrantForm({
 
   const defaultValues: Partial<GrantFormValues> = initialData || {
     beneficiaryId: "",
-    grantDate: getNow().toLocaleDateString('en-CA'),
+    grantDate: "",
     amount: 0,
     grantReason: "",
     comment: "",
@@ -127,13 +132,18 @@ export function GrantForm({
     if (confirm("আপনি কি নিশ্চিত যে এই ডকুমেন্টটি মুছে ফেলতে চান?")) {
       const res = await deleteDocumentById(docId)
       if (res.success) {
-        toast.success("ডকুমেন্ট মুছে ফেলা হয়েছে")
+        toast.success(t("grants.k_f96d37"))
         setExistingDocs(prev => prev.filter(d => d.id !== docId))
       } else {
         toast.error("ডকুমেন্ট মুছতে ব্যর্থ হয়েছে: " + res.error)
       }
     }
   }
+
+  
+  useEffect(() => {
+    form.setValue("grantDate", getNow().toLocaleDateString('en-CA'))
+  }, [form])
 
   async function onSubmit(data: GrantFormValues) {
     setLoading(true)
@@ -149,7 +159,7 @@ export function GrantForm({
       
       // Upload pending files if any
       if (currentGrantId && pendingFiles.length > 0) {
-        toast.info("ডকুমেন্ট আপলোড করা হচ্ছে...")
+        toast.info(t("grants.k_c49823"))
         let uploadErrors = 0
         for (const file of pendingFiles) {
           const formData = new FormData()
@@ -180,141 +190,152 @@ export function GrantForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto space-y-6">
         
         {/* SECTION 1: Beneficiary */}
-        <SectionCard title="১. সুবিধাভোগী নির্বাচন" isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
+        <SectionCard title={t("grants.k_a183b1")} isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="beneficiaryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>সুবিধাভোগী নির্বাচন করুন</FormLabel>
-                  <FormControl>
-                    <MemberCombobox
-                      members={beneficiaries}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("grants.k_316bb4")}</FormLabel>
+                                <FormControl>
+                                  <MemberCombobox
+                                    members={beneficiaries}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
           </div>
         </SectionCard>
 
         {/* SECTION 2: Grant Information */}
-        <SectionCard title="২. অনুদানের তথ্য" isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
+        <SectionCard title={t("grants.k_57ca99")} isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="grantDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>তারিখ</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("grants.k_3e10c2")}</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>অনুদানের পরিমাণ (৳)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("grants.k_30fc04")}</FormLabel>
+                                <FormControl>
+                                  <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="grantReason"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>অনুদানের কারণ (অবশ্যই পূরণ করতে হবে)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="কেন এই অনুদান দেওয়া হচ্ছে তা বিস্তারিত লিখুন..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>{t("grants.k_5660ba")}</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder={t("grants.k_0a5c6b")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="comment"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>মন্তব্য (ঐচ্ছিক)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="যেকোনো অতিরিক্ত নোট..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>{t("grants.k_d44d54")}</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder={t("grants.k_8f9d58")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <div className="md:col-span-2 mt-4">
-              <h4 className="text-sm font-medium mb-3">ফান্ড বরাদ্দ (Funding Sources)</h4>
+              <h4 className="text-sm font-medium mb-3">{t("grants.funding_sources_8c4d29")}</h4>
               <div className="space-y-4">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex flex-col sm:flex-row items-end gap-4 p-4 border rounded-md bg-muted/5">
-                    <FormField
-                      control={form.control}
-                      name={`allocations.${index}.groupId`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1 w-full">
-                          <FormLabel>ফান্ডিং গ্রুপ</FormLabel>
-                          <FormControl>
-                            <GroupCombobox
-                              groups={groups}
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`allocations.${index}.amount`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1 w-full">
-                          <FormLabel>পরিমাণ (৳)</FormLabel>
-                          <FormControl>
-                            <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      className="mt-2 sm:mt-0"
-                      onClick={() => remove(index)}
-                      disabled={fields.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
+                {fields.map((field, index) => {
+                  return ((
+                                  <div key={field.id} className="flex flex-col sm:flex-row items-end gap-4 p-4 border rounded-md bg-muted/5">
+                                    <FormField
+                                      control={form.control}
+                                      name={`allocations.${index}.groupId`}
+                                      render={({ field }) => (
+                                        <FormItem className="flex-1 w-full">
+                                          <FormLabel>{t("grants.k_04c895")}</FormLabel>
+                                          <FormControl>
+                                            <GroupCombobox
+                                              groups={groups}
+                                              value={field.value}
+                                              onChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <FormField
+                                      control={form.control}
+                                      name={`allocations.${index}.amount`}
+                                      render={({ field }) => (
+                                        <FormItem className="flex-1 w-full">
+                                          <FormLabel>{t("grants.k_173a9f")}</FormLabel>
+                                          <FormControl>
+                                            <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <Button 
+                                      type="button" 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="mt-2 sm:mt-0"
+                                      onClick={() => remove(index)}
+                                      disabled={fields.length === 1}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                ));
+                })}
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <Button type="button" variant="outline" size="sm" onClick={() => append({ groupId: "", amount: 0 })}>
-                    <Plus className="mr-2 h-4 w-4" /> আরও একটি গ্রুপ যোগ করুন
-                  </Button>
+                    <Plus className="mr-2 h-4 w-4" /> {t("grants.k_0fc994")}</Button>
                   
                   <div className="text-sm">
-                    <span className="text-muted-foreground mr-2">মোট বরাদ্দ:</span>
+                    <span className="text-muted-foreground mr-2">{t("grants.k_545972")}</span>
                     <span className={`font-bold ${totalAllocated !== currentAmount ? 'text-destructive' : 'text-primary'}`}>
-                      ৳{totalAllocated.toFixed(2)} / ৳{currentAmount.toFixed(2)}
+                      ৳{totalAllocated.toFixed(2)} {t("grants.k_b2e71d")}{currentAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -330,13 +351,13 @@ export function GrantForm({
         </SectionCard>
 
         {/* SECTION 3: Documents */}
-        <SectionCard title="৩. ডকুমেন্ট (ঐচ্ছিক)" isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
+        <SectionCard title={t("grants.k_e17831")} isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
           <div className="space-y-4">
             
             {/* Existing Documents List */}
             {existingDocs.length > 0 && (
               <div className="space-y-2 mb-4">
-                <h4 className="text-sm font-medium">বিদ্যমান ডকুমেন্টস:</h4>
+                <h4 className="text-sm font-medium">{t("grants.k_63988f")}</h4>
                 <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   {existingDocs.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between p-2 border rounded bg-muted/20">
@@ -358,7 +379,7 @@ export function GrantForm({
             {/* Pending Files List */}
             {pendingFiles.length > 0 && (
               <div className="space-y-2 mb-4">
-                <h4 className="text-sm font-medium">নতুন যোগ করা ডকুমেন্টস (সংরক্ষণ করার পর আপলোড হবে):</h4>
+                <h4 className="text-sm font-medium">{t("grants.k_6099da")}</h4>
                 <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   {pendingFiles.map((file, idx) => (
                     <div key={idx} className="flex items-center justify-between p-2 border rounded bg-primary/5 border-primary/20">
@@ -378,8 +399,8 @@ export function GrantForm({
             <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/30 transition-colors"
                  onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-10 w-10 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">ডকুমেন্ট আপলোড করতে এখানে ক্লিক করুন</p>
-              <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG, WEBP (সর্বোচ্চ ৫ MB)</p>
+              <p className="text-sm font-medium">{t("grants.k_97d873")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("grants.pdf_jpg_png_webp_mb_e8adfb")}</p>
               <input 
                 type="file" 
                 multiple 
@@ -395,8 +416,7 @@ export function GrantForm({
 
         <div className="flex justify-end space-x-4 pt-6 border-t">
           <Button variant="outline" type="button" onClick={() => router.push("/grants/manage")}>
-            বাতিল
-          </Button>
+            {t("grants.k_de9b04")}</Button>
           <Button type="submit" disabled={loading || totalAllocated !== currentAmount}>
             {loading ? "সংরক্ষণ করা হচ্ছে..." : (isEditing ? "আপডেট করুন" : "সংরক্ষণ")}
           </Button>

@@ -4,9 +4,10 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { ChevronRight, Plus, HeartHandshake } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Trans } from "@/components/shared/trans";
 
 export const metadata = {
-  title: "অনুদান গ্রহণ ব্যবস্থাপনা | Foundation ERP",
+  title: "Donation Management | Foundation ERP",
   description: "Manage all received donation transactions, print receipts, and synchronize ledgers.",
 }
 
@@ -25,10 +26,9 @@ export default async function ReceivedDonationsPage() {
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/donors/manage" className="hover:text-primary transition-colors">
-          অনুদানদাতা
-        </Link>
+          <Trans tKey="donors.donations_page.breadcrumb_donors" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">অনুদান গ্রহণ ব্যবস্থাপনা</span>
+        <span className="font-medium text-foreground"><Trans tKey="donors.donations_page.breadcrumb_transactions" /></span>
       </div>
 
       {/* Page Header */}
@@ -36,17 +36,15 @@ export default async function ReceivedDonationsPage() {
         <div>
           <div className="flex items-center gap-2">
             <HeartHandshake className="w-7 h-7 text-primary" />
-            <h1 className="text-3xl font-bold tracking-tight">অনুদান গ্রহণ ব্যবস্থাপনা</h1>
+            <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="donors.donations_page.title" /></h1>
           </div>
           <p className="text-muted-foreground mt-1 text-sm">
-            পূর্বে গৃহীত সকল অনুদান লেনদেনের ব্যবস্থাপনা, রিসিট প্রিন্ট ও লেজার অনুসন্ধান করুন। (Ledger Synchronized)
-          </p>
+            <Trans tKey="donors.donations_page.subtitle" /></p>
         </div>
         <div className="flex items-center gap-3">
           <Button asChild className="shadow-sm">
             <Link href="/donors/receive">
-              <Plus className="mr-2 h-4 w-4" /> নতুন অনুদান গ্রহণ
-            </Link>
+              <Plus className="mr-2 h-4 w-4" /> <Trans tKey="donors.donations_page.new_donation" /></Link>
           </Button>
         </div>
       </div>

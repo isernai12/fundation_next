@@ -28,8 +28,10 @@ const formSchema = z.object({
 })
 
 import { useBranding } from "@/components/providers/branding-provider"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function LoginForm() {
+    const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const branding = useBranding()
@@ -57,12 +59,12 @@ export function LoginForm() {
       if (res?.error) {
         toast.error(res.error)
       } else if (res?.ok) {
-        toast.success("সফলভাবে লগইন হয়েছে")
+        toast.success(t("app.k_09292c"))
         router.push("/")
         router.refresh()
       }
     } catch (err) {
-      toast.error("লগইন করার সময় একটি ত্রুটি ঘটেছে")
+      toast.error(t("app.k_b4d33b"))
     } finally {
       setIsLoading(false)
     }
@@ -74,7 +76,7 @@ export function LoginForm() {
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
             {branding.loginLogo || branding.logo ? (
-              <img src={branding.loginLogo || branding.logo!} alt="Logo" className="h-16 w-auto object-contain" />
+              <img src={branding.loginLogo || branding.logo!} alt={t("app.logo_8c2857")} className="h-16 w-auto object-contain" />
             ) : (
               <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center">
                 <Building className="h-6 w-6 text-white" />
@@ -82,7 +84,7 @@ export function LoginForm() {
             )}
           </div>
           <CardTitle className="text-2xl font-bold">{branding.foundationName || "Foundation ERP"}</CardTitle>
-          <CardDescription>আপনার অ্যাকাউন্টে প্রবেশ করুন</CardDescription>
+          <CardDescription>{t("app.k_641311")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -93,46 +95,52 @@ export function LoginForm() {
               <FormField
                 control={form.control}
                 name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ব্যবহারকারীর নাম বা ইমেইল</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ব্যবহারকারীর নাম বা ইমেইল লিখুন" disabled={isLoading} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("app.k_830f32")}</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder={t("app.k_a5731a")} disabled={isLoading} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               <FormField
                 control={form.control}
                 name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>পাসওয়ার্ড</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="পাসওয়ার্ড লিখুন" disabled={isLoading} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("app.k_3eb963")}</FormLabel>
+                                    <FormControl>
+                                      <Input type="password" placeholder={t("app.k_c86221")} disabled={isLoading} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               <FormField
                 control={form.control}
                 name="rememberMe"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Remember me (আমাকে মনে রাখুন)</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-2">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        disabled={isLoading}
+                                      />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                      <FormLabel>{t("app.remember_me_b881a3")}</FormLabel>
+                                    </div>
+                                  </FormItem>
+                                ));
+                }}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

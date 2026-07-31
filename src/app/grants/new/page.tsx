@@ -3,6 +3,7 @@ import { getBeneficiaries } from "@/features/beneficiaries/actions"
 import { getGroups } from "@/features/groups/actions"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
+import { Trans } from "@/components/shared/trans";
 
 export default async function AddGrantPage() {
   const beneficiaries = await getBeneficiaries()
@@ -12,16 +13,15 @@ export default async function AddGrantPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/grants" className="hover:text-primary transition-colors">
-          অনুদান
-        </Link>
+          <Trans tKey="app.text" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">নতুন অনুদান</span>
+        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">নতুন অনুদান প্রদান</h1>
-          <p className="text-muted-foreground mt-1">একটি নতুন আর্থিক বা উপাদানগত অনুদান প্রক্রিয়া করুন।</p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+          <p className="text-muted-foreground mt-1"><Trans tKey="app.text" /></p>
         </div>
       </div>
 

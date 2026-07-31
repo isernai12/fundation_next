@@ -7,6 +7,7 @@ import { getDocumentsByEntity } from "@/features/documents/actions"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { notFound } from "next/navigation"
+import { Trans } from "@/components/shared/trans";
 
 export default async function EditGrantPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -34,20 +35,19 @@ export default async function EditGrantPage({ params }: { params: Promise<{ id: 
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/grants" className="hover:text-primary transition-colors">
-          অনুদান
-        </Link>
+          <Trans tKey="app.text" /></Link>
         <ChevronRight className="h-4 w-4" />
         <Link href={`/grants/${grant.id}`} className="hover:text-primary transition-colors">
           {grant.grantNumber}
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">সম্পাদনা</span>
+        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">অনুদান সম্পাদনা</h1>
-          <p className="text-muted-foreground mt-1">এই অনুদানের বিস্তারিত তথ্য আপডেট করুন।</p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+          <p className="text-muted-foreground mt-1"><Trans tKey="app.text" /></p>
         </div>
       </div>
 

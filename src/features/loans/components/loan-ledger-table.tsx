@@ -28,8 +28,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { ChevronDown, ChevronRight, Printer, Search } from "lucide-react"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
+    const { t } = useLanguage();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const columns: ColumnDef<any>[] = [
@@ -56,7 +58,9 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     },
     {
       accessorKey: "debit",
-      header: () => <div className="text-right">Debit (Disbursed)</div>,
+      header: () => {
+        return (<div className="text-right">{t("loans.debit_disbursed_832e0a")}</div>);
+      },
       cell: ({ row }) => {
         const amount = row.getValue("debit") as number
         return <div className="text-right text-red-600 font-medium">{amount > 0 ? `৳${amount}` : "-"}</div>
@@ -64,7 +68,9 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     },
     {
       accessorKey: "credit",
-      header: () => <div className="text-right">Credit (Repaid)</div>,
+      header: () => {
+        return (<div className="text-right">{t("loans.credit_repaid_160c6f")}</div>);
+      },
       cell: ({ row }) => {
         const amount = row.getValue("credit") as number
         return <div className="text-right text-green-600 font-medium">{amount > 0 ? `৳${amount}` : "-"}</div>
@@ -72,7 +78,9 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     },
     {
       accessorKey: "balance",
-      header: () => <div className="text-right">Balance</div>,
+      header: () => {
+        return (<div className="text-right">{t("loans.balance_99a808")}</div>);
+      },
       cell: ({ row }) => {
         const amount = row.getValue("balance") as number
         return <div className="text-right font-bold">৳{amount}</div>
@@ -90,14 +98,14 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm">
-                View Entries <ChevronDown className="ml-2 h-4 w-4" />
+                {t("loans.view_entries_e70b98")}<ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 space-y-2 text-sm bg-muted/50 p-2 rounded-md">
               <div className="grid grid-cols-3 font-semibold mb-1">
-                <div>Fund</div>
-                <div className="text-right">Debit</div>
-                <div className="text-right">Credit</div>
+                <div>{t("loans.fund_c1098d")}</div>
+                <div className="text-right">{t("loans.debit_009534")}</div>
+                <div className="text-right">{t("loans.credit_0a90b1")}</div>
               </div>
               {row.original.entries.map((e: any) => (
                 <div key={e.id} className="grid grid-cols-3">
@@ -133,47 +141,51 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search Loan #, Beneficiary, Date..."
+            placeholder={t("loans.search_loan_benefici_debf43")}
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-8"
           />
         </div>
-        <Button variant="outline" onClick={() => window.print()}>
+        <Button variant="outline" onClick={() => {
+                return (window.print());
+              }}>
           <Printer className="mr-2 h-4 w-4" />
-          Print Ledger
-        </Button>
+          {t("loans.print_ledger_f63e33")}</Button>
       </div>
       
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No transactions found.
-                </TableCell>
+                  {t("loans.no_transactions_foun_808425")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -181,11 +193,9 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 no-print">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
-        </Button>
+          {t("loans.previous_dd1f77")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
-        </Button>
+          {t("loans.next_10ac3d")}</Button>
       </div>
       <style jsx global>{`
         @media print {

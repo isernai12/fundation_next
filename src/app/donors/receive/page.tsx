@@ -3,9 +3,10 @@ import { getDonors } from "@/features/donors/actions"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
+import { Trans } from "@/components/shared/trans";
 
 export const metadata = {
-  title: "অনুদান গ্রহণ | Foundation ERP",
+  title: "Receive Donation | Foundation ERP",
 }
 
 export default async function ReceiveDonationPage() {
@@ -19,18 +20,16 @@ export default async function ReceiveDonationPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/donors/manage" className="hover:text-primary transition-colors">
-          অনুদানদাতা
-        </Link>
+          <Trans tKey="donors.receive_page.breadcrumb_donors" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">অনুদান গ্রহণ</span>
+        <span className="font-medium text-foreground"><Trans tKey="donors.receive_page.breadcrumb_receive" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">অনুদান গ্রহণ</h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="donors.receive_page.title" /></h1>
           <p className="text-muted-foreground">
-            অনুদানদাতার কাছ থেকে সাধারণ তহবিল অথবা নির্দিষ্ট কার্যক্রমে অনুদান রেকর্ড করুন।
-          </p>
+            <Trans tKey="donors.receive_page.subtitle" /></p>
         </div>
       </div>
 

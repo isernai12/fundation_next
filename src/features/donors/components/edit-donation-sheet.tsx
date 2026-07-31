@@ -32,12 +32,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const editSchema = z.object({
-  donorId: z.string().min(1, "অনুদানদাতা নির্বাচন করুন"),
-  groupId: z.string().min(1, "তহবিল গন্তব্য গ্রুপ নির্বাচন করুন"),
-  amount: z.coerce.number().min(1, "পরিমাণ আবশ্যক"),
-  date: z.string().min(1, "তারিখ আবশ্যক"),
+  donorId: z.string().min(1, "Donor is required"),
+  groupId: z.string().min(1, "Group is required"),
+  amount: z.coerce.number().min(1, "Amount is required"),
+  date: z.string().min(1, "Date is required"),
   remarks: z.string().optional(),
 })
 
@@ -52,6 +53,7 @@ interface EditDonationSheetProps {
 }
 
 export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }: EditDonationSheetProps) {
+    const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<EditFormValues>({
@@ -60,7 +62,7 @@ export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }:
       donorId: "",
       groupId: "",
       amount: 0,
-      date: getNow().toLocaleDateString('en-CA'),
+      date: "",
       remarks: "",
     },
   })
@@ -91,12 +93,12 @@ export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }:
     setIsSubmitting(false)
 
     if (result.success) {
-      toast.success("অনুদান সফলভাবে আপডেট হয়েছে", { 
-        description: "স্বয়ংক্রিয়ভাবে ডোনার লেজার, গ্রুপ লেজার, এবং ড্যাশবোর্ড হিসাব সিঙ্ক্রোনাইজ (Update) করা হয়েছে।" 
+      toast.success(t("donors.k_b3d00a"), { 
+        description: t("donors.edit_donation.sync_success") 
       })
       onClose()
     } else {
-      toast.error("আপডেট ব্যর্থ হয়েছে", { description: (result as any).error })
+      toast.error(t("donors.k_f4b1e8"), { description: (result as any).error })
     }
   }
 
@@ -104,16 +106,15 @@ export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }:
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>অনুদান লেনদেন সম্পাদনা (Edit Donation)</SheetTitle>
+          <SheetTitle>{t("donors.edit_donation_ddd78c")}</SheetTitle>
           <SheetDescription>
-            অনুদানের তথ্য সম্পাদনা করুন। এটি স্বয়ংক্রিয়ভাবে ডোনার লেজার, গ্রুপ লেজার ও ড্যাশবোর্ড হিসাব আপডেট করবে (Single DB Transaction)।
-          </SheetDescription>
+            {t("donors.single_db_transactio_12c012")}</SheetDescription>
         </SheetHeader>
 
         <div className="my-4 p-3 bg-muted/40 rounded-md border text-sm">
-          <p><span className="font-medium text-muted-foreground">ভাউচার নং:</span> {donation.voucherNo}</p>
-          <p><span className="font-medium text-muted-foreground">বর্তমান পরিমাণ:</span> ৳{donation.amount}</p>
-          <p><span className="font-medium text-muted-foreground">এন্ট্রি করেছেন:</span> {donation.createdBy}</p>
+          <p><span className="font-medium text-muted-foreground">{t("donors.k_347e5a")}</span> {donation.voucherNo}</p>
+          <p><span className="font-medium text-muted-foreground">{t("donors.k_25bccc")}</span> ৳{donation.amount}</p>
+          <p><span className="font-medium text-muted-foreground">{t("donors.k_d6b11f")}</span> {donation.createdBy}</p>
         </div>
 
         <Form {...form}>
@@ -121,101 +122,110 @@ export function EditDonationSheet({ isOpen, onClose, donation, donors, groups }:
             <FormField
               control={form.control}
               name="donorId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>অনুদানদাতা (Donor) *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="অনুদানদাতা নির্বাচন করুন" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {donors.map((d) => (
-                        <SelectItem key={d.id} value={d.id}>
-                          {d.fullName} ({d.donorId}) - {d.mobile}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("donors.donor_462f00")}</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder={t("donors.k_1d5605")} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {donors.map((d) => (
+                                      <SelectItem key={d.id} value={d.id}>
+                                        {d.fullName} ({d.donorId}) - {d.mobile}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <FormField
               control={form.control}
               name="groupId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>তহবিল গন্তব্য (Selected Group) *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="ফাউন্ডেশন গ্রুপ নির্বাচন করুন" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groups.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>
-                          {g.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("donors.selected_group_06aad2")}</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder={t("donors.k_4a6394")} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {groups.map((g) => (
+                                      <SelectItem key={g.id} value={g.id}>
+                                        {g.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <FormField
               control={form.control}
               name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>পরিমাণ (Amount in ৳) *</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="any" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("donors.amount_in_108419")}</FormLabel>
+                                <FormControl>
+                                  <Input type="number" step="any" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <FormField
               control={form.control}
               name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>তারিখ (Date) *</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("donors.date_fd1a4c")}</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <FormField
               control={form.control}
               name="remarks"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>বিবরণ / মন্তব্য (Remarks)</FormLabel>
-                  <FormControl>
-                    <Textarea rows={3} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("donors.remarks_19ab1b")}</FormLabel>
+                                <FormControl>
+                                  <Textarea rows={3} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
-                বাতিল (Cancel)
-              </Button>
+                {t("donors.cancel_adfff0")}</Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "আপডেট হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
+                {isSubmitting ? t("donors.edit_donation.updating") : t("donors.edit_donation.save_changes")}
               </Button>
             </div>
           </form>

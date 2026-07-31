@@ -5,8 +5,10 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getGroups } from "../actions"
 import type { Group } from "@prisma/client"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function GroupSelector() {
+    const { t } = useLanguage();
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -30,10 +32,10 @@ export function GroupSelector() {
 
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium">Select Group:</span>
+      <span className="text-sm font-medium">{t("groups.select_group_d56696")}</span>
       <Select value={currentGroupId} onValueChange={handleValueChange}>
         <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder="Select a group..." />
+          <SelectValue placeholder={t("groups.select_a_group_993cfb")} />
         </SelectTrigger>
         <SelectContent>
           {groups.map((g) => (

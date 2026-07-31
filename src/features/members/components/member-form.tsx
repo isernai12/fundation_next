@@ -38,6 +38,7 @@ import { memberSchema, type MemberFormValues } from "../schema";
 import { createMember, updateMember, deleteMemberDocument } from "../actions";
 import type { Member } from "@prisma/client";
 import { formatDate } from "@/lib/format";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const SectionCard = ({
   title,
@@ -49,26 +50,29 @@ const SectionCard = ({
   isOpen: boolean;
   onToggle: () => void;
   children: React.ReactNode;
-}) => (
-  <Collapsible open={isOpen} onOpenChange={onToggle}>
-    <Card className="mb-6 shadow-sm border-muted">
-      <CardHeader className="py-4 border-b bg-muted/10">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <CollapsibleTrigger asChild>
-            <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
-              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              <span className="sr-only">Toggle</span>
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-      </CardHeader>
-      <CollapsibleContent>
-        <CardContent className="pt-6">{children}</CardContent>
-      </CollapsibleContent>
-    </Card>
-  </Collapsible>
-);
+}) => {
+      const { t } = useLanguage();
+      return ((
+      <Collapsible open={isOpen} onOpenChange={onToggle}>
+        <Card className="mb-6 shadow-sm border-muted">
+          <CardHeader className="py-4 border-b bg-muted/10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+              <CollapsibleTrigger asChild>
+                <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
+                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <span className="sr-only">{t("members.common.toggle")}</span>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-6">{children}</CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+    ));
+    };
 
 export function MemberForm({ 
   groups, 
@@ -83,6 +87,7 @@ export function MemberForm({
   initialData?: Partial<MemberFormValues>,
   member?: any
 }) {
+    const { t } = useLanguage();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -157,13 +162,13 @@ export function MemberForm({
     try {
       const res = mode === "edit" ? await updateMember(memberId!, data) : await createMember(data);
       if (res.success) {
-        toast.success(mode === "edit" ? "সদস্য আপডেট করা হয়েছে" : "সদস্য যুক্ত করা হয়েছে");
+        toast.success(mode === "edit" ? t("members.messages.update_success") : t("members.messages.add_success"));
         router.push("/members/manage");
       } else {
-        toast.error(res.error || "সদস্য সংরক্ষণ করতে ব্যর্থ হয়েছে");
+        toast.error(res.error ? t(res.error) : t("members.messages.save_error"));
       }
     } catch (error) {
-      toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
+      toast.error(t("members.messages.unexpected_error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -184,7 +189,7 @@ export function MemberForm({
   };
 
   const handleDeleteDocument = async (title: string, fieldName: keyof MemberFormValues) => {
-    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি এই ডকুমেন্টটি মুছে ফেলতে চান?")) return;
+    if (!window.confirm(t("members.messages.delete_confirm"))) return;
     
     // Clear local form state
     form.setValue(fieldName, "");
@@ -194,13 +199,13 @@ export function MemberForm({
       try {
         const res = await deleteMemberDocument(memberId, title);
         if (res.success) {
-          toast.success("ডকুমেন্ট সফলভাবে মুছে ফেলা হয়েছে");
+          toast.success(t("members.messages.delete_success"));
           router.refresh(); // Refresh page to get updated DB state
         } else {
-          toast.error(res.error || "ডকুমেন্ট মুছে ফেলতে ব্যর্থ হয়েছে");
+          toast.error(res.error ? t(res.error) : t("members.messages.delete_error"));
         }
       } catch (e) {
-        toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
+        toast.error(t("members.messages.unexpected_error"));
       }
     }
   };
@@ -240,7 +245,7 @@ export function MemberForm({
             className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
           >
             <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-sm font-medium">ছবি আপলোড করুন</p>
+            <p className="text-sm font-medium">{t("members.documents.upload_helper")}</p>
             <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
           </div>
         ) : (
@@ -248,7 +253,7 @@ export function MemberForm({
             <div className="relative border rounded-lg overflow-hidden h-48 w-full group bg-muted/10">
               <Image 
                 src={watchVal || existingUrl!} 
-                alt="Preview" 
+                alt={t("members.documents.preview")} 
                 fill 
                 className="object-contain" 
               />
@@ -259,21 +264,21 @@ export function MemberForm({
                   size="sm"
                   onClick={() => inputRef.current?.click()}
                 >
-                  Replace
-                </Button>
+                  {t("members.documents.replace")}</Button>
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeleteDocument(dbTitle, field)}
+                  onClick={() => {
+                    return (handleDeleteDocument(dbTitle, field));
+                  }}
                 >
-                  Delete
-                </Button>
+                  {t("members.documents.delete")}</Button>
               </div>
             </div>
             {!watchVal && existingUrl && docObj && (
               <div className="text-center text-xs text-muted-foreground">
-                Uploaded on: {formatDate(docObj.createdAt)}
+                {t("members.documents.uploaded_on")}{formatDate(docObj.createdAt)}
               </div>
             )}
           </div>
@@ -290,11 +295,11 @@ export function MemberForm({
           <Card className="bg-muted/30">
             <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">সদস্য আইডি</p>
+                <p className="text-sm text-muted-foreground">{t("members.edit_header.member_id")}</p>
                 <p className="font-mono font-medium">{member.memberId}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">যোগদানের তারিখ</p>
+                <p className="text-sm text-muted-foreground">{t("members.edit_header.join_date")}</p>
                 <p className="font-medium">{formatDate(member.createdAt)}</p>
               </div>
             </CardContent>
@@ -305,312 +310,349 @@ export function MemberForm({
           <FormField
             control={form.control}
             name="groupId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-lg">গ্রুপ নির্বাচন করুন *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="w-full md:w-[400px]">
-                      <SelectValue placeholder="একটি গ্রুপ নির্বাচন করুন" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {groups.map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        {g.name} ({g.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              return ((
+                          <FormItem>
+                            <FormLabel className="text-lg">{t("members.group_selector.label")}</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="w-full md:w-[400px]">
+                                  <SelectValue placeholder={t("members.group_selector.placeholder")} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {groups.map((g) => (
+                                  <SelectItem key={g.id} value={g.id}>
+                                    {g.name} ({g.code})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        ));
+            }}
           />
         </div>
 
         {/* SECTION 1: ব্যক্তিগত তথ্য */}
-        <SectionCard title="১. ব্যক্তিগত তথ্য" isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
+        <SectionCard title={t("members.personal_info.section_title")} isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>পূর্ণ নাম *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="সদস্যের পূর্ণ নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.full_name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.full_name_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="fatherName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>পিতার নাম</FormLabel>
-                  <FormControl>
-                    <Input placeholder="পিতার নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.father_name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.father_name")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="motherName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মাতার নাম</FormLabel>
-                  <FormControl>
-                    <Input placeholder="মাতার নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.mother_name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.mother_name")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>জন্ম তারিখ</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.dob")}</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="nationalId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="এনআইডি বা জন্ম নিবন্ধন নম্বর" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.national_id_bc")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.national_id_bc_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="occupation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>পেশা / কর্মক্ষেত্র</FormLabel>
-                  <FormControl>
-                    <Input placeholder="পেশা বা কর্মক্ষেত্র" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.occupation")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.occupation_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="education"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>শিক্ষাগত যোগ্যতা</FormLabel>
-                  <FormControl>
-                    <Input placeholder="শিক্ষাগত যোগ্যতা" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.education")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.education")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="bloodGroup"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>রক্তের গ্রুপ</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="রক্তের গ্রুপ নির্বাচন করুন" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="A+">A+</SelectItem>
-                      <SelectItem value="A-">A-</SelectItem>
-                      <SelectItem value="B+">B+</SelectItem>
-                      <SelectItem value="B-">B-</SelectItem>
-                      <SelectItem value="AB+">AB+</SelectItem>
-                      <SelectItem value="AB-">AB-</SelectItem>
-                      <SelectItem value="O+">O+</SelectItem>
-                      <SelectItem value="O-">O-</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.blood_group")}</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder={t("members.personal_info.blood_group_placeholder")} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="A+">{"A+"}</SelectItem>
+                                    <SelectItem value="A-">{"A-"}</SelectItem>
+                                    <SelectItem value="B+">{"B+"}</SelectItem>
+                                    <SelectItem value="B-">{"B-"}</SelectItem>
+                                    <SelectItem value="AB+">{"AB+"}</SelectItem>
+                                    <SelectItem value="AB-">{"AB-"}</SelectItem>
+                                    <SelectItem value="O+">{"O+"}</SelectItem>
+                                    <SelectItem value="O-">{"O-"}</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="mobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মোবাইল নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="মোবাইল নম্বর" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.mobile")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.mobile")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ইমেইল (যদি থাকে)</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="example@email.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.email")}</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder={t("members.personal_info.email_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <div className="md:col-span-2">
               <FormField
                 control={form.control}
                 name="presentAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>বর্তমান ঠিকানা</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="বর্তমান ঠিকানা লিখুন" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("members.personal_info.present_address")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("members.personal_info.present_address_placeholder")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
             <div className="md:col-span-2">
               <FormField
                 control={form.control}
                 name="permanentAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>স্থায়ী ঠিকানা</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="স্থায়ী ঠিকানা লিখুন" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("members.personal_info.permanent_address")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("members.personal_info.permanent_address_placeholder")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
           </div>
         </SectionCard>
 
         {/* SECTION 2: জরুরি যোগাযোগ */}
-        <SectionCard title="২. জরুরি যোগাযোগ" isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
+        <SectionCard title={t("members.emergency_contact.section_title")} isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="emergencyContactName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>নাম</FormLabel>
-                  <FormControl>
-                    <Input placeholder="নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.emergency_contact.name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.emergency_contact.name")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="emergencyContactRelation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>সম্পর্ক</FormLabel>
-                  <FormControl>
-                    <Input placeholder="সম্পর্ক" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.emergency_contact.relation")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.emergency_contact.relation")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="emergencyContactMobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মোবাইল নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="মোবাইল নম্বর" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.emergency_contact.mobile")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.emergency_contact.mobile")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
           </div>
         </SectionCard>
 
         {/* SECTION 3: রেফারেন্সদাতা */}
-        <SectionCard title="৩. রেফারেন্সদাতা (যিনি সদস্যকে সুপারিশ করেছেন)" isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
+        <SectionCard title={t("members.reference.section_title")} isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="referenceName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>নাম</FormLabel>
-                  <FormControl>
-                    <Input placeholder="নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.emergency_contact.name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.emergency_contact.name")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="referenceRelation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>সম্পর্ক</FormLabel>
-                  <FormControl>
-                    <Input placeholder="সম্পর্ক" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.emergency_contact.relation")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.emergency_contact.relation")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="referenceMobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মোবাইল নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="মোবাইল নম্বর" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("members.personal_info.mobile")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("members.personal_info.mobile")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
           </div>
         </SectionCard>
 
         {/* SECTION 4: অঙ্গীকার */}
-        <SectionCard title="৪. অঙ্গীকার" isOpen={openSections.section4} onToggle={() => toggleSection("section4")}>
+        <SectionCard title={t("members.commitment.section_title")} isOpen={openSections.section4} onToggle={() => toggleSection("section4")}>
           <div className="p-6 bg-muted/20 rounded-md border text-base text-foreground leading-relaxed">
-            আমি ঘোষণা করছি যে ফাউন্ডেশনের উদ্দেশ্য, আদর্শ ও নীতিমালার প্রতি সম্মান রেখে একজন দায়িত্বশীল সদস্য হিসেবে কাজ করার চেষ্টা করব। আমি আমার সামর্থ্য অনুযায়ী ফাউন্ডেশনের মানবিক কার্যক্রমে সহযোগিতা করব এবং সংগঠনের শৃঙ্খলা, পারস্পরিক সম্মান ও ভ্রাতৃত্বের মূল্যবোধ বজায় রাখব ইনশাআল্লাহ।
-          </div>
+            {t("members.commitment.description")}</div>
         </SectionCard>
 
         {/* SECTION 5: ডকুমেন্টস */}
-        <SectionCard title="৫. ডকুমেন্টস" isOpen={openSections.section5} onToggle={() => toggleSection("section5")}>
+        <SectionCard title={t("members.documents.section_title")} isOpen={openSections.section5} onToggle={() => toggleSection("section5")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <UploadBox 
-              title="সদস্যের ছবি" 
-              subtext="JPEG, PNG বা JPG" 
+              title={t("members.documents.member_photo")} 
+              subtext={t("members.documents.format_helper")} 
               inputRef={photoInputRef} 
               field="photoBase64" 
               dbTitle="Member Photo"
@@ -618,8 +660,8 @@ export function MemberForm({
             />
             
             <UploadBox 
-              title="স্বাক্ষর (ঐচ্ছিক)" 
-              subtext="JPEG, PNG বা JPG" 
+              title={t("members.documents.signature")} 
+              subtext={t("members.documents.format_helper")} 
               inputRef={signatureInputRef} 
               field="signatureBase64" 
               dbTitle="Signature"
@@ -630,51 +672,51 @@ export function MemberForm({
               <FormField
                 control={form.control}
                 name="idDocumentType"
-                render={({ field }) => (
-                  <FormItem className="mb-6">
-                    <FormLabel className="text-base font-semibold">পরিচয়পত্র ধরন</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value}
-                        className="flex space-x-6 mt-2"
-                      >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="NID" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">
-                            জাতীয় পরিচয়পত্র (NID)
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="BIRTH_CERTIFICATE" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">
-                            জন্ম নিবন্ধন
-                          </FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="mb-6">
+                                    <FormLabel className="text-base font-semibold">{t("members.documents.document_type")}</FormLabel>
+                                    <FormControl>
+                                      <RadioGroup
+                                        onValueChange={(val) => field.onChange(val)}
+                                        value={field.value}
+                                        className="flex space-x-6 mt-2"
+                                      >
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                          <FormControl>
+                                            <RadioGroupItem value="NID" />
+                                          </FormControl>
+                                          <FormLabel className="font-normal cursor-pointer">
+                                            {t("members.documents.nid")}</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                          <FormControl>
+                                            <RadioGroupItem value="BIRTH_CERTIFICATE" />
+                                          </FormControl>
+                                          <FormLabel className="font-normal cursor-pointer">
+                                            {t("members.documents.birth_certificate")}</FormLabel>
+                                        </FormItem>
+                                      </RadioGroup>
+                                    </FormControl>
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
             {form.watch("idDocumentType") === "NID" ? (
               <>
                 <UploadBox 
-                  title="জাতীয় পরিচয়পত্র (সামনের অংশ)" 
-                  subtext="JPEG, PNG বা JPG" 
+                  title={t("members.documents.nid_front")} 
+                  subtext={t("members.documents.format_helper")} 
                   inputRef={nidFrontInputRef} 
                   field="nidFrontBase64" 
                   dbTitle="NID Front"
                   existingUrl={existingNidFront} 
                 />
                 <UploadBox 
-                  title="জাতীয় পরিচয়পত্র (পেছনের অংশ)" 
-                  subtext="JPEG, PNG বা JPG" 
+                  title={t("members.documents.nid_back")} 
+                  subtext={t("members.documents.format_helper")} 
                   inputRef={nidBackInputRef} 
                   field="nidBackBase64" 
                   dbTitle="NID Back"
@@ -683,8 +725,8 @@ export function MemberForm({
               </>
             ) : (
               <UploadBox 
-                title="জন্ম নিবন্ধন" 
-                subtext="JPEG, PNG বা JPG" 
+                title={t("members.documents.birth_certificate")} 
+                subtext={t("members.documents.format_helper")} 
                 inputRef={bcInputRef} 
                 field="birthCertificateBase64" 
                 dbTitle="Birth Certificate"
@@ -698,10 +740,9 @@ export function MemberForm({
         {/* ACTIONS */}
         <div className="flex justify-end space-x-4 pt-6 border-t">
           <Button variant="outline" type="button" onClick={() => router.push("/members/manage")}>
-            বাতিল
-          </Button>
+            {t("members.actions.cancel")}</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "সংরক্ষণ"}
+            {isSubmitting ? t("members.actions.saving") : t("members.actions.save")}
           </Button>
         </div>
       </form>

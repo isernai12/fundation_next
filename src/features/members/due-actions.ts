@@ -151,7 +151,7 @@ export async function getMemberDuesList() {
     return {
       id: member.id,
       memberId: member.memberId,
-      name: `${member.fullName || 'নাম পাওয়া যায়নি'}`.trim(),
+      name: `${member.fullName || ''}`.trim(),
       phone: member.mobile || member.phone || "",
       group: member.group?.name || "Unassigned",
       joinDate: member.joinDate,

@@ -3,24 +3,27 @@
 import { Button } from "@/components/ui/button"
 import { Printer, Download, Edit } from "lucide-react"
 import Link from "next/link"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function MemberProfileActions({ memberId }: { memberId: string }) {
+    const { t } = useLanguage();
   return (
     <div className="flex items-center gap-2 print:hidden">
       <Button variant="outline" size="sm" asChild>
         <Link href={`/members/${memberId}/edit`}>
           <Edit className="h-4 w-4 mr-2" />
-          সম্পাদনা
-        </Link>
+          {t("members.actions.edit")}</Link>
       </Button>
-      <Button variant="outline" size="sm" onClick={() => window.print()}>
+      <Button variant="outline" size="sm" onClick={() => {
+            return (window.print());
+          }}>
         <Printer className="h-4 w-4 mr-2" />
-        প্রিন্ট
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => window.print()}>
+        {t("members.actions.print")}</Button>
+      <Button variant="outline" size="sm" onClick={() => {
+            return (window.print());
+          }}>
         <Download className="h-4 w-4 mr-2" />
-        PDF ডাউনলোড
-      </Button>
+        {t("members.actions.pdf")}</Button>
     </div>
   )
 }

@@ -20,8 +20,10 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function GroupForm() {
+    const { t } = useLanguage();
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -50,7 +52,7 @@ export function GroupForm() {
     setIsSubmitting(false)
 
     if (res.success) {
-      toast.success("গ্রুপ সফলভাবে সংরক্ষিত হয়েছে")
+      toast.success(t("groups.k_3e63a1"))
       router.push("/groups/manage")
     } else {
       toast.error(res.error)
@@ -60,132 +62,145 @@ export function GroupForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>গ্রুপের বিবরণ</CardTitle>
-        <CardDescription>নতুন গ্রুপের জন্য মৌলিক এবং আর্থিক তথ্য লিখুন।</CardDescription>
+        <CardTitle>{t("groups.k_2479a4")}</CardTitle>
+        <CardDescription>{t("groups.k_b6747d")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">মৌলিক তথ্য</h3>
+              <h3 className="text-lg font-medium">{t("groups.k_580a9a")}</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>গ্রুপের নাম <span className="text-destructive">*</span></FormLabel>
-                      <FormControl>
-                        <Input placeholder="গ্রুপের নাম লিখুন" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    return ((
+                                      <FormItem>
+                                        <FormLabel>{t("groups.k_a29d6e")}<span className="text-destructive">*</span></FormLabel>
+                                        <FormControl>
+                                          <Input placeholder={t("groups.k_2a9c32")} {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    ));
+                  }}
                 />
                 <FormField
                   control={form.control}
                   name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>গ্রুপ কোড <span className="text-destructive">*</span></FormLabel>
-                      <FormControl>
-                        <Input placeholder="G-001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    return ((
+                                      <FormItem>
+                                        <FormLabel>{t("groups.k_d4410d")}<span className="text-destructive">*</span></FormLabel>
+                                        <FormControl>
+                                          <Input placeholder={t("groups.g_001_1f0e19")} {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    ));
+                  }}
                 />
                 <FormField
                   control={form.control}
                   name="shortName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>সংক্ষিপ্ত নাম</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ঐচ্ছিক সংক্ষিপ্ত নাম" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    return ((
+                                      <FormItem>
+                                        <FormLabel>{t("groups.k_76f621")}</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder={t("groups.k_bd91e4")} {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    ));
+                  }}
                 />
                 <FormField
                   control={form.control}
                   name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>অবস্থা</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="একটি অবস্থা নির্বাচন করুন" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ACTIVE">সক্রিয়</SelectItem>
-                          <SelectItem value="INACTIVE">নিষ্ক্রিয়</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    return ((
+                                      <FormItem>
+                                        <FormLabel>{t("groups.k_8dd4e8")}</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue placeholder={t("groups.k_7b7e50")} />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            <SelectItem value="ACTIVE">{t("groups.k_7effec")}</SelectItem>
+                                            <SelectItem value="INACTIVE">{t("groups.k_85b224")}</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    ));
+                  }}
                 />
               </div>
               <FormField
                 control={form.control}
                 name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>বিবরণ</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="গ্রুপের বিবরণ..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("groups.k_87daaf")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("groups.k_6bd2b3")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">আর্থিক তথ্য</h3>
+              <h3 className="text-lg font-medium">{t("groups.k_b7841d")}</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="openingBalance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>প্রারম্ভিক তহবিল</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" placeholder="0" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    return ((
+                                      <FormItem>
+                                        <FormLabel>{t("groups.k_fa7733")}</FormLabel>
+                                        <FormControl>
+                                          <Input type="number" min="0" placeholder="0" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    ));
+                  }}
                 />
               </div>
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">অন্যান্য</h3>
+              <h3 className="text-lg font-medium">{t("groups.k_8f019f")}</h3>
               <FormField
                 control={form.control}
                 name="remarks"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>মন্তব্য</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="অন্য কোনো মন্তব্য..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("groups.k_550c03")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("groups.k_817fc2")} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
             <div className="flex justify-end space-x-4 pt-6">
               <Button variant="outline" type="button" onClick={() => router.push("/groups/manage")}>
-                বাতিল
-              </Button>
+                {t("groups.k_de9b04")}</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "গ্রুপ সংরক্ষণ করুন"}
               </Button>

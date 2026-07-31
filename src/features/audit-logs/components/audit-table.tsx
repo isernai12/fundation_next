@@ -22,8 +22,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function AuditTable({ data }: { data: any[] }) {
+    const { t } = useLanguage();
   const [globalFilter, setGlobalFilter] = useState("")
 
   const columns: ColumnDef<any>[] = [
@@ -70,7 +72,7 @@ export function AuditTable({ data }: { data: any[] }) {
     <div>
       <div className="flex items-center justify-between py-2">
         <Input
-          placeholder="Search audit logs..."
+          placeholder={t("audit-logs.search_audit_logs_ed1659")}
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -79,32 +81,35 @@ export function AuditTable({ data }: { data: any[] }) {
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No records found.
-                </TableCell>
+                  {t("audit-logs.no_records_found_6b3887")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -112,11 +117,9 @@ export function AuditTable({ data }: { data: any[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
-        </Button>
+          {t("audit-logs.previous_dd1f77")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
-        </Button>
+          {t("audit-logs.next_10ac3d")}</Button>
       </div>
     </div>
   )

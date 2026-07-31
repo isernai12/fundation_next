@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function FinancialRulesForm({ initialData }: { initialData: Record<string, string> }) {
+    const { t } = useLanguage();
   const [data, setData] = useState({
     FIN_CURRENCY: initialData.FIN_CURRENCY || "BDT",
     FIN_CURRENCY_SYMBOL: initialData.FIN_CURRENCY_SYMBOL || "৳",
@@ -27,9 +29,9 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
     setIsSaving(true)
     try {
       await saveSystemSettings(data, "Financial")
-      toast.success("Financial rules saved successfully")
+      toast.success(t("settings.financial_rules_save_e666eb"))
     } catch (err) {
-      toast.error("Failed to save financial rules")
+      toast.error(t("settings.failed_to_save_finan_75c2f8"))
     } finally {
       setIsSaving(false)
     }
@@ -38,25 +40,25 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Financial Rules</CardTitle>
-        <CardDescription>Configure currency, number formats, and fiscal year settings.</CardDescription>
+        <CardTitle>{t("settings.financial_rules_093399")}</CardTitle>
+        <CardDescription>{t("settings.configure_currency_n_85f01f")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Default Currency</Label>
+              <Label>{t("settings.default_currency_9992b8")}</Label>
               <Input value={data.FIN_CURRENCY} onChange={e => setData({...data, FIN_CURRENCY: e.target.value})} required />
             </div>
             <div className="space-y-2">
-              <Label>Currency Symbol</Label>
+              <Label>{t("settings.currency_symbol_94cebe")}</Label>
               <Input value={data.FIN_CURRENCY_SYMBOL} onChange={e => setData({...data, FIN_CURRENCY_SYMBOL: e.target.value})} required />
             </div>
             <div className="space-y-2">
-              <Label>Decimal Places</Label>
+              <Label>{t("settings.decimal_places_879fee")}</Label>
               <Select value={data.FIN_DECIMAL_PLACES} onValueChange={(val) => setData({...data, FIN_DECIMAL_PLACES: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select decimal places" />
+                  <SelectValue placeholder={t("settings.select_decimal_place_210138")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0">0</SelectItem>
@@ -68,23 +70,23 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Number Format</Label>
+              <Label>{t("settings.number_format_fb660c")}</Label>
               <Select value={data.FIN_NUMBER_FORMAT} onValueChange={(val) => setData({...data, FIN_NUMBER_FORMAT: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select number format" />
+                  <SelectValue placeholder={t("settings.select_number_format_c5d426")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1,00,000.00">1,00,000.00 (Indian/South Asian)</SelectItem>
-                  <SelectItem value="100,000.00">100,000.00 (Western)</SelectItem>
-                  <SelectItem value="100.000,00">100.000,00 (European)</SelectItem>
+                  <SelectItem value="1,00,000.00">{t("settings.1_00_000_00_indian_s_ec5681")}</SelectItem>
+                  <SelectItem value="100,000.00">{t("settings.100_000_00_western_158e7e")}</SelectItem>
+                  <SelectItem value="100.000,00">{t("settings.100_000_00_european_a787f3")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Financial Year Start</Label>
+              <Label>{t("settings.financial_year_start_905837")}</Label>
               <Select value={data.FIN_YEAR_START} onValueChange={(val) => setData({...data, FIN_YEAR_START: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select month" />
+                  <SelectValue placeholder={t("settings.select_month_178fc2")} />
                 </SelectTrigger>
                 <SelectContent>
                   {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
@@ -94,10 +96,10 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Financial Year End</Label>
+              <Label>{t("settings.financial_year_end_5b49a3")}</Label>
               <Select value={data.FIN_YEAR_END} onValueChange={(val) => setData({...data, FIN_YEAR_END: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select month" />
+                  <SelectValue placeholder={t("settings.select_month_178fc2")} />
                 </SelectTrigger>
                 <SelectContent>
                   {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
@@ -107,27 +109,27 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Negative Number Style</Label>
+              <Label>{t("settings.negative_number_styl_d0c78d")}</Label>
               <Select value={data.FIN_NEGATIVE_STYLE} onValueChange={(val) => setData({...data, FIN_NEGATIVE_STYLE: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select style" />
+                  <SelectValue placeholder={t("settings.select_style_ad79d8")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="-100">-100 (Minus Sign)</SelectItem>
-                  <SelectItem value="(100)">(100) (Parentheses)</SelectItem>
+                  <SelectItem value="-100">{t("settings.100_minus_sign_2de686")}</SelectItem>
+                  <SelectItem value="(100)">{t("settings.100_parentheses_b46423")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Rounding Method</Label>
+              <Label>{t("settings.rounding_method_3637b0")}</Label>
               <Select value={data.FIN_ROUNDING_METHOD} onValueChange={(val) => setData({...data, FIN_ROUNDING_METHOD: val})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select rounding method" />
+                  <SelectValue placeholder={t("settings.select_rounding_meth_40ef4f")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Math.round">Round to Nearest</SelectItem>
-                  <SelectItem value="Math.ceil">Round Up</SelectItem>
-                  <SelectItem value="Math.floor">Round Down</SelectItem>
+                  <SelectItem value="Math.round">{t("settings.round_to_nearest_ddd887")}</SelectItem>
+                  <SelectItem value="Math.ceil">{t("settings.round_up_1f0e81")}</SelectItem>
+                  <SelectItem value="Math.floor">{t("settings.round_down_6c4a2b")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,0 +1,30 @@
+{
+  "en": {
+    "audit_logs": {
+      "timestamp": "Timestamp",
+      "user": "User",
+      "system": "System",
+      "module": "Module",
+      "action": "Action",
+      "ref_id": "Ref ID",
+      "search_placeholder": "Search audit logs...",
+      "no_records": "No records found.",
+      "previous": "Previous",
+      "next": "Next"
+    }
+  },
+  "bn": {
+    "audit_logs": {
+      "timestamp": "টাইমস্ট্যাম্প",
+      "user": "ব্যবহারকারী",
+      "system": "সিস্টেম",
+      "module": "মডিউল",
+      "action": "কর্ম",
+      "ref_id": "রেফ আইডি",
+      "search_placeholder": "অডিট লগ খুঁজুন...",
+      "no_records": "কোন রেকর্ড পাওয়া যায়নি।",
+      "previous": "পূর্ববর্তী",
+      "next": "পরবর্তী"
+    }
+  }
+}

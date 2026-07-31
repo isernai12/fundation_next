@@ -18,11 +18,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { createDonor, updateDonor } from "../actions"
+import { useLanguage } from "@/i18n/LanguageProvider";
+
 // Removed import
 
 const formSchema = z.object({
-  fullName: z.string().min(1, "পূর্ণ নাম আবশ্যক (Full name is required)"),
-  mobile: z.string().min(1, "মোবাইল নম্বর আবশ্যক (Mobile number is required)"),
+  fullName: z.string().min(1, "Name is required"),
+  mobile: z.string().optional().refine(val => !val || /^[0-9+\-\s()]+$/.test(val), {
+    message: "Invalid mobile number format"
+  }),
   address: z.string().optional(),
   nationalId: z.string().optional(),
   notes: z.string().optional(),
@@ -30,6 +34,7 @@ const formSchema = z.object({
 })
 
 export function DonorForm({ mode = "create", donor = null }: { mode?: "create" | "edit", donor?: any }) {
+    const { t } = useLanguage();
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -66,14 +71,14 @@ export function DonorForm({ mode = "create", donor = null }: { mode?: "create" |
     setIsSubmitting(false)
 
     if (res.success) {
-      toast.success(mode === "create" ? "নতুন অনুদানদাতা সফলভাবে তৈরি হয়েছে" : "অনুদানদাতার তথ্য সফলভাবে আপডেট হয়েছে")
+      toast.success(mode === "create" ? t("donors.form.success_create") : t("donors.form.success_update"))
       if (res.donor?.id) {
         router.push(`/donors/${res.donor.id}`)
       } else {
         router.push("/donors/manage")
       }
     } else {
-      toast.error(res.error)
+      toast.error(res.error || t("donors.form.error"))
     }
   }
 
@@ -82,64 +87,74 @@ export function DonorForm({ mode = "create", donor = null }: { mode?: "create" |
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>অনুদানদাতার তথ্য (Donor Info)</CardTitle>
+            <CardTitle>{t("donors.form.donor_info")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>পূর্ণ নাম (Full Name) *</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("donors.form.full_name")} *</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               <FormField
                 control={form.control}
                 name="mobile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>মোবাইল নম্বর (Mobile) *</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("donors.form.mobile")}</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               <FormField
                 control={form.control}
                 name="nationalId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>জাতীয় পরিচয়পত্র (NID/Birth Cert)</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("donors.form.national_id")}</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               <FormField
                 control={form.control}
                 name="address"
-                render={({ field }) => (
-                  <FormItem className="col-span-1 md:col-span-2">
-                    <FormLabel>ঠিকানা (Address)</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="col-span-1 md:col-span-2">
+                                    <FormLabel>{t("donors.form.address")}</FormLabel>
+                                    <FormControl><Input {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
               <FormField
                 control={form.control}
                 name="notes"
-                render={({ field }) => (
-                  <FormItem className="col-span-1 md:col-span-2">
-                    <FormLabel>মন্তব্য (Notes)</FormLabel>
-                    <FormControl><Textarea {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="col-span-1 md:col-span-2">
+                                    <FormLabel>{t("donors.form.notes")}</FormLabel>
+                                    <FormControl><Textarea {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
           </CardContent>
@@ -147,7 +162,7 @@ export function DonorForm({ mode = "create", donor = null }: { mode?: "create" |
 
         <Card>
           <CardHeader>
-            <CardTitle>ডকুমেন্ট (Document)</CardTitle>
+            <CardTitle>{t("donors.form.document")}</CardTitle>
           </CardHeader>
           <CardContent>
 
@@ -156,10 +171,9 @@ export function DonorForm({ mode = "create", donor = null }: { mode?: "create" |
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            বাতিল (Cancel)
-          </Button>
+            {t("donors.form.cancel")}</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "সংরক্ষণ হচ্ছে..." : "সংরক্ষণ করুন (Save)"}
+            {isSubmitting ? t("donors.form.saving") : t("donors.form.save")}
           </Button>
         </div>
       </form>

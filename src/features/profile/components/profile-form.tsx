@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { User, Camera, Shield, Smartphone, Mail } from "lucide-react"
 import { updateUserProfile, uploadProfilePhoto, changeUserPassword } from "../actions"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface ProfileData {
   name: string
@@ -22,6 +23,7 @@ interface ProfileData {
 }
 
 export function ProfileForm({ initialData }: { initialData: ProfileData }) {
+    const { t } = useLanguage();
   const router = useRouter()
   const { update } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -49,10 +51,12 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
     try {
       const res = await updateUserProfile(profile)
       if (res.success) {
-        toast.success("প্রোফাইল আপডেট করা হয়েছে")
+        toast.success(t("profile.k_6dbaf2"))
         if (res.requireReauth) {
-          toast.info("আপনার ইউজারনেম পরিবর্তন হয়েছে। দয়া করে পুনরায় লগইন করুন।")
-          setTimeout(() => signOut({ callbackUrl: window.location.origin + '/login' }), 2000)
+          toast.info(t("profile.k_43447a"))
+          setTimeout(() => {
+            return (signOut({ callbackUrl: window.location.origin + '/login' }));
+          }, 2000)
         } else {
           router.refresh()
         }
@@ -60,7 +64,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
         toast.error(res.error)
       }
     } catch (err: any) {
-      toast.error("আপডেট ব্যর্থ হয়েছে")
+      toast.error(t("profile.k_f4b1e8"))
     } finally {
       setIsUpdating(false)
     }
@@ -77,7 +81,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
     try {
       const res = await uploadProfilePhoto(formData)
       if (res.success) {
-        toast.success("ছবি আপলোড সফল হয়েছে")
+        toast.success(t("profile.k_d463f2"))
         setPhoto(res.url as string)
         await update({ image: res.url as string })
         router.refresh()
@@ -85,7 +89,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
         toast.error(res.error)
       }
     } catch (err) {
-      toast.error("ছবি আপলোড ব্যর্থ হয়েছে")
+      toast.error(t("profile.k_90591f"))
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
@@ -95,23 +99,25 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
     if (passwords.new !== passwords.confirm) {
-      return toast.error("নতুন পাসওয়ার্ড মিলছে না (Passwords do not match)")
+      return toast.error(t("profile.passwords_do_not_mat_0aa0fb"))
     }
     if (passwords.new.length < 6) {
-      return toast.error("নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে")
+      return toast.error(t("profile.k_66bd53"))
     }
 
     setIsChangingPassword(true)
     try {
       const res = await changeUserPassword({ current: passwords.current, new: passwords.new })
       if (res.success) {
-        toast.success("পাসওয়ার্ড পরিবর্তন সফল হয়েছে। পুনরায় লগইন করুন।")
-        setTimeout(() => signOut({ callbackUrl: window.location.origin + '/login' }), 2000)
+        toast.success(t("profile.k_6e19f6"))
+        setTimeout(() => {
+          return (signOut({ callbackUrl: window.location.origin + '/login' }));
+        }, 2000)
       } else {
         toast.error(res.error)
       }
     } catch (err: any) {
-      toast.error("পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে")
+      toast.error(t("profile.k_881c57"))
     } finally {
       setIsChangingPassword(false)
     }
@@ -126,14 +132,14 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
             <div className="relative group mb-4">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-muted bg-muted flex items-center justify-center">
                 {photo ? (
-                  <img src={photo} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={photo} alt={t("profile.profile_cce99c")} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-16 h-16 text-muted-foreground" />
                 )}
               </div>
               <label 
                 className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer hover:bg-primary/90 transition-colors"
-                title="ছবি পরিবর্তন করুন"
+                title={t("profile.k_3694c7")}
               >
                 <Camera className="w-4 h-4" />
                 <input 
@@ -162,7 +168,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
               </div>
               <div className="flex items-center text-muted-foreground">
                 <Shield className="w-4 h-4 mr-2" />
-                <span>রোল: {initialData.role}</span>
+                <span>{t("profile.k_cdb9a7")}{initialData.role}</span>
               </div>
             </div>
           </CardContent>
@@ -173,14 +179,14 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
       <div className="space-y-6 md:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle>প্রোফাইল তথ্য (Profile Details)</CardTitle>
-            <CardDescription>আপনার সাধারণ তথ্য আপডেট করুন।</CardDescription>
+            <CardTitle>{t("profile.profile_details_922a7c")}</CardTitle>
+            <CardDescription>{t("profile.k_2711a1")}</CardDescription>
           </CardHeader>
           <form onSubmit={handleProfileUpdate}>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>সম্পূর্ণ নাম (Full Name)</Label>
+                  <Label>{t("profile.full_name_d166ce")}</Label>
                   <Input 
                     value={profile.name} 
                     onChange={e => setProfile({...profile, name: e.target.value})} 
@@ -188,18 +194,17 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>ইউজারনেম (Username)</Label>
+                  <Label>{t("profile.username_fe9a9c")}</Label>
                   <Input 
                     value={profile.username} 
                     onChange={e => setProfile({...profile, username: e.target.value})} 
                     required 
                   />
                   <p className="text-xs text-muted-foreground">
-                    * ইউজারনেম পরিবর্তন করলে পুনরায় লগইন করতে হবে।
-                  </p>
+                    {t("profile.k_1e38f0")}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>মোবাইল নম্বর (Mobile)</Label>
+                  <Label>{t("profile.mobile_d660e7")}</Label>
                   <Input 
                     value={profile.mobile} 
                     onChange={e => setProfile({...profile, mobile: e.target.value})} 
@@ -217,13 +222,13 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>পাসওয়ার্ড পরিবর্তন (Change Password)</CardTitle>
-            <CardDescription>আপনার অ্যাকাউন্ট সুরক্ষিত রাখতে শক্তিশালী পাসওয়ার্ড ব্যবহার করুন।</CardDescription>
+            <CardTitle>{t("profile.change_password_2fcbe4")}</CardTitle>
+            <CardDescription>{t("profile.k_c79597")}</CardDescription>
           </CardHeader>
           <form onSubmit={handlePasswordChange}>
             <CardContent className="space-y-4">
               <div className="space-y-2 max-w-sm">
-                <Label>বর্তমান পাসওয়ার্ড (Current Password)</Label>
+                <Label>{t("profile.current_password_7f6933")}</Label>
                 <Input 
                   type="password" 
                   value={passwords.current} 
@@ -233,7 +238,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>নতুন পাসওয়ার্ড (New Password)</Label>
+                  <Label>{t("profile.new_password_b27237")}</Label>
                   <Input 
                     type="password" 
                     value={passwords.new} 
@@ -242,7 +247,7 @@ export function ProfileForm({ initialData }: { initialData: ProfileData }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>নতুন পাসওয়ার্ড নিশ্চিত করুন (Confirm Password)</Label>
+                  <Label>{t("profile.confirm_password_d60c9f")}</Label>
                   <Input 
                     type="password" 
                     value={passwords.confirm} 

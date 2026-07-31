@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ChevronRight, Plus } from "lucide-react"
 import { ContributionsTable } from "@/features/contributions/components/contributions-table"
 import { Button } from "@/components/ui/button"
+import { Trans } from "@/components/shared/trans";
 
 export default async function ContributionsPage() {
   const contributions = await getContributions()
@@ -14,18 +15,17 @@ export default async function ContributionsPage() {
           Contributions
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">মাসিক চাঁদা ব্যবস্থাপনা</span>
+        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">মাসিক চাঁদা ব্যবস্থাপনা</h1>
-          <p className="text-muted-foreground">সদস্যদের প্রদত্ত মাসিক চাঁদার রেকর্ড এবং অনুমোদন।</p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
         </div>
         <Link href="/contributions/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" /> মাসিক চাঁদা গ্রহণ
-          </Button>
+            <Plus className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Button>
         </Link>
       </div>
 

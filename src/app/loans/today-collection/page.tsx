@@ -2,6 +2,7 @@ import { getNow } from "@/lib/date";
 import { getLoans } from "@/features/loans/actions"
 import { DueListTable } from "@/features/loans/components/due-list-table"
 import { Card, CardContent } from "@/components/ui/card"
+import { Trans } from "@/components/shared/trans";
 
 export default async function TodayCollectionPage() {
   const rawLoans = await getLoans()
@@ -41,10 +42,9 @@ export default async function TodayCollectionPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">আজকের সংগ্রহ (Today's Collection)</h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.today_s_collection" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            যে সকল ঋণের কিস্তি আজ আদায় করতে হবে তার তালিকা।
-          </p>
+            <Trans tKey="app.text" /></p>
         </div>
       </div>
 

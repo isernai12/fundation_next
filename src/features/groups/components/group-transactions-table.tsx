@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 // Placeholder type
 export type TransactionPlaceholder = {
@@ -38,6 +39,7 @@ export type TransactionPlaceholder = {
 }
 
 export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[] }) {
+    const { t } = useLanguage();
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
@@ -96,7 +98,7 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <Input
-          placeholder="Search transactions..."
+          placeholder={t("groups.search_transactions_9eefbe")}
           value={(table.getColumn("reference")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("reference")?.setFilterValue(event.target.value)
@@ -109,16 +111,16 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Types" />
+            <SelectValue placeholder={t("groups.all_types_90b2f7")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="Contribution">Contribution</SelectItem>
-            <SelectItem value="Loan">Loan</SelectItem>
-            <SelectItem value="Repayment">Repayment</SelectItem>
-            <SelectItem value="Grant">Grant</SelectItem>
-            <SelectItem value="Adjustment">Adjustment</SelectItem>
-            <SelectItem value="Transfer">Transfer</SelectItem>
+            <SelectItem value="ALL">{t("groups.all_types_90b2f7")}</SelectItem>
+            <SelectItem value="Contribution">{t("groups.contribution_3023db")}</SelectItem>
+            <SelectItem value="Loan">{t("groups.loan_9ad81a")}</SelectItem>
+            <SelectItem value="Repayment">{t("groups.repayment_5bea85")}</SelectItem>
+            <SelectItem value="Grant">{t("groups.grant_e6bec5")}</SelectItem>
+            <SelectItem value="Adjustment">{t("groups.adjustment_422775")}</SelectItem>
+            <SelectItem value="Transfer">{t("groups.transfer_695081")}</SelectItem>
           </SelectContent>
         </Select>
         <Input type="date" className="max-w-[150px]" />
@@ -129,42 +131,45 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                              return (
+                                <TableHead key={header.id}>
+                                  {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                      )}
+                                </TableHead>
+                              )
+                            })}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                              >
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  No transactions found for this group.
-                </TableCell>
+                  {t("groups.no_transactions_foun_a51c76")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -177,16 +182,14 @@ export function GroupTransactionsTable({ data }: { data: TransactionPlaceholder[
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
-        </Button>
+          {t("groups.previous_dd1f77")}</Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
-        </Button>
+          {t("groups.next_10ac3d")}</Button>
       </div>
     </div>
   )

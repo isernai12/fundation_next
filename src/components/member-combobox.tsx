@@ -4,6 +4,7 @@ import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/i18n/LanguageProvider"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -42,11 +43,15 @@ export function MemberCombobox({
   members,
   value,
   onChange,
-  placeholder = "নির্বাচন করুন...",
-  emptyText = "কাউকে পাওয়া যায়নি",
+  placeholder,
+  emptyText,
   allowInactive = false,
 }: MemberComboboxProps) {
+  const { t } = useLanguage()
   const [open, setOpen] = React.useState(false)
+  
+  const effectivePlaceholder = placeholder || t("common.combobox.select")
+  const effectiveEmptyText = emptyText || t("common.combobox.not_found")
 
   // Filter selectable members unless allowInactive is true, or member is currently selected
   const availableMembers = React.useMemo(() => {
@@ -70,16 +75,16 @@ export function MemberCombobox({
           {selectedMember ? (
             <div className="flex items-center gap-2 overflow-hidden text-left truncate">
               <span className="truncate">
-                {selectedMember.memberId || selectedMember.beneficiaryId} — {selectedMember.fullName || 'নাম পাওয়া যায়নি'}
+                {selectedMember.memberId || selectedMember.beneficiaryId} — {selectedMember.fullName || t("common.combobox.name_not_found")}
               </span>
               {selectedMember.status === "INACTIVE" && (
                 <Badge variant="outline" className="text-xs bg-rose-50 text-rose-600 border-rose-200">
-                  Inactive
+                  {t("common.combobox.inactive")}
                 </Badge>
               )}
             </div>
           ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
+            <span className="text-muted-foreground">{effectivePlaceholder}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -95,9 +100,9 @@ export function MemberCombobox({
             return searchableStr.includes(searchLower) ? 1 : 0
           }}
         >
-          <CommandInput placeholder="খুঁজুন (আইডি, নাম, গ্রুপ)..." />
+          <CommandInput placeholder={t("common.combobox.search_placeholder")} />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandEmpty>{effectiveEmptyText}</CommandEmpty>
             <CommandGroup>
               {availableMembers.map((member) => (
                 <CommandItem
@@ -111,10 +116,10 @@ export function MemberCombobox({
                 >
                   <div className="flex w-full items-center justify-between">
                     <span className="font-medium flex items-center gap-1.5">
-                      {member.memberId || member.beneficiaryId} — {member.fullName || 'নাম পাওয়া যায়নি'}
+                      {member.memberId || member.beneficiaryId} — {member.fullName || t("common.combobox.name_not_found")}
                       {member.status === "INACTIVE" && (
                         <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-600 border-rose-200">
-                          Inactive
+                          {t("common.combobox.inactive")}
                         </Badge>
                       )}
                     </span>
@@ -126,7 +131,7 @@ export function MemberCombobox({
                     />
                   </div>
                   <span className="text-xs text-muted-foreground mt-1">
-                    {member.group ? `গ্রুপ: ${member.group.name} (${member.group.code})` : ''}
+                    {member.group ? `${t("common.combobox.group")}: ${member.group.name} (${member.group.code})` : ''}
                   </span>
                 </CommandItem>
               ))}

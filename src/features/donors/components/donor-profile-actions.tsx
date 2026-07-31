@@ -6,8 +6,10 @@ import Link from "next/link"
 import { deleteDonor } from "../actions"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function DonorProfileActions({ donorId }: { donorId: string }) {
+    const { t } = useLanguage();
   const router = useRouter()
 
   const handlePrint = () => {
@@ -15,10 +17,10 @@ export function DonorProfileActions({ donorId }: { donorId: string }) {
   }
 
   const handleDelete = async () => {
-    if (confirm("আপনি কি নিশ্চিত যে আপনি এই অনুদানদাতাকে মুছে ফেলতে চান?")) {
+    if (confirm(t("donors.table.confirm_delete"))) {
       const res = await deleteDonor(donorId)
       if (res.success) {
-        toast.success("সফলভাবে মুছে ফেলা হয়েছে")
+        toast.success(t("donors.k_9a80d2"))
         router.push("/donors")
       } else {
         toast.error(res.error)
@@ -29,21 +31,17 @@ export function DonorProfileActions({ donorId }: { donorId: string }) {
   return (
     <div className="flex items-center gap-2 hide-print">
       <Button variant="outline" onClick={handlePrint} size="sm">
-        <Printer className="mr-2 h-4 w-4" /> প্রিন্ট
-      </Button>
+        <Printer className="mr-2 h-4 w-4" /> {t("donors.k_a0b40f")}</Button>
       <Button variant="outline" asChild size="sm">
         <Link href={`/donors/ledger?donorId=${donorId}`}>
-          <BookOpen className="mr-2 h-4 w-4" /> লেজার
-        </Link>
+          <BookOpen className="mr-2 h-4 w-4" /> {t("donors.k_800938")}</Link>
       </Button>
       <Button variant="outline" asChild size="sm">
         <Link href={`/donors/${donorId}/edit`}>
-          <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
-        </Link>
+          <Edit className="mr-2 h-4 w-4" /> {t("donors.k_8cdd29")}</Link>
       </Button>
       <Button variant="destructive" onClick={handleDelete} size="sm">
-        <Trash className="mr-2 h-4 w-4" /> মুছুন
-      </Button>
+        <Trash className="mr-2 h-4 w-4" /> {t("donors.k_047838")}</Button>
     </div>
   )
 }

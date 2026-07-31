@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface CampaignSelectorProps {
   campaigns: { id: string; name: string }[]
@@ -9,6 +10,7 @@ interface CampaignSelectorProps {
 }
 
 export function CampaignSelector({ campaigns, selectedCampaignId }: CampaignSelectorProps) {
+    const { t } = useLanguage();
   const router = useRouter()
 
   return (
@@ -19,7 +21,7 @@ export function CampaignSelector({ campaigns, selectedCampaignId }: CampaignSele
       }}
     >
       <SelectTrigger className="w-[300px]">
-        <SelectValue placeholder="তহবিল নির্বাচন করুন" />
+        <SelectValue placeholder={t("campaigns.k_f1c840")} />
       </SelectTrigger>
       <SelectContent>
         {campaigns.map((c) => (

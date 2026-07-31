@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Trans } from "@/components/shared/trans";
 
 export default async function DueContributionsPage() {
   const members = await getMembers()
@@ -34,18 +35,16 @@ export default async function DueContributionsPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
-          মাসিক চাঁদা
-        </Link>
+          <Trans tKey="app.text" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">বকেয়া চাঁদা</span>
+        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">বকেয়া চাঁদা</h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            যে সকল সদস্য {formatMonth(getNow().getMonth())} {currentYear} এর চাঁদা পরিশোধ করেননি।
-          </p>
+            <Trans tKey="app.text" />{formatMonth(getNow().getMonth())} {currentYear} <Trans tKey="app.text" /></p>
         </div>
       </div>
 
@@ -53,11 +52,11 @@ export default async function DueContributionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>সদস্য</TableHead>
-              <TableHead>গ্রুপ</TableHead>
-              <TableHead>স্ট্যাটাস</TableHead>
-              <TableHead>বকেয়া পরিমাণ</TableHead>
-              <TableHead>অ্যাকশন</TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -68,22 +67,19 @@ export default async function DueContributionsPage() {
                   <TableCell>{member.group?.name || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="destructive" className="flex w-fit items-center gap-1">
-                      <AlertCircle className="h-3 w-3" /> বকেয়া
-                    </Badge>
+                      <AlertCircle className="h-3 w-3" /> <Trans tKey="app.text" /></Badge>
                   </TableCell>
-                  <TableCell>৳১০০.০০</TableCell>
+                  <TableCell><Trans tKey="app.text" /></TableCell>
                   <TableCell>
                     <Link href={`/contributions/new?memberId=${member.id}`} className="text-primary hover:underline text-sm font-medium">
-                      চাঁদা নিন
-                    </Link>
+                      <Trans tKey="app.text" /></Link>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  এই মাসের জন্য সকল সক্রিয় সদস্য তাদের চাঁদা পরিশোধ করেছেন!
-                </TableCell>
+                  <Trans tKey="app.text" /></TableCell>
               </TableRow>
             )}
           </TableBody>

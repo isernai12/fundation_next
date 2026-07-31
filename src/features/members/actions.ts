@@ -92,7 +92,7 @@ export async function createMember(data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
   if (!parsed.success) {
     console.error("Zod Validation Error:", parsed.error);
-    return { success: false, error: "ফর্মের তথ্য সঠিক নয়", details: parsed.error.format() }
+    return { success: false, error: "members.validation.invalid_form", details: parsed.error.format() }
   }
 
   const pd = parsed.data
@@ -100,15 +100,15 @@ export async function createMember(data: MemberFormValues) {
   // Check unique constraints only if non-empty string provided
   if (pd.nationalId && pd.nationalId.trim() !== "") {
     const existingNid = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
-    if (existingNid) return { success: false, error: "এই জাতীয় পরিচয়পত্র নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
+    if (existingNid) return { success: false, error: "members.validation.nid_exists" }
   }
   if (pd.mobile && pd.mobile.trim() !== "") {
     const existingMobile = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
-    if (existingMobile) return { success: false, error: "এই মোবাইল নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
+    if (existingMobile) return { success: false, error: "members.validation.mobile_exists" }
   }
   if (pd.email && pd.email.trim() !== "") {
     const existingEmail = await prisma.member.findUnique({ where: { email: pd.email.trim() } })
-    if (existingEmail) return { success: false, error: "এই ইমেইলটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
+    if (existingEmail) return { success: false, error: "members.validation.email_exists" }
   }
 
   const memberId = await generateMemberId()
@@ -179,7 +179,7 @@ export async function createMember(data: MemberFormValues) {
     revalidatePath("/members/manage")
     return { success: true, data: member }
   } catch (error: any) {
-    return { success: false, error: error.message || "সদস্য তৈরি করতে ব্যর্থ হয়েছে" }
+    return { success: false, error: error.message || "members.messages.add_error" }
   }
 }
 
@@ -188,21 +188,21 @@ export async function updateMember(id: string, data: MemberFormValues) {
   const parsed = memberSchema.safeParse(data)
   if (!parsed.success) {
     console.error("Member update validation failed:", parsed.error);
-    return { success: false, error: "ফর্মের তথ্য সঠিক নয়" }
+    return { success: false, error: "members.validation.invalid_form" }
   }
   const pd = parsed.data
 
   if (pd.nationalId && pd.nationalId.trim() !== "") {
     const existing = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
-    if (existing && existing.id !== id) return { success: false, error: "এই জাতীয় পরিচয়পত্র নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
+    if (existing && existing.id !== id) return { success: false, error: "members.validation.nid_exists" }
   }
   if (pd.mobile && pd.mobile.trim() !== "") {
     const existing = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
-    if (existing && existing.id !== id) return { success: false, error: "এই মোবাইল নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
+    if (existing && existing.id !== id) return { success: false, error: "members.validation.mobile_exists" }
   }
   if (pd.email && pd.email.trim() !== "") {
     const existing = await prisma.member.findUnique({ where: { email: pd.email.trim() } })
-    if (existing && existing.id !== id) return { success: false, error: "এই ইমেইলটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
+    if (existing && existing.id !== id) return { success: false, error: "members.validation.email_exists" }
   }
 
   try {
@@ -271,7 +271,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
     return { success: true, data: member }
   } catch (error: any) {
     console.error("Prisma error in updateMember:", error);
-    return { success: false, error: error.message || "সদস্য আপডেট করতে ব্যর্থ হয়েছে" }
+    return { success: false, error: error.message || "members.messages.update_error" }
   }
 }
 
@@ -311,7 +311,7 @@ export async function toggleMemberStatus(
 
   try {
     const currentMember = await prisma.member.findUnique({ where: { id } });
-    if (!currentMember) return { success: false, error: "সদস্য পাওয়া যায়নি" };
+    if (!currentMember) return { success: false, error: "members.messages.not_found" };
 
     const fromStatus = currentMember.status;
     const session = await getAuthSession();
@@ -343,7 +343,7 @@ export async function toggleMemberStatus(
     revalidatePath(`/members/${id}`);
     return { success: true, data: member };
   } catch (error: any) {
-    return { success: false, error: error.message || "সদস্য স্ট্যাটাস পরিবর্তন করতে ব্যর্থ হয়েছে" };
+    return { success: false, error: error.message || "members.messages.status_change_error" };
   }
 }
 
@@ -351,12 +351,12 @@ export async function restoreMember(id: string, reason?: string) {
   const session = await getAuthSession();
   const roleName = (session?.user as any)?.role;
   if (!isSuperAdminRole(roleName)) {
-    return { success: false, error: "কেবলমাত্র সুপার এডমিন মুছে ফেলা সদস্য পুনঃস্থাপন করতে পারেন।" };
+    return { success: false, error: "members.messages.super_admin_restore_only" };
   }
 
   try {
     const currentMember = await prisma.member.findUnique({ where: { id } });
-    if (!currentMember) return { success: false, error: "সদস্য পাওয়া যায়নি" };
+    if (!currentMember) return { success: false, error: "members.messages.not_found" };
 
     const changedBy = (session?.user as any)?.name || "Super Admin";
 
@@ -382,7 +382,7 @@ export async function restoreMember(id: string, reason?: string) {
     revalidatePath(`/members/${id}`);
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message || "সদস্য পুনঃস্থাপন করতে ব্যর্থ হয়েছে" };
+    return { success: false, error: error.message || "members.messages.restore_error" };
   }
 }
 
@@ -407,7 +407,7 @@ export async function deleteMember(id: string) {
     if (contributions > 0 || loans > 0 || campaignContributions > 0) {
       return {
         success: false,
-        error: "এই সদস্যের সাথে আর্থিক লেনদেন (চাঁদা/ঋণ/ক্যাম্পেইন) যুক্ত রয়েছে। আর্থিক তথ্যের সুরক্ষার জন্য সদস্যটিকে মোছা যাবে না। আপনি সদস্যকে 'নিষ্ক্রিয় (Inactive)' করতে পারেন।"
+        error: "members.messages.delete_prevented_financial"
       };
     }
 
@@ -437,6 +437,6 @@ export async function deleteMember(id: string) {
     revalidatePath("/members")
     return { success: true }
   } catch (error: any) {
-    return { success: false, error: error.message || "সদস্য মুছে ফেলতে ব্যর্থ হয়েছে" }
+    return { success: false, error: error.message || "members.messages.delete_error" }
   }
 }

@@ -31,18 +31,18 @@ export function Header() {
     const path = pathname.split('/')[1]
     
     const titles: Record<string, string> = {
-      'members': t('sidebar.members'),
-      'beneficiaries': t('sidebar.beneficiaries'),
-      'donors': t('sidebar.donors'),
-      'campaigns': t('sidebar.financials'), // Needs fine-tuning later based on exact mapping
-      'loans': t('sidebar.loans'),
-      'grants': t('sidebar.grants'),
-      'groups': t('sidebar.groups'),
-      'settings': t('common.settings'),
-      'profile': t('common.profile')
+      'members': t('layout.sidebar.members'),
+      'beneficiaries': t('layout.sidebar.beneficiaries'),
+      'donors': t('layout.sidebar.donors'),
+      'campaigns': t('layout.sidebar.financial_activities'),
+      'loans': t('layout.sidebar.loans'),
+      'grants': t('layout.sidebar.grants'),
+      'groups': t('layout.sidebar.groups'),
+      'settings': t('layout.sidebar.settings'),
+      'profile': t('layout.sidebar.settings')
     }
     
-    return path && titles[path] ? titles[path] : (path ? path.charAt(0).toUpperCase() + path.slice(1) : t('common.dashboard'))
+    return path && titles[path] ? titles[path] : (path ? path.charAt(0).toUpperCase() + path.slice(1) : t('layout.sidebar.dashboard'))
   }
 
   return (
@@ -57,7 +57,7 @@ export function Header() {
         </button>
         
         {branding.headerLogo && (
-          <img src={branding.headerLogo} alt="Logo" className="h-6 w-auto object-contain hidden sm:block" />
+          <img src={branding.headerLogo} alt={t("layout.sidebar.logo_8c2857")} className="h-6 w-auto object-contain hidden sm:block" />
         )}
         <h1 className="text-[15px] font-bold text-surface-950 tracking-tight leading-tight capitalize ml-2">{getPageTitle()}</h1>
       </div>
@@ -68,12 +68,12 @@ export function Header() {
 
         <div className="tooltip-container">
           <ThemeToggle />
-          <span className="tooltip-custom">{t('header.theme')}</span>
+          <span className="tooltip-custom">{t('layout.header.theme')}</span>
         </div>
 
         <button className="tooltip-container p-2 text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-all hidden sm:flex">
           <HelpCircle className="w-5 h-5" />
-          <span className="tooltip-custom">{t('header.help_center')}</span>
+          <span className="tooltip-custom">{t('layout.header.help_center')}</span>
         </button>
 
         <div className="w-px h-6 bg-surface-200 mx-2 hidden sm:block"></div>
@@ -124,17 +124,19 @@ export function Header() {
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/profile/devices">
                 <MonitorSmartphone className="mr-2 h-4 w-4" />
-                <span>{t('header.device_management')}</span>
+                <span>{t('layout.header.device_management')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/profile/password">
                 <KeyRound className="mr-2 h-4 w-4" />
-                <span>{t('header.change_password')}</span>
+                <span>{t('layout.header.change_password')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-surface-200" />
-            <DropdownMenuItem onClick={() => signOut({ callbackUrl: window.location.origin + '/login' })} className="hover:bg-accent-red/10 focus:bg-accent-red/10 text-accent-red focus:text-accent-red text-[13px] font-medium cursor-pointer transition-colors">
+            <DropdownMenuItem onClick={() => {
+                        return (signOut({ callbackUrl: window.location.origin + '/login' }));
+                      }} className="hover:bg-accent-red/10 focus:bg-accent-red/10 text-accent-red focus:text-accent-red text-[13px] font-medium cursor-pointer transition-colors">
               <LogOut className="mr-2 h-4 w-4" />
               <span>{t('common.logout')}</span>
             </DropdownMenuItem>

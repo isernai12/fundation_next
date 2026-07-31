@@ -31,6 +31,7 @@ import { beneficiarySchema, type BeneficiaryFormValues } from "../schema";
 import { createBeneficiary, updateBeneficiary, deleteBeneficiaryDocument } from "../actions";
 import type { Beneficiary } from "@prisma/client";
 import { formatDate } from "@/lib/format";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const SectionCard = ({
   title,
@@ -42,26 +43,29 @@ const SectionCard = ({
   isOpen: boolean;
   onToggle: () => void;
   children: React.ReactNode;
-}) => (
-  <Collapsible open={isOpen} onOpenChange={onToggle}>
-    <Card className="mb-6 shadow-sm border-muted">
-      <CardHeader className="py-4 border-b bg-muted/10">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <CollapsibleTrigger asChild>
-            <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
-              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              <span className="sr-only">Toggle</span>
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-      </CardHeader>
-      <CollapsibleContent>
-        <CardContent className="pt-6">{children}</CardContent>
-      </CollapsibleContent>
-    </Card>
-  </Collapsible>
-);
+}) => {
+      const { t } = useLanguage();
+      return ((
+      <Collapsible open={isOpen} onOpenChange={onToggle}>
+        <Card className="mb-6 shadow-sm border-muted">
+          <CardHeader className="py-4 border-b bg-muted/10">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+              <CollapsibleTrigger asChild>
+                <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
+                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <span className="sr-only">{t("beneficiaries.form.toggle")}</span>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-6">{children}</CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+    ));
+    };
 
 export function BeneficiaryForm({ 
   mode = "create", 
@@ -75,6 +79,7 @@ export function BeneficiaryForm({
   initialData?: Partial<BeneficiaryFormValues>,
   beneficiary?: any
 }) {
+    const { t } = useLanguage();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -134,13 +139,13 @@ export function BeneficiaryForm({
     try {
       const res = mode === "edit" ? await updateBeneficiary(beneficiaryId!, data) : await createBeneficiary(data);
       if (res.success) {
-        toast.success(mode === "edit" ? "সুবিধাভোগী আপডেট করা হয়েছে" : "সুবিধাভোগী যুক্ত করা হয়েছে");
+        toast.success(mode === "edit" ? t("beneficiaries.messages.update_success") : t("beneficiaries.messages.create_success"));
         router.push("/beneficiaries");
       } else {
-        toast.error(res.error || "সুবিধাভোগী সংরক্ষণ করতে ব্যর্থ হয়েছে");
+        toast.error(res.error || t("beneficiaries.messages.save_error"));
       }
     } catch (error) {
-      toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
+      toast.error(t("beneficiaries.messages.error_general"));
     } finally {
       setIsSubmitting(false);
     }
@@ -161,7 +166,7 @@ export function BeneficiaryForm({
   };
 
   const handleDeleteDocument = async (title: string, fieldName: keyof BeneficiaryFormValues) => {
-    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি এই ডকুমেন্টটি মুছে ফেলতে চান?")) return;
+    if (!window.confirm(t("beneficiaries.messages.confirm_delete_doc"))) return;
     
     // Clear local form state
     form.setValue(fieldName, "");
@@ -171,13 +176,13 @@ export function BeneficiaryForm({
       try {
         const res = await deleteBeneficiaryDocument(beneficiaryId, title);
         if (res.success) {
-          toast.success("ডকুমেন্ট সফলভাবে মুছে ফেলা হয়েছে");
+          toast.success(t("beneficiaries.messages.doc_deleted"));
           router.refresh(); // Refresh page to get updated DB state
         } else {
-          toast.error(res.error || "ডকুমেন্ট মুছে ফেলতে ব্যর্থ হয়েছে");
+          toast.error(res.error || t("beneficiaries.messages.delete_doc_error"));
         }
       } catch (e) {
-        toast.error("অপ্রত্যাশিত ত্রুটি ঘটেছে");
+        toast.error(t("beneficiaries.messages.error_general"));
       }
     }
   };
@@ -217,7 +222,7 @@ export function BeneficiaryForm({
             className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
           >
             <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-sm font-medium">ছবি আপলোড করুন</p>
+            <p className="text-sm font-medium">{t("beneficiaries.form.upload_click")}</p>
             <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
           </div>
         ) : (
@@ -225,7 +230,7 @@ export function BeneficiaryForm({
             <div className="relative border rounded-lg overflow-hidden h-48 w-full group bg-muted/10">
               <Image 
                 src={watchVal || existingUrl!} 
-                alt="Preview" 
+                alt={t("beneficiaries.form.preview")} 
                 fill 
                 className="object-contain" 
               />
@@ -236,21 +241,21 @@ export function BeneficiaryForm({
                   size="sm"
                   onClick={() => inputRef.current?.click()}
                 >
-                  Replace
-                </Button>
+                  {t("beneficiaries.form.replace")}</Button>
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeleteDocument(dbTitle, field)}
+                  onClick={() => {
+                    return (handleDeleteDocument(dbTitle, field));
+                  }}
                 >
-                  Delete
-                </Button>
+                  {t("beneficiaries.form.delete")}</Button>
               </div>
             </div>
             {!watchVal && existingUrl && docObj && (
               <div className="text-center text-xs text-muted-foreground">
-                Uploaded on: {formatDate(docObj.createdAt)}
+                {t("beneficiaries.form.uploaded_on")}{formatDate(docObj.createdAt)}
               </div>
             )}
           </div>
@@ -267,11 +272,11 @@ export function BeneficiaryForm({
           <Card className="bg-muted/30">
             <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">সুবিধাভোগী আইডি</p>
+                <p className="text-sm text-muted-foreground">{t("beneficiaries.form.beneficiary_id")}</p>
                 <p className="font-mono font-medium">{beneficiary.beneficiaryId}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">যোগদানের তারিখ</p>
+                <p className="text-sm text-muted-foreground">{t("beneficiaries.form.created_at")}</p>
                 <p className="font-medium">{formatDate(beneficiary.createdAt)}</p>
               </div>
             </CardContent>
@@ -279,145 +284,163 @@ export function BeneficiaryForm({
         )}
 
         {/* SECTION 1: ব্যক্তিগত তথ্য */}
-        <SectionCard title="১. ব্যক্তিগত তথ্য" isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
+        <SectionCard title={t("beneficiaries.form.personal_info")} isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="fullName"
-              render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2">
-                  <FormLabel>পূর্ণ নাম *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="সুবিধাভোগীর পূর্ণ নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem className="col-span-1 md:col-span-2">
+                                <FormLabel>{t("beneficiaries.form.full_name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.full_name_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="fatherOrHusbandName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>পিতা / স্বামীর নাম</FormLabel>
-                  <FormControl>
-                    <Input placeholder="পিতা বা স্বামীর নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("beneficiaries.form.father_husband_name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.father_husband_name_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="nationalId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>জাতীয় পরিচয়পত্র / জন্ম নিবন্ধন নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="এনআইডি বা জন্ম নিবন্ধন নম্বর" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("beneficiaries.form.nid")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.nid_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="mobile"
-              render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2">
-                  <FormLabel>মোবাইল নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="১১ ডিজিটের মোবাইল নম্বর" className="md:w-1/2" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem className="col-span-1 md:col-span-2">
+                                <FormLabel>{t("beneficiaries.form.mobile")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.mobile_placeholder")} className="md:w-1/2" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <div className="md:col-span-2">
               <FormField
                 control={form.control}
                 name="presentAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>বর্তমান ঠিকানা</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="বিস্তারিত বর্তমান ঠিকানা..." className="resize-none" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("beneficiaries.form.present_address")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("beneficiaries.form.present_address_placeholder")} className="resize-none" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
             <div className="md:col-span-2">
               <FormField
                 control={form.control}
                 name="permanentAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>স্থায়ী ঠিকানা</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="বিস্তারিত স্থায়ী ঠিকানা..." className="resize-none" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("beneficiaries.form.permanent_address")}</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder={t("beneficiaries.form.permanent_address_placeholder")} className="resize-none" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
           </div>
         </SectionCard>
 
         {/* SECTION 2: জরুরি যোগাযোগ */}
-        <SectionCard title="২. জরুরি যোগাযোগ" isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
+        <SectionCard title={t("beneficiaries.form.emergency_contact")} isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="emergencyContactName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>নাম</FormLabel>
-                  <FormControl>
-                    <Input placeholder="যোগাযোগের ব্যক্তির নাম" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("beneficiaries.form.contact_name")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.contact_name_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="emergencyContactRelation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>সম্পর্ক</FormLabel>
-                  <FormControl>
-                    <Input placeholder="সুবিধাভোগীর সাথে সম্পর্ক" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("beneficiaries.form.relation")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.relation_placeholder")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             <FormField
               control={form.control}
               name="emergencyContactMobile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মোবাইল নম্বর</FormLabel>
-                  <FormControl>
-                    <Input placeholder="মোবাইল নম্বর" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("beneficiaries.form.mobile")}</FormLabel>
+                                <FormControl>
+                                  <Input placeholder={t("beneficiaries.form.mobile")} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
           </div>
         </SectionCard>
 
         {/* SECTION 3: ডকুমেন্টস */}
-        <SectionCard title="৩. ডকুমেন্টস" isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
+        <SectionCard title={t("beneficiaries.form.documents")} isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             <UploadBox 
-              title="সুবিধাভোগীর ছবি" 
-              subtext="JPEG, PNG বা JPG" 
+              title={t("beneficiaries.form.photo")} 
+              subtext={t("beneficiaries.form.file_subtext")} 
               inputRef={photoInputRef} 
               field="photoBase64" 
               dbTitle="Beneficiary Photo"
@@ -425,8 +448,8 @@ export function BeneficiaryForm({
             />
             
             <UploadBox 
-              title="স্বাক্ষর" 
-              subtext="JPEG, PNG বা JPG" 
+              title={t("beneficiaries.form.signature")} 
+              subtext={t("beneficiaries.form.file_subtext")} 
               inputRef={signatureInputRef} 
               field="signatureBase64" 
               dbTitle="Signature"
@@ -437,54 +460,54 @@ export function BeneficiaryForm({
               <FormField
                 control={form.control}
                 name="idDocumentType"
-                render={({ field }) => (
-                  <FormItem className="mb-6">
-                    <FormLabel className="text-base font-semibold">পরিচয়পত্র ধরন</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          // Optional: Clear corresponding unselected fields if user switches
-                        }}
-                        value={field.value}
-                        className="flex space-x-6 mt-2"
-                      >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="NID" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">
-                            জাতীয় পরিচয়পত্র (NID)
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="BIRTH_CERTIFICATE" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">
-                            জন্ম নিবন্ধন
-                          </FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="mb-6">
+                                    <FormLabel className="text-base font-semibold">{t("beneficiaries.form.id_doc_type")}</FormLabel>
+                                    <FormControl>
+                                      <RadioGroup
+                                        onValueChange={(val) => {
+                                          field.onChange(val);
+                                          // Optional: Clear corresponding unselected fields if user switches
+                                        }}
+                                        value={field.value}
+                                        className="flex space-x-6 mt-2"
+                                      >
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                          <FormControl>
+                                            <RadioGroupItem value="NID" />
+                                          </FormControl>
+                                          <FormLabel className="font-normal cursor-pointer">
+                                            {t("beneficiaries.form.id_nid")}</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                          <FormControl>
+                                            <RadioGroupItem value="BIRTH_CERTIFICATE" />
+                                          </FormControl>
+                                          <FormLabel className="font-normal cursor-pointer">
+                                            {t("beneficiaries.form.id_birth_cert")}</FormLabel>
+                                        </FormItem>
+                                      </RadioGroup>
+                                    </FormControl>
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
             {form.watch("idDocumentType") === "NID" ? (
               <>
                 <UploadBox 
-                  title="জাতীয় পরিচয়পত্র (সামনের অংশ)" 
-                  subtext="JPEG, PNG বা JPG" 
+                  title={t("beneficiaries.form.nid_front")} 
+                  subtext={t("beneficiaries.form.file_subtext")} 
                   inputRef={nidFrontInputRef} 
                   field="nidFrontBase64" 
                   dbTitle="NID Front"
                   existingUrl={existingNidFront} 
                 />
                 <UploadBox 
-                  title="জাতীয় পরিচয়পত্র (পেছনের অংশ)" 
-                  subtext="JPEG, PNG বা JPG" 
+                  title={t("beneficiaries.form.nid_back")} 
+                  subtext={t("beneficiaries.form.file_subtext")} 
                   inputRef={nidBackInputRef} 
                   field="nidBackBase64" 
                   dbTitle="NID Back"
@@ -493,8 +516,8 @@ export function BeneficiaryForm({
               </>
             ) : (
               <UploadBox 
-                title="জন্ম নিবন্ধন" 
-                subtext="JPEG, PNG বা JPG" 
+                title={t("beneficiaries.form.id_birth_cert")} 
+                subtext={t("beneficiaries.form.file_subtext")} 
                 inputRef={bcInputRef} 
                 field="birthCertificateBase64" 
                 dbTitle="Birth Certificate"
@@ -508,10 +531,9 @@ export function BeneficiaryForm({
         {/* ACTIONS */}
         <div className="flex justify-end space-x-4 pt-6 border-t">
           <Button variant="outline" type="button" onClick={() => router.push("/beneficiaries/manage")}>
-            বাতিল
-          </Button>
+            {t("beneficiaries.form.cancel")}</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "সংরক্ষণ করুন"}
+            {isSubmitting ? t("beneficiaries.form.saving") : t("beneficiaries.form.save")}
           </Button>
         </div>
       </form>

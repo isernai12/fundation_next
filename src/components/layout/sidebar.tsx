@@ -50,127 +50,129 @@ type Section = {
   items: MenuItem[]
 }
 
-const sidebarSections: Section[] = [
+import { useBranding } from "@/components/providers/branding-provider"
+import { useLanguage } from "@/i18n/LanguageProvider";
+
+export function Sidebar() {
+    const { t } = useLanguage();
+    const sidebarSections: Section[] = [
   {
-    title: "প্রধান মেনু",
+    title: t("layout.sidebar.main_menu"),
     items: [
-      { name: "ড্যাশবোর্ড", href: "/", icon: LayoutDashboard },
+      { name: t("layout.sidebar.dashboard"), href: "/", icon: LayoutDashboard },
       { 
-        name: "সদস্য", 
+        name: t("layout.sidebar.members"), 
         href: "/members", 
         icon: Users,
         permission: "Members:View",
         submenu: [
-          { name: "নতুন সদস্য", href: "/members/new", permission: "Members:Add" },
-          { name: "সদস্য ব্যবস্থাপনা", href: "/members/manage", permission: "Members:View" },
-          { name: "সদস্য লেজার", href: "/members/ledger", permission: "Members:View" },
-          { name: "বকেয়া চাঁদা", href: "/members/dues", permission: "Members:View" },
+          { name: t("layout.sidebar.new_member"), href: "/members/new", permission: "Members:Add" },
+          { name: t("layout.sidebar.manage_members"), href: "/members/manage", permission: "Members:View" },
+          { name: t("layout.sidebar.member_ledger"), href: "/members/ledger", permission: "Members:View" },
+          { name: t("layout.sidebar.due_dues"), href: "/members/dues", permission: "Members:View" },
         ]
       },
       { 
-        name: "সুবিধাভোগী", 
+        name: t("layout.sidebar.beneficiaries"), 
         href: "/beneficiaries", 
         icon: UserRoundCheck,
         permission: "Beneficiaries:View",
         submenu: [
-          { name: "নতুন সুবিধাভোগী", href: "/beneficiaries/new", permission: "Beneficiaries:Add" },
-          { name: "সুবিধাভোগী ব্যবস্থাপনা", href: "/beneficiaries/manage", permission: "Beneficiaries:View" },
-          { name: "সুবিধাভোগী লেজার", href: "/beneficiaries/ledger", permission: "Beneficiaries:View" },
-          { name: "সহায়তার ইতিহাস", href: "/beneficiaries/assistance-history", permission: "Beneficiaries:View" },
-          { name: "ঋণের ইতিহাস", href: "/beneficiaries/loan-history", permission: "Beneficiaries:View" },
+          { name: t("layout.sidebar.new_beneficiary"), href: "/beneficiaries/new", permission: "Beneficiaries:Add" },
+          { name: t("layout.sidebar.manage_beneficiaries"), href: "/beneficiaries/manage", permission: "Beneficiaries:View" },
+          { name: t("layout.sidebar.beneficiary_ledger"), href: "/beneficiaries/ledger", permission: "Beneficiaries:View" },
+          { name: t("layout.sidebar.assistance_history"), href: "/beneficiaries/assistance-history", permission: "Beneficiaries:View" },
+          { name: t("layout.sidebar.loan_history"), href: "/beneficiaries/loan-history", permission: "Beneficiaries:View" },
         ]
       },
     ]
   },
   {
-    title: "আর্থিক কার্যক্রম",
+    title: t("layout.sidebar.financial_activities"),
     items: [
       { 
-        name: "অনুদানদাতা", 
+        name: t("layout.sidebar.donors"), 
         href: "/donors", 
         icon: HandCoins,
         permission: "Donors:View",
         submenu: [
-          { name: "নতুন অনুদানদাতা", href: "/donors/new", permission: "Donors:Add" },
-          { name: "অনুদানদাতা ব্যবস্থাপনা", href: "/donors/manage", permission: "Donors:View" },
-          { name: "অনুদান গ্রহণ", href: "/donors/receive", permission: "Donors:Receive Installment" },
-          { name: "অনুদান লেজার", href: "/donors/ledger", permission: "Donors:View" },
+          { name: t("layout.sidebar.new_donor"), href: "/donors/new", permission: "Donors:Add" },
+          { name: t("layout.sidebar.manage_donors"), href: "/donors/manage", permission: "Donors:View" },
+          { name: t("layout.sidebar.receive_donation"), href: "/donors/receive", permission: "Donors:Receive Installment" },
+          { name: t("layout.sidebar.donor_ledger"), href: "/donors/ledger", permission: "Donors:View" },
         ]
       },
       { 
-        name: "আর্থিক কার্যক্রম", 
+        name: t("layout.sidebar.financial_activities"), 
         href: "/campaigns", 
         icon: WalletCards,
         permission: "Fund Collection:View",
         submenu: [
-          { name: "নতুন তহবিল", href: "/campaigns/new", permission: "Fund Collection:Add" },
-          { name: "তহবিল ব্যবস্থাপনা", href: "/campaigns/manage", permission: "Fund Collection:View" },
-          { name: "তহবিলে অর্থ গ্রহণ", href: "/campaigns/contribute", permission: "Fund Collection:Add" },
-          { name: "তহবিল লেজার", href: "/campaigns/ledger", permission: "Fund Collection:View" },
+          { name: t("layout.sidebar.new_fund"), href: "/campaigns/new", permission: "Fund Collection:Add" },
+          { name: t("layout.sidebar.manage_funds"), href: "/campaigns/manage", permission: "Fund Collection:View" },
+          { name: t("layout.sidebar.receive_fund_contribution"), href: "/campaigns/contribute", permission: "Fund Collection:Add" },
+          { name: t("layout.sidebar.fund_ledger"), href: "/campaigns/ledger", permission: "Fund Collection:View" },
         ]
       },
       { 
-        name: "তহবিল / চাঁদা", 
+        name: t("layout.sidebar.fund_dues"), 
         href: "/contributions", 
         icon: PiggyBank,
         permission: "Fund Collection:View",
         submenu: [
-          { name: "তহবিল গ্রহণ", href: "/contributions/new", permission: "Fund Collection:Add" },
-          { name: "মাসিক চাঁদা", href: "/contributions/monthly", permission: "Fund Collection:View" },
-          { name: "চাঁদা ব্যবস্থাপনা", href: "/contributions", permission: "Fund Collection:View" },
-          { name: "বকেয়া চাঁদা", href: "/contributions/due", permission: "Fund Collection:View" },
-          { name: "চাঁদা লেজার", href: "/contributions/ledger", permission: "Fund Collection:View" },
+          { name: t("layout.sidebar.receive_fund"), href: "/contributions/new", permission: "Fund Collection:Add" },
+          { name: t("layout.sidebar.monthly_dues"), href: "/contributions/monthly", permission: "Fund Collection:View" },
+          { name: t("layout.sidebar.manage_dues"), href: "/contributions", permission: "Fund Collection:View" },
+          { name: t("layout.sidebar.due_dues"), href: "/contributions/due", permission: "Fund Collection:View" },
+          { name: t("layout.sidebar.dues_ledger"), href: "/contributions/ledger", permission: "Fund Collection:View" },
         ]
       },
       { 
-        name: "ঋণ", 
+        name: t("layout.sidebar.loans"), 
         href: "/loans", 
         icon: Landmark,
         permission: "Loans:View",
         submenu: [
-          { name: "নতুন ঋণ", href: "/loans/new", permission: "Loans:Add" },
-          { name: "ঋণ ব্যবস্থাপনা", href: "/loans", permission: "Loans:View" },
-          { name: "ঋণ পরিশোধ", href: "/loans/repayments", permission: "Loans:Manage" },
-          { name: "ঋণ লেজার", href: "/loans/ledger", permission: "Loans:View" },
+          { name: t("layout.sidebar.new_loan"), href: "/loans/new", permission: "Loans:Add" },
+          { name: t("layout.sidebar.manage_loans"), href: "/loans", permission: "Loans:View" },
+          { name: t("layout.sidebar.repay_loan"), href: "/loans/repayments", permission: "Loans:Manage" },
+          { name: t("layout.sidebar.loan_ledger"), href: "/loans/ledger", permission: "Loans:View" },
         ]
       },
       { 
-        name: "অনুদান", 
+        name: t("layout.sidebar.grants"), 
         href: "/grants", 
         icon: Gift,
         permission: "Grants:View",
         submenu: [
-          { name: "নতুন অনুদান", href: "/grants/new", permission: "Grants:Add" },
-          { name: "অনুদান ব্যবস্থাপনা", href: "/grants/manage", permission: "Grants:View" },
-          { name: "অনুদান লেজার", href: "/grants/ledger", permission: "Grants:View" },
+          { name: t("layout.sidebar.new_grant"), href: "/grants/new", permission: "Grants:Add" },
+          { name: t("layout.sidebar.manage_grants"), href: "/grants/manage", permission: "Grants:View" },
+          { name: t("layout.sidebar.donor_ledger"), href: "/grants/ledger", permission: "Grants:View" },
         ]
       },
     ]
   },
   {
-    title: "সংগঠন",
+    title: t("layout.sidebar.organization"),
     items: [
       { 
-        name: "গ্রুপ", 
+        name: t("layout.sidebar.groups"), 
         href: "/groups", 
         icon: UsersRound,
         permission: "Groups:View",
         submenu: [
-          { name: "নতুন গ্রুপ", href: "/groups/new", permission: "Groups:Add" },
-          { name: "গ্রুপ ব্যবস্থাপনা", href: "/groups/manage", permission: "Groups:View" },
-          { name: "গ্রুপের সদস্য", href: "/groups/members", permission: "Groups:View" },
-          { name: "গ্রুপ ফান্ড", href: "/groups/fund", permission: "Groups:View" },
-          { name: "গ্রুপ লেজার", href: "/groups/ledger", permission: "Groups:View" },
+          { name: t("layout.sidebar.new_group"), href: "/groups/new", permission: "Groups:Add" },
+          { name: t("layout.sidebar.manage_groups"), href: "/groups/manage", permission: "Groups:View" },
+          { name: t("layout.sidebar.group_members"), href: "/groups/members", permission: "Groups:View" },
+          { name: t("layout.sidebar.group_fund"), href: "/groups/fund", permission: "Groups:View" },
+          { name: t("layout.sidebar.group_ledger"), href: "/groups/ledger", permission: "Groups:View" },
         ]
       },
-      { name: "সেটিংস", href: "/settings", icon: Settings, permission: "Settings:View" },
+      { name: t("layout.sidebar.settings"), href: "/settings", icon: Settings, permission: "Settings:View" },
     ]
   }
-]
+];
 
-import { useBranding } from "@/components/providers/branding-provider"
-
-export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { isOpen, setIsOpen, isCollapsed } = useSidebar()
@@ -191,9 +193,7 @@ export function Sidebar() {
         .filter((item: any) => {
           const hasParentPerm = !item.permission || can(item.permission.split(":")[0], item.permission.split(":")[1]);
           if (!hasParentPerm) return false;
-          
           if (item.submenu && item.submenu.length === 0) return false;
-          
           return true;
         });
 
@@ -253,7 +253,7 @@ export function Sidebar() {
         <div className="px-5 pt-5 pb-6 flex items-center justify-between border-b border-transparent">
           <div className={cn("flex items-center gap-3", isCollapsed ? "md:justify-center w-full" : "")}>
             {branding.sidebarLogo || branding.logo ? (
-              <img src={branding.sidebarLogo || branding.logo!} alt="Logo" className="w-9 h-9 object-contain" />
+              <img src={branding.sidebarLogo || branding.logo!} alt={t("layout.sidebar.logo_8c2857")} className="w-9 h-9 object-contain" />
             ) : (
               <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/20">
                 <Diamond className="text-white w-5 h-5" />
@@ -373,7 +373,7 @@ export function Sidebar() {
             {session?.user?.image ? (
               <img 
                 src={session.user.image} 
-                alt="User" 
+                alt={t("layout.sidebar.user_8f9bfe")} 
                 className="w-full h-full object-cover" 
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';

@@ -29,8 +29,10 @@ interface DashboardChartsProps {
 }
 
 import { useTheme } from "next-themes"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsProps) {
+    const { t } = useLanguage();
   const chartRef = useRef<ChartJS<"bar">>(null)
   const [chartData, setChartData] = useState<any>({ datasets: [] })
   
@@ -106,14 +108,14 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
       <div className="lg:col-span-2 bg-surface-0 rounded-2xl border border-surface-200 p-5">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-[15px] font-semibold text-surface-900">আর্থিক সারসংক্ষেপ</h3>
-            <p className="text-[12px] text-surface-400 mt-0.5">মাসিক আয় বনাম ব্যয়</p>
+            <h3 className="text-[15px] font-semibold text-surface-900">{t("dashboard.k_d1166e")}</h3>
+            <p className="text-[12px] text-surface-400 mt-0.5">{t("dashboard.k_8fdbb7")}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-surface-50 rounded-lg p-0.5 border border-surface-200">
-              <button className="px-3 py-1.5 text-[11px] font-semibold bg-surface-0 text-surface-900 rounded-md shadow-sm border border-surface-200">6 মাস</button>
-              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">1 বছর</button>
-              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">সব</button>
+              <button className="px-3 py-1.5 text-[11px] font-semibold bg-surface-0 text-surface-900 rounded-md shadow-sm border border-surface-200">{t("dashboard.k_dc51af")}</button>
+              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">{t("dashboard.k_647b73")}</button>
+              <button className="px-3 py-1.5 text-[11px] font-medium text-surface-500 hover:text-surface-700 rounded-md transition-colors">{t("dashboard.k_f67622")}</button>
             </div>
           </div>
         </div>
@@ -188,8 +190,8 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
       <div className="bg-surface-0 rounded-2xl border border-surface-200 p-5 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[15px] font-semibold text-surface-900">তহবিল বণ্টন</h3>
-            <p className="text-[12px] text-surface-400 mt-0.5">সক্রিয় গ্রুপ অনুযায়ী</p>
+            <h3 className="text-[15px] font-semibold text-surface-900">{t("dashboard.k_5035bb")}</h3>
+            <p className="text-[12px] text-surface-400 mt-0.5">{t("dashboard.k_e106a2")}</p>
           </div>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center">
@@ -225,7 +227,7 @@ export function DashboardCharts({ monthlyData, groupFundData }: DashboardChartsP
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
                 <div className="text-[28px] font-bold text-surface-950 tracking-tight">{activeGroups}</div>
-                <div className="text-[11px] text-surface-400 font-medium">সক্রিয় গ্রুপ</div>
+                <div className="text-[11px] text-surface-400 font-medium">{t("dashboard.k_b427bb")}</div>
               </div>
             </div>
           </div>

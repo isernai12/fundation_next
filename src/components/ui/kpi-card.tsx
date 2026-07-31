@@ -1,8 +1,8 @@
 import React from "react"
 import { cn } from "@/lib/utils"
 
-export interface KpiCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string
+export interface KpiCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  title: React.ReactNode
   value: React.ReactNode
   subValue?: React.ReactNode
   icon: React.ElementType

@@ -58,12 +58,14 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 type MemberWithGroup = Member & {
   group: { name: string; code: string } | null
 }
 
 export function MembersTable({ data, groups, isManage = false }: { data: MemberWithGroup[], groups: Group[], isManage?: boolean }) {
+    const { t } = useLanguage();
   const [tableData, setTableData] = useState<MemberWithGroup[]>(data)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -115,15 +117,15 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     if (res.success) {
       toast.success(
         targetStatus === "ACTIVE"
-          ? "সদস্যকে সফলভাবে পুনরায় সক্রিয় করা হয়েছে"
-          : "সদস্যকে সফলভাবে নিষ্ক্রিয় করা হয়েছে"
+          ? t("members.messages.activated_success")
+          : t("members.messages.deactivated_success")
       )
     } else {
       // Revert state if failed
       setTableData(prev =>
         prev.map(m => (m.id === memberId ? { ...m, status: currentStatus } : m))
       )
-      toast.error(res.error || "স্ট্যাটাস পরিবর্তন করতে ব্যর্থ হয়েছে")
+      toast.error(res.error ? t(res.error) : t("members.messages.status_change_error"))
     }
   }
 
@@ -142,11 +144,11 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     setDeleteConfirmMember(null)
 
     if (res.success) {
-      toast.success("সদস্য সফলভাবে সফট-ডিলিট করা হয়েছে")
+      toast.success(t("members.messages.delete_success"))
     } else {
       // Revert if error
       setTableData(prev => [backupMember, ...prev])
-      toast.error(res.error || "সদস্য মুছে ফেলা সম্ভব নয়")
+      toast.error(res.error ? t(res.error) : t("members.messages.delete_error"))
     }
   }
 
@@ -166,50 +168,48 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     setCustomNote("")
 
     if (res.success) {
-      toast.success("সদস্যকে পুনরায় সক্রিয়/পুনঃস্থাপন করা হয়েছে")
+      toast.success(t("members.messages.restore_success"))
     } else {
-      toast.error(res.error || "পুনঃস্থাপন ব্যর্থ হয়েছে")
+      toast.error(res.error ? t(res.error) : t("members.messages.restore_error"))
     }
   }
 
   const columns: ColumnDef<MemberWithGroup>[] = [
     {
       accessorKey: "memberId",
-      header: "সদস্য আইডি",
+      header: t("members.table.member_id"),
     },
     {
       accessorKey: "fullName",
-      header: "নাম",
-      cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`
+      header: t("members.table.name"),
+      cell: ({ row }) => `${row.original.fullName || ''}`
     },
     {
       accessorKey: "groupId",
-      header: "গ্রুপ",
+      header: t("members.table.group"),
       cell: ({ row }) => row.original.group ? `${row.original.group.name} (${row.original.group.code})` : "None",
     },
     {
       accessorKey: "mobile",
-      header: "মোবাইল",
+      header: t("members.table.mobile"),
     },
     {
       accessorKey: "status",
-      header: "অবস্থা",
+      header: t("members.table.status"),
       cell: ({ row }) => {
         const status = row.original.status
         if (status === "ACTIVE") {
           return (
             <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1 font-normal">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
-              🟢 Active
-            </Badge>
+              {t("members.status.active_caps")}</Badge>
           )
         }
         if (status === "INACTIVE") {
           return (
             <Badge variant="outline" className="bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 gap-1 font-normal">
               <span className="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
-              🔴 Inactive
-            </Badge>
+              {t("members.status.inactive_caps")}</Badge>
           )
         }
         return <Badge variant="destructive">{status}</Badge>
@@ -217,12 +217,14 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     },
     {
       accessorKey: "joinDate",
-      header: "যোগদানের তারিখ",
+      header: t("members.table.join_date"),
       cell: ({ row }) => row.original.joinDate ? formatDate(row.original.joinDate) : 'N/A',
     },
     {
       id: "actions",
-      header: () => <div className="text-right">অ্যাকশন</div>,
+      header: () => {
+        return (<div className="text-right">{t("members.table.actions")}</div>);
+      },
       cell: ({ row }) => {
         const member = row.original
 
@@ -242,14 +244,13 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{t("members.actions.open_menu")}</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
-                  সদস্য অপশন
-                </DropdownMenuLabel>
+                  {t("members.table.actions_label")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
                 {/* 1. View Details */}
@@ -257,7 +258,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                   <DropdownMenuItem asChild>
                     <Link href={`/members/${member.id}`} className="cursor-pointer flex items-center">
                       <Eye className="mr-2 h-4 w-4 text-blue-500" />
-                      <span>বিস্তারিত দেখুন</span>
+                      <span>{t("members.actions.view_profile")}</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -267,7 +268,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                   <DropdownMenuItem asChild>
                     <Link href={`/members/${member.id}/edit`} className="cursor-pointer flex items-center">
                       <Edit className="mr-2 h-4 w-4 text-amber-500" />
-                      <span>সদস্য সম্পাদনা</span>
+                      <span>{t("members.actions.edit_member")}</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -277,7 +278,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                   <DropdownMenuItem asChild>
                     <Link href={`/members/ledger?memberId=${member.id}`} className="cursor-pointer flex items-center">
                       <BookOpen className="mr-2 h-4 w-4 text-emerald-500" />
-                      <span>সদস্য লেজার</span>
+                      <span>{t("members.actions.ledger")}</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -295,7 +296,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                         }}
                       >
                         <PowerOff className="mr-2 h-4 w-4 text-amber-500" />
-                        <span>নিষ্ক্রিয় করুন</span>
+                        <span>{t("members.actions.deactivate_menu")}</span>
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem
@@ -306,7 +307,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                         }}
                       >
                         <Power className="mr-2 h-4 w-4 text-emerald-500" />
-                        <span>সক্রিয় করুন</span>
+                        <span>{t("members.actions.activate_menu")}</span>
                       </DropdownMenuItem>
                     )}
                   </>
@@ -319,7 +320,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                     onClick={() => setRestoreConfirmMember(member)}
                   >
                     <RotateCcw className="mr-2 h-4 w-4 text-emerald-500" />
-                    <span>পুনঃস্থাপন করুন</span>
+                    <span>{t("members.actions.restore_menu")}</span>
                   </DropdownMenuItem>
                 )}
 
@@ -332,7 +333,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
                       onClick={() => setDeleteConfirmMember(member)}
                     >
                       <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                      <span>সদস্য মুছে ফেলুন</span>
+                      <span>{t("members.actions.delete_menu")}</span>
                     </DropdownMenuItem>
                   </>
                 )}
@@ -363,7 +364,7 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
     <div>
       <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-2 py-2">
         <Input
-          placeholder="নাম দিয়ে খুঁজুন..."
+          placeholder={t("members.table.search_placeholder")}
           value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("fullName")?.setFilterValue(event.target.value)
@@ -380,13 +381,13 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           }}
         >
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="স্ট্যাটাস ফিল্টার" />
+            <SelectValue placeholder={t("members.table.status_placeholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">সকল স্ট্যাটাস</SelectItem>
-            <SelectItem value="ACTIVE">🟢 সক্রিয় (Active)</SelectItem>
-            <SelectItem value="INACTIVE">🔴 নিষ্ক্রিয় (Inactive)</SelectItem>
-            {isSuperAdmin && <SelectItem value="DELETED">⚫ মুছে ফেলা (Deleted)</SelectItem>}
+            <SelectItem value="ALL">{t("members.table.all_status")}</SelectItem>
+            <SelectItem value="ACTIVE">{t("members.status.active")}</SelectItem>
+            <SelectItem value="INACTIVE">{t("members.status.inactive")}</SelectItem>
+            {isSuperAdmin && <SelectItem value="DELETED">{t("members.status.deleted")}</SelectItem>}
           </SelectContent>
         </Select>
 
@@ -399,10 +400,10 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           }}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="গ্রুপ দিয়ে ফিল্টার করুন" />
+            <SelectValue placeholder={t("members.table.group_placeholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">সকল গ্রুপ</SelectItem>
+            <SelectItem value="ALL">{t("members.table.all_groups")}</SelectItem>
             {groups.map(g => (
               <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
             ))}
@@ -413,42 +414,45 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                              return (
+                                <TableHead key={header.id}>
+                                  {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                      )}
+                                </TableHead>
+                              )
+                            })}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow
+                                key={row.id}
+                                data-state={row.getIsSelected() && "selected"}
+                              >
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  কোনো ফলাফল পাওয়া যায়নি।
-                </TableCell>
+                  {t("members.table.no_results")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -462,16 +466,14 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          পূর্ববর্তী
-        </Button>
+          {t("members.table.previous")}</Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          পরবর্তী
-        </Button>
+          {t("members.table.next")}</Button>
       </div>
 
       {/* Confirmation Dialog: Status Toggle (Deactivate / Activate) */}
@@ -482,28 +484,24 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
               {statusConfirmMember?.status === "ACTIVE" ? (
                 <>
                   <PowerOff className="h-5 w-5 text-amber-500" />
-                  <span>সদস্য নিষ্ক্রিয়করণের নিশ্চয়তা</span>
+                  <span>{t("members.dialog.deactivate_title")}</span>
                 </>
               ) : (
                 <>
                   <Power className="h-5 w-5 text-emerald-500" />
-                  <span>সদস্য সক্রিয়করণের নিশ্চয়তা</span>
+                  <span>{t("members.dialog.activate_title")}</span>
                 </>
               )}
             </DialogTitle>
             <DialogDescription className="py-2 text-sm text-muted-foreground leading-relaxed">
               {statusConfirmMember?.status === "ACTIVE" ? (
                 <>
-                  আপনি কি নিশ্চিত যে <strong>{statusConfirmMember?.fullName}</strong> ({statusConfirmMember?.memberId})-কে <strong>নিষ্ক্রিয় (Inactive)</strong> করতে চান?
-                  <br className="my-1" />
-                  নিষ্ক্রিয় করার পর আগামী মাস থেকে নতুন চাঁদা তৈরি হবে না এবং নতুন ঋণ/সহায়তা প্রদান বন্ধ থাকবে। তবে আগের সকল হিস্ট্রি সংরক্ষিত থাকবে।
-                </>
+                  {t("members.dialog.status_confirm_prefix")}<strong>{statusConfirmMember?.fullName}</strong> ({statusConfirmMember?.memberId}{t("members.dialog.status_confirm_mid1")}<strong>{t("members.dialog.inactive_strong")}</strong> {t("members.dialog.status_confirm_suffix")}<br className="my-1" />
+                  {t("members.dialog.deactivate_warning")}</>
               ) : (
                 <>
-                  আপনি কি নিশ্চিত যে <strong>{statusConfirmMember?.fullName}</strong> ({statusConfirmMember?.memberId})-কে পুনরায় <strong>সক্রিয় (Active)</strong> করতে চান?
-                  <br className="my-1" />
-                  সক্রিয়করণের পর বর্তমান মাস থেকে পুনরায় নিয়মিত চাঁদা শুরু হবে।
-                </>
+                  {t("members.dialog.status_confirm_prefix")}<strong>{statusConfirmMember?.fullName}</strong> ({statusConfirmMember?.memberId}{t("members.dialog.status_confirm_mid2")}<strong>{t("members.dialog.active_strong")}</strong> {t("members.dialog.status_confirm_suffix")}<br className="my-1" />
+                  {t("members.dialog.activate_warning")}</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -511,17 +509,17 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           <div className="space-y-3 py-2">
             {statusConfirmMember?.status === "ACTIVE" ? (
               <div className="space-y-1.5">
-                <Label htmlFor="deactivate-reason">নিষ্ক্রিয় করার কারণ (Reason)</Label>
+                <Label htmlFor="deactivate-reason">{t("members.dialog.reason_label")}</Label>
                 <Select value={selectedReason} onValueChange={setSelectedReason}>
                   <SelectTrigger id="deactivate-reason">
-                    <SelectValue placeholder="কারণ নির্বাচন করুন..." />
+                    <SelectValue placeholder={t("members.dialog.select_reason")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Left the foundation">প্রতিষ্ঠানের সদস্যপদ ত্যাগ করেছেন</SelectItem>
-                    <SelectItem value="Transferred">অন্যত্র স্থানান্তরিত হয়েছেন</SelectItem>
-                    <SelectItem value="Deceased">মৃত্যুবরণ করেছেন</SelectItem>
-                    <SelectItem value="Temporary inactive">সাময়িক নিষ্ক্রিয় রাখা হয়েছে</SelectItem>
-                    <SelectItem value="Other">অন্যান্য কারণ</SelectItem>
+                    <SelectItem value="Left the foundation">{t("members.reasons.left")}</SelectItem>
+                    <SelectItem value="Transferred">{t("members.reasons.transferred")}</SelectItem>
+                    <SelectItem value="Deceased">{t("members.reasons.deceased")}</SelectItem>
+                    <SelectItem value="Temporary inactive">{t("members.reasons.temp_inactive")}</SelectItem>
+                    <SelectItem value="Other">{t("members.reasons.other")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -529,10 +527,10 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
 
             {(selectedReason === "Other" || statusConfirmMember?.status !== "ACTIVE") && (
               <div className="space-y-1.5">
-                <Label htmlFor="custom-reason">নোট / মন্তব্য (Optional)</Label>
+                <Label htmlFor="custom-reason">{t("members.dialog.custom_note_label")}</Label>
                 <Input
                   id="custom-reason"
-                  placeholder="নোট বা কারণ লিখুন..."
+                  placeholder={t("members.dialog.custom_note_placeholder")}
                   value={customNote}
                   onChange={(e) => setCustomNote(e.target.value)}
                 />
@@ -542,14 +540,13 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
 
           <DialogFooter className="flex gap-2 sm:justify-end mt-2">
             <Button variant="outline" onClick={() => setStatusConfirmMember(null)} disabled={isSubmitting}>
-              বাতিল করুন
-            </Button>
+              {t("members.actions.cancel")}</Button>
             <Button
               variant={statusConfirmMember?.status === "ACTIVE" ? "destructive" : "default"}
               onClick={handleConfirmStatusToggle}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "প্রসেসিং..." : statusConfirmMember?.status === "ACTIVE" ? "নিষ্ক্রিয় করুন" : "সক্রিয় করুন"}
+              {isSubmitting ? t("members.actions.processing") : statusConfirmMember?.status === "ACTIVE" ? t("members.actions.deactivate") : t("members.actions.activate")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -561,27 +558,24 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span>সদস্য সফট-ডিলিটের নিশ্চয়তা</span>
+              <span>{t("members.dialog.delete_title")}</span>
             </DialogTitle>
             <DialogDescription className="space-y-3 py-2 text-sm text-muted-foreground leading-relaxed">
               <p>
-                আপনি কি নিশ্চিত যে সদস্য <strong>{deleteConfirmMember?.fullName}</strong> ({deleteConfirmMember?.memberId})-কে মুছে ফেলতে চান?
-              </p>
+                {t("members.dialog.delete_confirm_prefix")}<strong>{deleteConfirmMember?.fullName}</strong> ({deleteConfirmMember?.memberId}{t("members.dialog.delete_confirm_suffix")}</p>
               <div className="rounded-md bg-amber-500/10 p-3 text-amber-800 dark:text-amber-300 text-xs border border-amber-500/20">
-                ⚠️ <strong>সতর্কতা:</strong> সফট-ডিলিট করা হলেও সদস্যের সকল আর্থিক ইতিহাস ও রেকর্ড ডাটাবেজে সুরক্ষিত থাকবে। সদস্যের সাথে লেনদেন যুক্ত থাকলে মোছা প্রতিরোধ করা হবে।
-              </div>
+                ⚠️ <strong>{t("members.messages.warning")}</strong> {t("members.messages.soft_delete_warning")}</div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-end mt-2">
             <Button variant="outline" onClick={() => setDeleteConfirmMember(null)} disabled={isSubmitting}>
-              বাতিল করুন
-            </Button>
+              {t("members.actions.cancel")}</Button>
             <Button
               variant="destructive"
               onClick={handleConfirmDelete}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "প্রসেসিং..." : "হ্যাঁ, সফট-ডিলিট করুন"}
+              {isSubmitting ? t("members.actions.processing") : t("members.actions.soft_delete_confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -593,22 +587,20 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-emerald-600">
               <RotateCcw className="h-5 w-5" />
-              <span>সদস্য পুনঃস্থাপনের নিশ্চয়তা</span>
+              <span>{t("members.dialog.restore_title")}</span>
             </DialogTitle>
             <DialogDescription className="py-2 text-sm text-muted-foreground leading-relaxed">
-              আপনি কি সদস্য <strong>{restoreConfirmMember?.fullName}</strong>-কে পুনরায় মূল তালিকায় সক্রিয় করতে চান?
-            </DialogDescription>
+              {t("members.dialog.restore_confirm_prefix")}<strong>{restoreConfirmMember?.fullName}</strong>{t("members.dialog.restore_confirm_suffix")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-end mt-2">
             <Button variant="outline" onClick={() => setRestoreConfirmMember(null)} disabled={isSubmitting}>
-              বাতিল করুন
-            </Button>
+              {t("members.actions.cancel")}</Button>
             <Button
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
               onClick={handleConfirmRestore}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "প্রসেসিং..." : "পুনঃস্থাপন করুন"}
+              {isSubmitting ? t("members.actions.processing") : t("members.actions.restore")}
             </Button>
           </DialogFooter>
         </DialogContent>

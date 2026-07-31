@@ -1,8 +1,8 @@
 import { z } from "zod"
 
 export const memberSchema = z.object({
-  groupId: z.string().min(1, "গ্রুপ নির্বাচন করা আবশ্যক"),
-  fullName: z.string().min(1, "সদস্যের নাম আবশ্যক").transform((v) => v.trim()),
+  groupId: z.string().min(1, "members.validation.group_required"),
+  fullName: z.string().min(1, "members.validation.name_required").transform((v) => v.trim()),
   fatherName: z.string().optional().or(z.literal("")),
   motherName: z.string().optional().or(z.literal("")),
   dob: z.string().optional().or(z.literal("")),
@@ -17,7 +17,7 @@ export const memberSchema = z.object({
     .optional()
     .or(z.literal(""))
     .refine((val) => !val || val === "" || z.string().email().safeParse(val).success, {
-      message: "সঠিক ইমেইল ঠিকানায় লিখুন অথবা খালি রাখুন",
+      message: "members.validation.invalid_email",
     }),
   bloodGroup: z.string().optional().or(z.literal("")),
 

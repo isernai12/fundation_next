@@ -35,8 +35,10 @@ import { deleteDonor } from "../actions"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useRbac } from "@/components/providers/rbac-provider"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function DonorsTable({ data }: { data: any[] }) {
+    const { t } = useLanguage();
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const router = useRouter()
@@ -49,22 +51,22 @@ export function DonorsTable({ data }: { data: any[] }) {
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "donorId",
-      header: "অনুদানদাতা আইডি",
+      header: t("donors.table.donor_id"),
     },
     {
       accessorKey: "fullName",
-      header: "নাম",
+      header: t("donors.table.name"),
     },
     {
       accessorKey: "mobile",
-      header: "মোবাইল",
+      header: t("donors.table.mobile"),
     },
     {
       accessorKey: "status",
-      header: "অবস্থা",
+      header: t("donors.table.status"),
       cell: ({ row }) => (
         <Badge variant={row.original.status === "ACTIVE" ? "default" : "secondary"}>
-          {row.original.status === "ACTIVE" ? "সক্রিয়" : row.original.status}
+          {row.original.status === "ACTIVE" ? t("donors.table.status_active") : row.original.status}
         </Badge>
       ),
     },
@@ -76,44 +78,42 @@ export function DonorsTable({ data }: { data: any[] }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t("donors.open_menu_64d2cc")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("donors.k_7c6fd8")}</DropdownMenuLabel>
               {canView && (
                 <DropdownMenuItem asChild>
                   <Link href={`/donors/${donor.id}`}>
-                    <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
-                  </Link>
+                    <Eye className="mr-2 h-4 w-4" /> {t("donors.k_f61612")}</Link>
                 </DropdownMenuItem>
               )}
               {canEdit && (
                 <DropdownMenuItem asChild>
                   <Link href={`/donors/${donor.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
-                  </Link>
+                    <Edit className="mr-2 h-4 w-4" /> {t("donors.k_8cdd29")}</Link>
                 </DropdownMenuItem>
               )}
               {canView && (
                 <DropdownMenuItem asChild>
                   <Link href={`/donors/ledger?donorId=${donor.id}`}>
-                    <BookOpen className="mr-2 h-4 w-4" /> লেজার
-                  </Link>
+                    <BookOpen className="mr-2 h-4 w-4" /> {t("donors.k_800938")}</Link>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => window.print()}>
-                <Printer className="mr-2 h-4 w-4" /> প্রিন্ট
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                      return (window.print());
+                    }}>
+                <Printer className="mr-2 h-4 w-4" /> {t("donors.k_a0b40f")}</DropdownMenuItem>
               {canDelete && (
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={async () => {
-                    if (confirm("আপনি কি নিশ্চিত যে আপনি এই অনুদানদাতাকে মুছে ফেলতে চান?")) {
+                    if (confirm(t("donors.table.confirm_delete"))) {
                       const res = await deleteDonor(donor.id)
                       if (res.success) {
-                        toast.success("সফলভাবে মুছে ফেলা হয়েছে")
+                        toast.success(t("donors.k_9a80d2"))
                         router.refresh()
                       } else {
                         toast.error(res.error)
@@ -121,8 +121,7 @@ export function DonorsTable({ data }: { data: any[] }) {
                     }
                   }}
                 >
-                  <Trash className="mr-2 h-4 w-4" /> মুছুন
-                </DropdownMenuItem>
+                  <Trash className="mr-2 h-4 w-4" /> {t("donors.k_047838")}</DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -147,7 +146,7 @@ export function DonorsTable({ data }: { data: any[] }) {
     <div>
       <div className="flex items-center py-2">
         <Input
-          placeholder="নাম দিয়ে খুঁজুন..."
+          placeholder={t("donors.k_8434ad")}
           value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn("fullName")?.setFilterValue(event.target.value)}
           className="max-w-sm"
@@ -156,32 +155,35 @@ export function DonorsTable({ data }: { data: any[] }) {
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  কোনো অনুদানদাতা পাওয়া যায়নি।
-                </TableCell>
+                  {t("donors.k_3f8ad2")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -189,11 +191,9 @@ export function DonorsTable({ data }: { data: any[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          পূর্ববর্তী
-        </Button>
+          {t("donors.k_8347d9")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          পরবর্তী
-        </Button>
+          {t("donors.k_30ffb9")}</Button>
       </div>
     </div>
   )

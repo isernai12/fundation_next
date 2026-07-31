@@ -2,6 +2,7 @@ import { LoanForm } from "@/features/loans/components/loan-form"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { getGroups } from "@/features/groups/actions"
+import { Trans } from "@/components/shared/trans";
 
 export default async function EditLoanPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -41,10 +42,9 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">ঋণ সংশোধন</h1>
+            <h1 className="text-2xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
             <p className="text-muted-foreground">
-              বিদ্যমান ঋণের তথ্য পরিবর্তন করুন।
-            </p>
+              <Trans tKey="app.text" /></p>
           </div>
           <LoanForm beneficiaries={beneficiaries} groups={groups} initialData={initialData} initialDocuments={loan.documents} />
         </div>

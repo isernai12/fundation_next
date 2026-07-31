@@ -19,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Trans } from "@/components/shared/trans";
+
 export default async function ManageCampaignsPage() {
   const campaigns = await getCampaigns()
 
@@ -26,21 +28,19 @@ export default async function ManageCampaignsPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/campaigns/manage" className="hover:text-primary transition-colors">
-          তহবিল কার্যক্রম
-        </Link>
+          <Trans tKey="app.text" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">ব্যবস্থাপনা</span>
+        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">তহবিল কার্যক্রম ব্যবস্থাপনা</h1>
-          <p className="text-muted-foreground">সকল তহবিল কার্যক্রম এবং ক্যাম্পেইনের তালিকা ও স্ট্যাটাস।</p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
         </div>
         <Link href="/campaigns/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" /> নতুন কার্যক্রম
-          </Button>
+            <Plus className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Button>
         </Link>
       </div>
 
@@ -48,12 +48,12 @@ export default async function ManageCampaignsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>কার্যক্রমের নাম</TableHead>
-              <TableHead>উদ্দেশ্য</TableHead>
-              <TableHead>লক্ষ্যমাত্রা</TableHead>
-              <TableHead>সংগৃহীত</TableHead>
-              <TableHead>স্ট্যাটাস</TableHead>
-              <TableHead className="text-right">অ্যাকশন</TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead className="text-right"><Trans tKey="app.text" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -81,38 +81,31 @@ export default async function ManageCampaignsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>অ্যাকশন</DropdownMenuLabel>
+                          <DropdownMenuLabel><Trans tKey="app.text" /></DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/${campaign.id}`}>
-                              <Eye className="mr-2 h-4 w-4" /> বিস্তারিত দেখুন
-                            </Link>
+                              <Eye className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/${campaign.id}/edit`}>
-                              <Edit className="mr-2 h-4 w-4" /> সম্পাদনা
-                            </Link>
+                              <Edit className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/ledger?campaignId=${campaign.id}`}>
-                              <FileText className="mr-2 h-4 w-4" /> তহবিল লেজার
-                            </Link>
+                              <FileText className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/${campaign.id}/transactions`}>
-                              <History className="mr-2 h-4 w-4" /> লেনদেন ইতিহাস
-                            </Link>
+                              <History className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem className="cursor-pointer">
-                            <Printer className="mr-2 h-4 w-4" /> প্রিন্ট
-                          </DropdownMenuItem>
+                            <Printer className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="cursor-pointer">
-                            <CheckCircle className="mr-2 h-4 w-4" /> সম্পন্ন/বন্ধ করুন
-                          </DropdownMenuItem>
+                            <CheckCircle className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></DropdownMenuItem>
                           <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                            <Trash className="mr-2 h-4 w-4" /> মুছে ফেলুন
-                          </DropdownMenuItem>
+                            <Trash className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -122,8 +115,7 @@ export default async function ManageCampaignsPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  কোনো তহবিল কার্যক্রম পাওয়া যায়নি
-                </TableCell>
+                  <Trans tKey="app.text" /></TableCell>
               </TableRow>
             )}
           </TableBody>

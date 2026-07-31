@@ -1,0 +1,26 @@
+{
+  "en": {
+    "reports": {
+      "search": "Search",
+      "global_search": "Global search...",
+      "export_csv": "Export CSV",
+      "print": "Print",
+      "no_data_found": "No data found.",
+      "total_records": "Total records: ",
+      "previous": "Previous",
+      "next": "Next"
+    }
+  },
+  "bn": {
+    "reports": {
+      "search": "অনুসন্ধান",
+      "global_search": "গ্লোবাল অনুসন্ধান...",
+      "export_csv": "CSV রপ্তানি করুন",
+      "print": "প্রিন্ট করুন",
+      "no_data_found": "কোনো তথ্য পাওয়া যায়নি।",
+      "total_records": "মোট রেকর্ড: ",
+      "previous": "পূর্ববর্তী",
+      "next": "পরবর্তী"
+    }
+  }
+}

@@ -2,7 +2,7 @@ import { z } from "zod"
 
 export const beneficiarySchema = z.object({
   // Section 1: ব্যক্তিগত তথ্য
-  fullName: z.string().min(1, "পূর্ণ নাম আবশ্যক"),
+  fullName: z.string().min(1, "beneficiaries.validation.full_name_required"),
   fatherOrHusbandName: z.string().optional().or(z.literal("")),
   nationalId: z.string().optional().or(z.literal("")),
   mobile: z.string().optional().or(z.literal("")),

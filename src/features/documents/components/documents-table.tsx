@@ -24,8 +24,10 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Download, Eye, FileText, Image as ImageIcon } from "lucide-react"
 import Link from "next/link"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function DocumentsTable({ data }: { data: any[] }) {
+    const { t } = useLanguage();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const columns: ColumnDef<any>[] = [
@@ -40,12 +42,14 @@ export function DocumentsTable({ data }: { data: any[] }) {
     {
       id: "type",
       header: "Type",
-      cell: ({ row }) => (
-        <div className="flex items-center space-x-2">
-          {row.original.type === "IMAGE" ? <ImageIcon className="h-4 w-4 text-muted-foreground" /> : <FileText className="h-4 w-4 text-muted-foreground" />}
-          <span>{row.original.mimeType.split('/')[1].toUpperCase()}</span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        return ((
+              <div className="flex items-center space-x-2">
+                {row.original.type === "IMAGE" ? <ImageIcon className="h-4 w-4 text-muted-foreground" /> : <FileText className="h-4 w-4 text-muted-foreground" />}
+                <span>{row.original.mimeType.split('/')[1].toUpperCase()}</span>
+              </div>
+            ));
+      },
     },
     {
       id: "category",
@@ -69,20 +73,22 @@ export function DocumentsTable({ data }: { data: any[] }) {
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="icon" asChild title="View">
-            <a href={row.original.url} target="_blank" rel="noreferrer">
-              <Eye className="h-4 w-4" />
-            </a>
-          </Button>
-          <Button variant="ghost" size="icon" asChild title="Download">
-            <a href={row.original.url} download={row.original.originalFilename}>
-              <Download className="h-4 w-4" />
-            </a>
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        return ((
+              <div className="flex space-x-2">
+                <Button variant="ghost" size="icon" asChild title={t("documents.view_4351cf")}>
+                  <a href={row.original.url} target="_blank" rel="noreferrer">
+                    <Eye className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" asChild title={t("documents.download_801ab2")}>
+                  <a href={row.original.url} download={row.original.originalFilename}>
+                    <Download className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            ));
+      },
     },
   ]
 
@@ -102,7 +108,7 @@ export function DocumentsTable({ data }: { data: any[] }) {
     <div>
       <div className="flex items-center space-x-2 py-2">
         <Input
-          placeholder="Filter by title..."
+          placeholder={t("documents.filter_by_title_453e81")}
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("title")?.setFilterValue(event.target.value)
@@ -113,32 +119,35 @@ export function DocumentsTable({ data }: { data: any[] }) {
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No documents found.
-                </TableCell>
+                  {t("documents.no_documents_found_9db858")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -146,11 +155,9 @@ export function DocumentsTable({ data }: { data: any[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
-        </Button>
+          {t("documents.previous_dd1f77")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
-        </Button>
+          {t("documents.next_10ac3d")}</Button>
       </div>
     </div>
   )

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UploadCloud } from "lucide-react"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface Category {
   id: string
@@ -29,6 +30,7 @@ interface DocumentUploadDialogProps {
 }
 
 export function DocumentUploadDialog({ targetType, entityId, categories, trigger }: DocumentUploadDialogProps) {
+    const { t } = useLanguage();
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
@@ -40,8 +42,8 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!file) return toast.error("দয়া করে একটি ফাইল নির্বাচন করুন")
-    if (!title) return toast.error("দয়া করে একটি শিরোনাম প্রদান করুন")
+    if (!file) return toast.error(t("documents.k_ce1627"))
+    if (!title) return toast.error(t("documents.k_3ba593"))
 
     const formData = new FormData()
     formData.append("file", file)
@@ -56,7 +58,7 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
     try {
       const res = await uploadDocument(formData)
       if (res.success) {
-        toast.success("ডকুমেন্ট সফলভাবে আপলোড করা হয়েছে")
+        toast.success(t("documents.k_f8d30a"))
         setOpen(false)
         setFile(null)
         setTitle("")
@@ -76,16 +78,16 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button><UploadCloud className="mr-2 h-4 w-4" /> ডকুমেন্ট আপলোড</Button>}
+        {trigger || <Button><UploadCloud className="mr-2 h-4 w-4" /> {t("documents.k_e507d1")}</Button>}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>ডকুমেন্ট আপলোড</DialogTitle>
+          <DialogTitle>{t("documents.k_e507d1")}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label>ফাইল (PDF, JPG, PNG, WEBP - সর্বোচ্চ ৫ MB)</Label>
+            <Label>{t("documents.pdf_jpg_png_webp_mb_fc4af4")}</Label>
             <Input 
               type="file" 
               accept=".pdf,image/jpeg,image/png,image/webp"
@@ -94,16 +96,16 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
           </div>
 
           <div className="space-y-2">
-            <Label>ডকুমেন্টের শিরোনাম *</Label>
+            <Label>{t("documents.k_aff18b")}</Label>
             <Input value={title} onChange={e => setTitle(e.target.value)} required />
           </div>
 
           <div className="space-y-2">
-            <Label>বিভাগ</Label>
+            <Label>{t("documents.k_fdfe99")}</Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger><SelectValue placeholder="বিভাগ নির্বাচন করুন" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("documents.k_58b30d")} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">কোনটি নয়</SelectItem>
+                <SelectItem value="none">{t("documents.k_c70eb5")}</SelectItem>
                 {categories.map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
@@ -112,17 +114,17 @@ export function DocumentUploadDialog({ targetType, entityId, categories, trigger
           </div>
 
           <div className="space-y-2">
-            <Label>বিবরণ</Label>
+            <Label>{t("documents.k_87daaf")}</Label>
             <Input value={description} onChange={e => setDescription(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>মন্তব্য</Label>
+            <Label>{t("documents.k_550c03")}</Label>
             <Input value={remarks} onChange={e => setRemarks(e.target.value)} />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button variant="outline" type="button" onClick={() => setOpen(false)}>বাতিল</Button>
+            <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t("documents.k_de9b04")}</Button>
             <Button type="submit" disabled={isUploading}>{isUploading ? "আপলোড হচ্ছে..." : "আপলোড"}</Button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+"use client";
 
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,19 +18,26 @@ import {
   BadgeAlert
 } from "lucide-react"
 
+import { useState, useEffect } from "react"
 import { getNow, formatDate } from "@/lib/date"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function WelcomeSection({ userName }: { userName: string }) {
-  const today = formatDate(getNow())
+    const { t } = useLanguage();
+  const [today, setToday] = useState<string>("")
+
+  useEffect(() => {
+    setToday(formatDate(getNow()))
+  }, [])
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">স্বাগতম, {userName}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("dashboard.k_d52b84")}{userName}</h1>
         <p className="text-sm text-muted-foreground mt-1">{today}</p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="bg-background shadow-sm h-9">রিপোর্ট ডাউনলোড</Button>
+        <Button variant="outline" size="sm" className="bg-background shadow-sm h-9">{t("dashboard.k_b25061")}</Button>
       </div>
     </div>
   )
@@ -78,6 +86,7 @@ export function KpiCard({
 }
 
 export function QuickActions() {
+    const { t } = useLanguage();
   const actions = [
     { label: "নতুন সদস্য", icon: Plus, color: "bg-blue-500/10 text-blue-600" },
     { label: "কিস্তি গ্রহণ", icon: Wallet, color: "bg-emerald-500/10 text-emerald-600" },
@@ -89,7 +98,7 @@ export function QuickActions() {
   return (
     <Card className="shadow-card border-border/50">
       <CardHeader className="pb-3 border-b border-border/50">
-        <CardTitle className="text-sm font-medium">দ্রুত কার্যক্রম</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("dashboard.k_954173")}</CardTitle>
       </CardHeader>
       <CardContent className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
         {actions.map((action, i) => (
@@ -119,16 +128,17 @@ export function EmptyState({ icon: Icon, title, description, action }: { icon: R
 }
 
 export function TodaysTasks() {
+    const { t } = useLanguage();
   return (
     <Card className="shadow-card border-border/50 h-full flex flex-col">
       <CardHeader className="pb-3 border-b border-border/50 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium">আজকের কাজসমূহ</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("dashboard.k_ecc556")}</CardTitle>
       </CardHeader>
       <CardContent className="p-5 flex-1 flex flex-col">
         <EmptyState 
           icon={Calendar} 
-          title="কোনো কাজ নেই" 
-          description="আজকের জন্য কোনো ঋণের কিস্তি, চাঁদা বা অনুমোদনের কাজ বাকি নেই।"
+          title={t("dashboard.k_8ac274")} 
+          description={t("dashboard.k_fb93e5")}
         />
       </CardContent>
     </Card>
@@ -136,19 +146,19 @@ export function TodaysTasks() {
 }
 
 export function OverdueAlerts() {
+    const { t } = useLanguage();
   return (
     <Card className="shadow-card border-border/50 border-t-4 border-t-rose-500 h-full flex flex-col">
       <CardHeader className="pb-3 border-b border-border/50 flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <BadgeAlert className="h-4 w-4 text-rose-500" />
-          বকেয়া সতর্কতা
-        </CardTitle>
+          {t("dashboard.k_5e5ab0")}</CardTitle>
       </CardHeader>
       <CardContent className="p-5 flex-1 flex flex-col">
         <EmptyState 
           icon={CheckCircle2} 
-          title="সব ঠিক আছে!" 
-          description="বর্তমানে কোনো বকেয়া কিস্তি বা মাসিক চাঁদা নেই।"
+          title={t("dashboard.k_8a0726")} 
+          description={t("dashboard.k_6d0a6a")}
         />
       </CardContent>
     </Card>
@@ -156,16 +166,17 @@ export function OverdueAlerts() {
 }
 
 export function UpcomingTasks() {
+    const { t } = useLanguage();
   return (
     <Card className="shadow-card border-border/50 h-full flex flex-col">
       <CardHeader className="pb-3 border-b border-border/50 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium">আসন্ন (আগামী ৭ দিন)</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("dashboard.k_40142f")}</CardTitle>
       </CardHeader>
       <CardContent className="p-5 flex-1 flex flex-col">
         <EmptyState 
           icon={CalendarDays} 
-          title="কোনো আসন্ন কাজ নেই" 
-          description="আগামী ৭ দিনের জন্য কোনো কাজ নির্ধারিত নেই।"
+          title={t("dashboard.k_d35b21")} 
+          description={t("dashboard.k_2f73b2")}
         />
       </CardContent>
     </Card>
@@ -173,16 +184,17 @@ export function UpcomingTasks() {
 }
 
 export function TodaysFinancialSummary() {
+    const { t } = useLanguage();
   return (
     <Card className="shadow-card border-border/50 h-full flex flex-col">
       <CardHeader className="pb-3 border-b border-border/50 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium">আজকের আর্থিক সারসংক্ষেপ</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("dashboard.k_882b08")}</CardTitle>
       </CardHeader>
       <CardContent className="p-5 flex-1 flex flex-col">
         <EmptyState 
           icon={Activity} 
-          title="কোনো লেনদেন হয়নি" 
-          description="আজকের দিনে এখনও পর্যন্ত কোনো আর্থিক লেনদেন রেকর্ড করা হয়নি।"
+          title={t("dashboard.k_5adc34")} 
+          description={t("dashboard.k_1336d3")}
         />
       </CardContent>
     </Card>
@@ -190,6 +202,7 @@ export function TodaysFinancialSummary() {
 }
 
 export function SystemStatus() {
+    const { t } = useLanguage();
   const statuses = [
     { label: "ডেটাবেস (Database)", status: "সচল", icon: CheckCircle2, color: "text-emerald-500" },
     { label: "এপিআই সার্ভিস (API Services)", status: "সচল", icon: CheckCircle2, color: "text-emerald-500" },
@@ -198,7 +211,7 @@ export function SystemStatus() {
   return (
     <Card className="shadow-card border-border/50">
       <CardHeader className="pb-3 border-b border-border/50">
-        <CardTitle className="text-sm font-medium">সিস্টেম স্ট্যাটাস</CardTitle>
+        <CardTitle className="text-sm font-medium">{t("dashboard.k_2a9529")}</CardTitle>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
         {statuses.map((item, i) => (

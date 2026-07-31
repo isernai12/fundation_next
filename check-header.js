@@ -1,8 +1,23 @@
-const http = require('http');
+const fs = require('fs');
 
-async function check() {
-  // We don't need to actually login if we can just look at the HTML structure of the layout on a different page.
-  // Wait, if it redirects to /login, does it still render the layout? 
-  // No, /login doesn't have the header because it's not logged in!
+function replaceSidebar() {
+  const file = 'src/components/layout/sidebar.tsx';
+  let content = fs.readFileSync(file, 'utf8');
+  content = content.replace(/t\("layout\./g, 't("layout.sidebar.');
+  fs.writeFileSync(file, content);
 }
-check();
+
+function replaceHeader() {
+  const file = 'src/components/layout/header.tsx';
+  let content = fs.readFileSync(file, 'utf8');
+  
+  content = content.replace(/t\('layout\./g, 't(\'layout.sidebar.');
+  content = content.replace(/t\("layout\.logo_8c2857"\)/g, 't("layout.sidebar.logo_8c2857")');
+  content = content.replace(/t\('header\./g, 't(\'layout.header.');
+  
+  fs.writeFileSync(file, content);
+}
+
+replaceSidebar();
+replaceHeader();
+console.log("Replaced");

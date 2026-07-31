@@ -2,6 +2,7 @@ import { getNow } from "@/lib/date";
 import { getLoans } from "@/features/loans/actions"
 import { DueListTable } from "@/features/loans/components/due-list-table"
 import { Card, CardContent } from "@/components/ui/card"
+import { Trans } from "@/components/shared/trans";
 
 export default async function UpcomingCollectionPage() {
   const rawLoans = await getLoans()
@@ -49,10 +50,9 @@ export default async function UpcomingCollectionPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">আসন্ন সংগ্রহ (Upcoming Collection)</h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.upcoming_collection" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            আগামী ৭ দিনের মধ্যে যে সকল ঋণের কিস্তি আদায় করতে হবে তার তালিকা।
-          </p>
+            <Trans tKey="app.text" /></p>
         </div>
       </div>
 

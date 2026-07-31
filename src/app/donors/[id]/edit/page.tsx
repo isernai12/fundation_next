@@ -1,9 +1,10 @@
 import { getDonor } from "@/features/donors/actions"
 import { DonorForm } from "@/features/donors/components/donor-form"
 import { notFound } from "next/navigation"
+import { Trans } from "@/components/shared/trans";
 
 export const metadata = {
-  title: "অনুদানদাতা সম্পাদনা | Foundation ERP",
+  title: "Edit Donor | Foundation ERP",
 }
 
 export default async function EditDonorPage({ params }: { params: { id: string } }) {
@@ -16,10 +17,9 @@ export default async function EditDonorPage({ params }: { params: { id: string }
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">অনুদানদাতা সম্পাদনা</h1>
+        <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="donors.edit_page.title" /></h1>
         <p className="text-muted-foreground">
-          {donor.fullName} এর তথ্য আপডেট করুন।
-        </p>
+          {donor.fullName} - <Trans tKey="donors.edit_page.subtitle" /></p>
       </div>
 
       <DonorForm mode="edit" donor={donor} />

@@ -1,7 +1,7 @@
 "use client"
 import { getNow } from "@/lib/date";
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Printer, Download, Search, FilterX, Users, FileText, Banknote } from "lucide-react"
 import type { DonationTransactionItem } from "../actions"
 import { useBranding } from "@/components/providers/branding-provider"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface DonorLedgerClientProps {
   data: DonationTransactionItem[]
@@ -19,13 +20,19 @@ interface DonorLedgerClientProps {
 }
 
 export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientProps) {
+    const { t } = useLanguage();
   const branding = useBranding()
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDonor, setSelectedDonor] = useState("ALL")
-  const [selectedGroup, setSelectedGroup] = useState("ALL")
+  const [selectedGroup, setSelectedGroup] = useState<string>("ALL")
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
+  const [printDate, setPrintDate] = useState<string>("")
+
+  useEffect(() => {
+    setPrintDate(formatDate(getNow()))
+  }, [])
 
   // Filtered Data
   const filteredData = useMemo(() => {
@@ -89,10 +96,12 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
     setToDate("")
   }
 
-  const handlePrint = () => window.print()
+  const handlePrint = () => {
+    return (window.print());
+  }
 
   const handleExportCSV = () => {
-    const headers = ["তারিখ (Date)", "ভাউচার নং (Voucher No)", "অনুদানদাতা (Donor Name)", "মোবাইল (Mobile)", "তহবিল গন্তব্য (Selected Group)", "বিবরণ / মন্তব্য (Remarks)", "পরিমাণ (Amount)", "চলমান ব্যালেন্স (Running Balance)"]
+    const headers = ["Date", "Voucher No", "Donor Name", "Mobile", "Group", "Remarks", "Amount", "Running Balance"]
     const rows = dataWithBalance.map(r => [
       formatDate(r.date),
       r.voucherNo,
@@ -118,11 +127,11 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-lg border hide-print">
         <div>
-          <Label className="mb-2 block">অনুসন্ধান (Search)</Label>
+          <Label className="mb-2 block">{t("donors.search_939bb4")}</Label>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="ভাউচার, নাম বা বিবরণ..." 
+              placeholder={t("donors.k_5efc15")} 
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -130,13 +139,13 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
           </div>
         </div>
         <div>
-          <Label className="mb-2 block">অনুদানদাতা (Donor)</Label>
+          <Label className="mb-2 block">{t("donors.donor_9c2b8d")}</Label>
           <Select value={selectedDonor} onValueChange={setSelectedDonor}>
             <SelectTrigger>
-              <SelectValue placeholder="সকল অনুদানদাতা" />
+              <SelectValue placeholder={t("donors.k_22da40")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">সকল অনুদানদাতা (All Donors)</SelectItem>
+              <SelectItem value="ALL">{t("donors.all_donors_e94b73")}</SelectItem>
               {donors.map(d => (
                 <SelectItem key={d.id} value={d.id}>{d.fullName} ({d.mobile})</SelectItem>
               ))}
@@ -144,13 +153,13 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
           </Select>
         </div>
         <div>
-          <Label className="mb-2 block">গ্রুপ (Group)</Label>
+          <Label className="mb-2 block">{t("donors.group_d4d811")}</Label>
           <Select value={selectedGroup} onValueChange={setSelectedGroup}>
             <SelectTrigger>
-              <SelectValue placeholder="সকল গ্রুপ" />
+              <SelectValue placeholder={t("donors.k_a3853a")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">সকল গ্রুপ (All Groups)</SelectItem>
+              <SelectItem value="ALL">{t("donors.all_groups_15b06f")}</SelectItem>
               {groups.map(g => (
                 <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
               ))}
@@ -158,15 +167,15 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
           </Select>
         </div>
         <div>
-          <Label className="mb-2 block">শুরু তারিখ (From)</Label>
+          <Label className="mb-2 block">{t("donors.from_b4afab")}</Label>
           <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </div>
         <div className="flex items-end gap-2">
           <div className="flex-1">
-            <Label className="mb-2 block">শেষ তারিখ (To)</Label>
+            <Label className="mb-2 block">{t("donors.k_a0eff4")}</Label>
             <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
           </div>
-          <Button variant="outline" size="icon" onClick={handleResetFilters} title="রিসেট ফিল্টার" className="mb-[1px]">
+          <Button variant="outline" size="icon" onClick={handleResetFilters} title={t("donors.k_6881e6")} className="mb-[1px]">
             <FilterX className="h-4 w-4" />
           </Button>
         </div>
@@ -181,7 +190,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">নির্বাচিত অনুদানদাতা</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("donors.k_2ddc42")}</p>
                 <h3 className="text-2xl font-bold mt-1">{activeDonor.fullName}</h3>
                 <p className="text-xs text-muted-foreground">{activeDonor.donorId} | {activeDonor.mobile}</p>
               </div>
@@ -194,8 +203,8 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">মোট অনুদানদাতা (Total Donors)</p>
-                <h3 className="text-2xl font-bold mt-1">{summary.uniqueDonors} জন</h3>
+                <p className="text-sm font-medium text-muted-foreground">{t("donors.total_donors_49269b")}</p>
+                <h3 className="text-2xl font-bold mt-1">{summary.uniqueDonors} {t("donors.k_27efa5")}</h3>
               </div>
             </CardContent>
           </Card>
@@ -207,8 +216,8 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
               <FileText className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">মোট লেনদেন (Total Transactions)</p>
-              <h3 className="text-2xl font-bold mt-1">{summary.totalTransactions} টি</h3>
+              <p className="text-sm font-medium text-muted-foreground">{t("donors.total_transactions_86d5c2")}</p>
+              <h3 className="text-2xl font-bold mt-1">{summary.totalTransactions} {t("donors.k_600e65")}</h3>
             </div>
           </CardContent>
         </Card>
@@ -219,7 +228,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
               <Banknote className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">মোট অনুদান পরিমাণ (Total Amount)</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("donors.total_amount_2f6775")}</p>
               <h3 className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">৳{formatCurrency(summary.totalAmount)}</h3>
             </div>
           </CardContent>
@@ -229,29 +238,27 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
       {/* Ledger Table */}
       <Card className="print:shadow-none print:border-none print:m-0">
         <div className="flex justify-between items-center p-4 border-b hide-print">
-          <h2 className="text-lg font-semibold">লেজার এন্ট্রি (Ledger Entries)</h2>
+          <h2 className="text-lg font-semibold">{t("donors.ledger_entries_4f872d")}</h2>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCSV}>
-              <Download className="mr-2 h-4 w-4" /> Excel/CSV
-            </Button>
+              <Download className="mr-2 h-4 w-4" /> {t("donors.excel_csv_b5be46")}</Button>
             <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" /> প্রিন্ট / PDF
-            </Button>
+              <Printer className="mr-2 h-4 w-4" /> {t("donors.pdf_c93abc")}</Button>
           </div>
         </div>
 
         {/* Print Header (Hidden on screen) */}
         <div className="hidden print:block text-center pb-6 mb-6 border-b">
           <h1 className="text-2xl font-bold">{branding?.foundationName || "Foundation ERP"}</h1>
-          <h2 className="text-xl font-semibold mt-1">অনুদানদাতার লেজার (Master Ledger)</h2>
+          <h2 className="text-xl font-semibold mt-1">{t("donors.master_ledger_ab8201")}</h2>
           {selectedDonor !== "ALL" && activeDonor && (
             <div className="mt-2 text-sm">
-              <p>অনুদানদাতা: <strong>{activeDonor.fullName}</strong> ({activeDonor.donorId})</p>
-              <p>মোবাইল: {activeDonor.mobile}</p>
+              <p>{t("donors.k_4f08c3")}<strong>{activeDonor.fullName}</strong> ({activeDonor.donorId})</p>
+              <p>{t("donors.k_9767a6")}{activeDonor.mobile}</p>
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-2">
-            প্রিন্ট তারিখ: {formatDate(getNow())}
+            {t("donors.k_791ec1")}{printDate}
           </p>
         </div>
 
@@ -259,13 +266,13 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
           <table className="w-full text-sm text-left">
             <thead className="bg-muted/50 text-muted-foreground uppercase">
               <tr>
-                <th className="px-4 py-3 font-medium">তারিখ</th>
-                <th className="px-4 py-3 font-medium">ভাউচার নং</th>
-                <th className="px-4 py-3 font-medium">অনুদানদাতা (Mobile)</th>
-                <th className="px-4 py-3 font-medium">গ্রুপ (Group)</th>
-                <th className="px-4 py-3 font-medium">বিবরণ / মন্তব্য</th>
-                <th className="px-4 py-3 font-medium text-right">পরিমাণ (Amount)</th>
-                <th className="px-4 py-3 font-medium text-right">চলমান ব্যালেন্স</th>
+                <th className="px-4 py-3 font-medium">{t("donors.k_3e10c2")}</th>
+                <th className="px-4 py-3 font-medium">{t("donors.k_390ea9")}</th>
+                <th className="px-4 py-3 font-medium">{t("donors.mobile_e69db9")}</th>
+                <th className="px-4 py-3 font-medium">{t("donors.group_d4d811")}</th>
+                <th className="px-4 py-3 font-medium">{t("donors.k_e147d5")}</th>
+                <th className="px-4 py-3 font-medium text-right">{t("donors.amount_261c82")}</th>
+                <th className="px-4 py-3 font-medium text-right">{t("donors.k_b13101")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -295,8 +302,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
               ) : (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    কোন লেনদেন পাওয়া যায়নি
-                  </td>
+                    {t("donors.k_31c268")}</td>
                 </tr>
               )}
             </tbody>
@@ -304,7 +310,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             {dataWithBalance.length > 0 && (
               <tfoot className="bg-muted/50 font-bold border-t-2">
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right">সর্বমোট (Total Amount):</td>
+                  <td colSpan={5} className="px-4 py-3 text-right">{t("donors.total_amount_195a6a")}</td>
                   <td className="px-4 py-3 text-right text-emerald-600">৳{formatCurrency(summary.totalAmount)}</td>
                   <td className="px-4 py-3"></td>
                 </tr>

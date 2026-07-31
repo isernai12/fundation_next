@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 import { authorizePage } from "@/lib/rbac"
+import { Trans } from "@/components/shared/trans";
 
 export default async function EditBeneficiaryPage({ params }: { params: Promise<{ id: string }> }) {
   await authorizePage("Beneficiaries", "Edit")
@@ -45,8 +46,8 @@ export default async function EditBeneficiaryPage({ params }: { params: Promise<
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">সুবিধাভোগীর তথ্য হালনাগাদ</h1>
-          <p className="text-muted-foreground">{beneficiary.fullName || 'নাম পাওয়া যায়নি'} এর তথ্য হালনাগাদ করুন।</p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="beneficiaries.edit_page.title" /></h1>
+          <p className="text-muted-foreground">{beneficiary.fullName || beneficiary.beneficiaryId}</p>
         </div>
       </div>
       

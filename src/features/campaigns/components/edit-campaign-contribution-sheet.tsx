@@ -1,7 +1,7 @@
 "use client"
 import { getNow } from "@/lib/date";
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import type { ContributionItem } from "./view-campaign-contribution-dialog"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const editSchema = z.object({
   amount: z.number().min(1, "পরিমাণ আবশ্যক"),
@@ -42,18 +43,25 @@ interface EditCampaignContributionSheetProps {
 }
 
 export function EditCampaignContributionSheet({ isOpen, onClose, contribution }: EditCampaignContributionSheetProps) {
+    const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<EditFormValues>({
     resolver: zodResolver(editSchema),
     defaultValues: {
       amount: contribution?.amount || 0,
-      date: contribution?.date ? new Date(contribution.date).toISOString().split('T')[0] : getNow().toLocaleDateString('en-CA'),
+      date: contribution?.date ? new Date(contribution.date).toISOString().split('T')[0] : "",
       remarks: contribution?.remarks || "",
     },
   })
 
   if (!contribution) return null
+
+  useEffect(() => {
+    if (!contribution?.date) {
+      form.setValue("date", getNow().toLocaleDateString('en-CA'))
+    }
+  }, [form, contribution])
 
   const contributorName = contribution.member ? contribution.member.fullName : contribution.donor?.fullName || "অজানা"
 
@@ -67,12 +75,12 @@ export function EditCampaignContributionSheet({ isOpen, onClose, contribution }:
     setIsSubmitting(false)
 
     if (result.success) {
-      toast.success("সফলভাবে আপডেট হয়েছে", { 
+      toast.success(t("campaigns.k_dc1cfd"), { 
         description: "তহবিল লেনদেন এবং সকল সংশ্লিষ্ট লেজার হিসাব সিঙ্ক্রোনাইজ করা হয়েছে।" 
       })
       onClose()
     } else {
-      toast.error("আপডেট ব্যর্থ হয়েছে", { description: result.error })
+      toast.error(t("campaigns.k_f4b1e8"), { description: result.error })
     }
   }
 
@@ -80,16 +88,15 @@ export function EditCampaignContributionSheet({ isOpen, onClose, contribution }:
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>তহবিল লেনদেন সম্পাদনা (Edit Transaction)</SheetTitle>
+          <SheetTitle>{t("campaigns.edit_transaction_c8215d")}</SheetTitle>
           <SheetDescription>
-            লেনদেনের পরিমাণ, তারিখ বা বিবরণ সম্পাদনা করুন। এটি স্বয়ংক্রিয়ভাবে তহবিল লেজার, ডোনার লেজার, এবং ড্যাশবোর্ড সামারী আপডেট করবে।
-          </SheetDescription>
+            {t("campaigns.k_2505c1")}</SheetDescription>
         </SheetHeader>
 
         <div className="my-4 p-3 bg-muted/40 rounded-md border text-sm">
-          <p><span className="font-medium text-muted-foreground">তহবিল:</span> {contribution.campaign?.name}</p>
-          <p><span className="font-medium text-muted-foreground">প্রদানকারী:</span> {contributorName}</p>
-          <p><span className="font-medium text-muted-foreground">ভাউচার:</span> VCH-{contribution.ledgerTransactionId.slice(0, 8).toUpperCase()}</p>
+          <p><span className="font-medium text-muted-foreground">{t("campaigns.k_0e9310")}</span> {contribution.campaign?.name}</p>
+          <p><span className="font-medium text-muted-foreground">{t("campaigns.k_950098")}</span> {contributorName}</p>
+          <p><span className="font-medium text-muted-foreground">{t("campaigns.k_80ede2")}</span> {t("campaigns.vch_72f441")}{contribution.ledgerTransactionId.slice(0, 8).toUpperCase()}</p>
         </div>
 
         <Form {...form}>
@@ -97,54 +104,59 @@ export function EditCampaignContributionSheet({ isOpen, onClose, contribution }:
             <FormField
               control={form.control}
               name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>পরিমাণ (Amount in ৳)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      step="any" 
-                      value={field.value} 
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("campaigns.amount_in_f7e3e7")}</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number" 
+                                    step="any" 
+                                    value={field.value} 
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <FormField
               control={form.control}
               name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>তারিখ (Date)</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("campaigns.date_806233")}</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <FormField
               control={form.control}
               name="remarks"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মন্তব্য / বিবরণ (Remarks)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="লেনদেন সম্পর্কিত মন্তব্য লিখুন..." rows={3} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("campaigns.remarks_d56d03")}</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder={t("campaigns.k_23ef5a")} rows={3} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-                বাতিল করুন
-              </Button>
+                {t("campaigns.k_c94621")}</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
               </Button>

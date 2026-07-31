@@ -20,12 +20,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { receiveDonation } from "../actions"
 import { format } from "date-fns"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const formSchema = z.object({
-  donorId: z.string().min(1, "অনুদানদাতা নির্বাচন করুন (Select a donor)"),
-  groupId: z.string().min(1, "তহবিল গন্তব্য নির্বাচন করুন (Select a group)"),
-  amount: z.coerce.number().min(1, "পরিমাণ আবশ্যক (Amount is required)"),
-  date: z.string().min(1, "তারিখ আবশ্যক (Date is required)"),
+  donorId: z.string().min(1, "Donor is required"),
+  groupId: z.string().min(1, "Group is required"),
+  amount: z.coerce.number().min(1, "Amount is required"),
+  date: z.string().min(1, "Date is required"),
   remarks: z.string().optional(),
 })
 
@@ -36,6 +37,7 @@ export function DonationForm({
   donors: { id: string, fullName: string, donorId: string, mobile: string }[],
   groups: { id: string, name: string }[] 
 }) {
+    const { t } = useLanguage();
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -45,10 +47,14 @@ export function DonationForm({
       donorId: "",
       groupId: "",
       amount: 0,
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: "",
       remarks: "",
     }
   })
+
+    useEffect(() => {
+    form.setValue("date", format(new Date(), "yyyy-MM-dd"))
+  }, [form])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
@@ -64,7 +70,7 @@ export function DonationForm({
     setIsSubmitting(false)
 
     if (res.success) {
-      toast.success("অনুদান সফলভাবে গ্রহণ করা হয়েছে")
+      toast.success(t("donors.k_a37172"))
       router.push("/donors/donations")
     } else {
       toast.error((res as any).error)
@@ -76,94 +82,104 @@ export function DonationForm({
       <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>অনুদান গ্রহণ (Receive Donation)</CardTitle>
+            <CardTitle>{t("donors.receive_donation_9b92b8")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="donorId"
-                render={({ field }) => (
-                  <FormItem className="col-span-1 md:col-span-2">
-                    <FormLabel>অনুদানদাতা (Donor) *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="অনুদানদাতা নির্বাচন করুন" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {donors.map((d) => (
-                          <SelectItem key={d.id} value={d.id}>
-                            {d.fullName} ({d.donorId}) - {d.mobile}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="col-span-1 md:col-span-2">
+                                    <FormLabel>{t("donors.donor_462f00")}</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder={t("donors.k_1d5605")} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {donors.map((d) => (
+                                          <SelectItem key={d.id} value={d.id}>
+                                            {d.fullName} ({d.donorId}) - {d.mobile}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="groupId"
-                render={({ field }) => (
-                  <FormItem className="col-span-1 md:col-span-2">
-                    <FormLabel>তহবিল গন্তব্য (Foundation Group) *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="ফাউন্ডেশন গ্রুপ নির্বাচন করুন" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {groups.map((g) => (
-                          <SelectItem key={g.id} value={g.id}>
-                            {g.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="col-span-1 md:col-span-2">
+                                    <FormLabel>{t("donors.foundation_group_ce625d")}</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder={t("donors.k_4a6394")} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {groups.map((g) => (
+                                          <SelectItem key={g.id} value={g.id}>
+                                            {g.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>পরিমাণ (Amount) *</FormLabel>
-                    <FormControl><Input type="number" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("donors.amount_5fb1f4")}</FormLabel>
+                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>তারিখ (Date) *</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("donors.date_fd1a4c")}</FormLabel>
+                                    <FormControl><Input type="date" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="remarks"
-                render={({ field }) => (
-                  <FormItem className="col-span-1 md:col-span-2">
-                    <FormLabel>মন্তব্য (Remarks)</FormLabel>
-                    <FormControl><Textarea {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem className="col-span-1 md:col-span-2">
+                                    <FormLabel>{t("donors.remarks_900bfa")}</FormLabel>
+                                    <FormControl><Textarea {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
           </CardContent>
@@ -171,10 +187,9 @@ export function DonationForm({
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            বাতিল (Cancel)
-          </Button>
+            {t("donors.cancel_adfff0")}</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "সংরক্ষণ হচ্ছে..." : "অনুদান গ্রহণ করুন"}
+            {isSubmitting ? t("donors.donation_form.saving") : t("donors.donation_form.receive_donation")}
           </Button>
         </div>
       </form>

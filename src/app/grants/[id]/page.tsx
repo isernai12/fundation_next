@@ -7,6 +7,7 @@ import { ArrowLeft, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DocumentList } from "@/features/documents/components/document-list"
+import { Trans } from "@/components/shared/trans";
 
 export default async function GrantDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -25,13 +26,12 @@ export default async function GrantDetailsPage({ params }: { params: Promise<{ i
           <Link href="/grants" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-xl font-bold">অনুদানের বিস্তারিত তথ্য</h1>
+          <h1 className="text-xl font-bold"><Trans tKey="app.text" /></h1>
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
             <Link href={`/grants/${grant.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" /> সম্পাদনা করুন
-            </Link>
+              <Edit className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
           </Button>
         </div>
       </div>
@@ -40,16 +40,16 @@ export default async function GrantDetailsPage({ params }: { params: Promise<{ i
         <div className="flex-1 space-y-6">
           
           <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3">১. অনুদানের সারসংক্ষেপ (Grant Summary)</h2>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3"><Trans tKey="app.grant_summary" /></h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">অনুদান নম্বর (Grant ID)</td><td className="py-2 font-medium">{grant.grantNumber}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সুবিধাভোগীর নাম</td><td className="py-2">{grant.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোবাইল নম্বর</td><td className="py-2">{grant.beneficiary?.phone || '-'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">অনুদানের তারিখ</td><td className="py-2">{grant.dateApproved ? formatDate(grant.dateApproved) : 'N/A'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">অনুদানের পরিমাণ</td><td className="py-2 font-bold text-green-600">৳{formatCurrency(grant.amount)}</td></tr>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.grant_id" /></td><td className="py-2 font-medium">{grant.grantNumber}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{grant.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{grant.beneficiary?.phone || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{grant.dateApproved ? formatDate(grant.dateApproved) : 'N/A'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 font-bold text-green-600">৳{formatCurrency(grant.amount)}</td></tr>
                 <tr className="border-b">
-                  <td className="py-2 text-muted-foreground font-medium">অবস্থা (Status)</td>
+                  <td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.status" /></td>
                   <td className="py-2">
                     <Badge variant={grant.status === "PAID" ? "default" : "secondary"}>
                       {grant.status}
@@ -61,21 +61,21 @@ export default async function GrantDetailsPage({ params }: { params: Promise<{ i
           </section>
 
           <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">২. অনুদানের তথ্য (Grant Information)</h2>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6"><Trans tKey="app.grant_information" /></h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">অনুদানের কারণ</td><td className="py-2">{grant.purpose}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মন্তব্য</td><td className="py-2 whitespace-pre-wrap">{grant.notes || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{grant.purpose}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 whitespace-pre-wrap">{grant.notes || '-'}</td></tr>
               </tbody>
             </table>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৩. উৎস তহবিল (Allocations)</h2>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6"><Trans tKey="app.allocations" /></h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
                 {grant.allocations.length === 0 ? (
-                  <tr><td className="py-2 text-muted-foreground">কোনো তহবিল বরাদ্দ নেই।</td></tr>
+                  <tr><td className="py-2 text-muted-foreground"><Trans tKey="app.text" /></td></tr>
                 ) : (
                   grant.allocations.map(a => (
                     <tr key={a.id} className="border-b">
@@ -89,12 +89,12 @@ export default async function GrantDetailsPage({ params }: { params: Promise<{ i
           </section>
 
           <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৪. সিস্টেম তথ্য (System Information)</h2>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6"><Trans tKey="app.system_information" /></h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">তৈরি করেছেন (Created By)</td><td className="py-2">{grant.createdBy || 'সিস্টেম'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">তৈরির তারিখ</td><td className="py-2">{formatDate(grant.createdAt)}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সর্বশেষ আপডেট</td><td className="py-2">{formatDate(grant.updatedAt)}</td></tr>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.created_by" /></td><td className="py-2">{grant.createdBy || 'সিস্টেম'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{formatDate(grant.createdAt)}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{formatDate(grant.updatedAt)}</td></tr>
               </tbody>
             </table>
           </section>
@@ -103,7 +103,7 @@ export default async function GrantDetailsPage({ params }: { params: Promise<{ i
       </div>
 
       <div className="print:hidden">
-        <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-8">ডকুমেন্টস (Documents)</h2>
+        <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-8"><Trans tKey="app.documents" /></h2>
         <DocumentList targetType="GRANT" entityId={grant.id} documents={documents} categories={categories} />
       </div>
     </div>

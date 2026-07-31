@@ -5,6 +5,7 @@ import { LoansTable } from "@/features/loans/components/loans-table"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { Trans } from "@/components/shared/trans";
 
 export default async function LoansPage() {
   const rawLoans = await getLoans()
@@ -44,16 +45,14 @@ export default async function LoansPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">ঋণ ব্যবস্থাপনা (Manage Loans)</h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.manage_loans" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            বিনা সুদে ঋণ, তহবিল বরাদ্দ, পরিশোধ এবং বকেয়া পরিচালনা করুন।
-          </p>
+            <Trans tKey="app.text" /></p>
         </div>
         <Button asChild>
           <Link href="/loans/new">
             <Plus className="mr-2 h-4 w-4" />
-            নতুন ঋণ
-          </Link>
+            <Trans tKey="app.text" /></Link>
         </Button>
       </div>
 

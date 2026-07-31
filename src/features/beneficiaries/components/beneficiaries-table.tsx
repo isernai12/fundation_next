@@ -37,6 +37,7 @@ import { deleteBeneficiary, updateBeneficiary } from "../actions"
 import { toast } from "sonner"
 import type { Beneficiary, Member } from "@prisma/client"
 import { useRbac } from "@/components/providers/rbac-provider"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 type BeneficiaryWithMember = Beneficiary & { 
   member?: { 
@@ -47,6 +48,7 @@ type BeneficiaryWithMember = Beneficiary & {
 }
 
 export function BeneficiariesTable({ data, members, manageMode = false }: { data: BeneficiaryWithMember[], members: { id: string; fullName: string | null; memberId: string }[], manageMode?: boolean }) {
+    const { t } = useLanguage();
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const { can } = useRbac()
@@ -61,7 +63,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            Beneficiary ID <ArrowUpDown className="ml-2 h-4 w-4" />
+            {t("beneficiaries.table.beneficiary_id")}<ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
@@ -71,11 +73,11 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            Name <ArrowUpDown className="ml-2 h-4 w-4" />
+            {t("beneficiaries.table.name")}<ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
-      cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`
+      cell: ({ row }) => `${row.original.fullName || t("beneficiaries.table.name_not_found")}`
     },
     {
       header: "Full Name",
@@ -118,24 +120,22 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t("beneficiaries.table.open_menu")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("beneficiaries.table.actions")}</DropdownMenuLabel>
               {canView && (
                 <DropdownMenuItem asChild>
                   <Link href={`/beneficiaries/${beneficiary.id}`}>
-                    <Eye className="mr-2 h-4 w-4" /> View Details
-                  </Link>
+                    <Eye className="mr-2 h-4 w-4" /> {t("beneficiaries.table.view_details")}</Link>
                 </DropdownMenuItem>
               )}
               {canEdit && (
                 <DropdownMenuItem asChild>
                   <Link href={`/beneficiaries/${beneficiary.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit Beneficiary
-                  </Link>
+                    <Edit className="mr-2 h-4 w-4" /> {t("beneficiaries.table.edit")}</Link>
                 </DropdownMenuItem>
               )}
               {canEdit && (
@@ -156,12 +156,11 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
                         status: "ACTIVE" as const,
                       }
                       const res = await updateBeneficiary(beneficiary.id, payload)
-                      if (res.success) toast.success("Beneficiary activated")
+                      if (res.success) toast.success(t("beneficiaries.messages.activate_success"))
                       else toast.error(res.error)
                     }}
                   >
-                    <Eye className="mr-2 h-4 w-4" /> Activate
-                  </DropdownMenuItem>
+                    <Eye className="mr-2 h-4 w-4" /> {t("beneficiaries.table.activate")}</DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
                     onClick={async () => {
@@ -179,12 +178,11 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
                         status: "INACTIVE" as const,
                       }
                       const res = await updateBeneficiary(beneficiary.id, payload)
-                      if (res.success) toast.success("Beneficiary deactivated")
+                      if (res.success) toast.success(t("beneficiaries.messages.deactivate_success"))
                       else toast.error(res.error)
                     }}
                   >
-                    <Eye className="mr-2 h-4 w-4" /> Deactivate
-                  </DropdownMenuItem>
+                    <Eye className="mr-2 h-4 w-4" /> {t("beneficiaries.table.deactivate")}</DropdownMenuItem>
                 )
               )}
               {canDelete && (
@@ -193,13 +191,12 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
                   onClick={async () => {
                     if (confirm("Are you sure you want to delete this beneficiary?")) {
                       const res = await deleteBeneficiary(beneficiary.id)
-                      if (res.success) toast.success("Beneficiary deleted")
+                      if (res.success) toast.success(t("beneficiaries.messages.delete_success"))
                       else toast.error(res.error)
                     }
                   }}
                 >
-                  <Trash className="mr-2 h-4 w-4" /> Delete
-                </DropdownMenuItem>
+                  <Trash className="mr-2 h-4 w-4" /> {t("beneficiaries.table.delete")}</DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -227,7 +224,7 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
     <div>
       <div className="flex items-center space-x-2 py-2">
         <Input
-          placeholder="Search by first name..."
+          placeholder={t("beneficiaries.table.search_placeholder")}
           value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("fullName")?.setFilterValue(event.target.value)
@@ -238,37 +235,40 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            {table.getHeaderGroups().map((headerGroup) => {
+              return ((
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ));
+            })}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return ((
+                              <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                                {row.getVisibleCells().map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  No beneficiaries found.
-                </TableCell>
+                  {t("beneficiaries.table.no_results")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -276,11 +276,9 @@ export function BeneficiariesTable({ data, members, manageMode = false }: { data
       </div>
       <div className="flex items-center justify-end space-x-2 py-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
-        </Button>
+          {t("beneficiaries.table.previous")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
-        </Button>
+          {t("beneficiaries.table.next")}</Button>
       </div>
     </div>
   )

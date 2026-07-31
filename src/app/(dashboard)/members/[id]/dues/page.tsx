@@ -6,6 +6,7 @@ import { ArrowLeft, Wallet } from "lucide-react"
 import { generateMissingContributions } from "@/features/members/due-actions"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Trans } from "@/components/shared/trans";
 
 const monthNames = [
   "জানুয়ারী", "ফেব্রুয়ারী", "মার্চ", "এপ্রিল", "মে", "জুন",
@@ -101,43 +102,42 @@ export default async function DueDetailsPage({ params }: { params: Promise<{ id:
           <Link href="/members/manage" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-xl font-bold">চাঁদার তথ্য</h1>
+          <h1 className="text-xl font-bold"><Trans tKey="app.text" /></h1>
         </div>
         <Button asChild>
           <Link href={`/contributions/new?memberId=${member.id}`}>
-            <Wallet className="mr-2 h-4 w-4" /> চাঁদা গ্রহণ করুন
-          </Link>
+            <Wallet className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
         </Button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1 space-y-6">
           <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3">সারসংক্ষেপ</h2>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3"><Trans tKey="app.text" /></h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
-                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">সদস্যের নাম</td><td className="py-2 font-medium">{member.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">সদস্য আইডি</td><td className="py-2">{member.memberId || '-'}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">গ্রুপ</td><td className="py-2">{member.group?.name || '-'} ({member.group?.code || '-'})</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মাসিক চাঁদার পরিমাণ</td><td className="py-2">৳ {toBengaliNumerals(monthlyContribution)}</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোট বকেয়া মাস</td><td className="py-2 text-red-600 font-bold">{toBengaliNumerals(totalDueMonths)} মাস</td></tr>
-                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">মোট বকেয়া টাকা</td><td className="py-2 text-red-600 font-bold">৳ {toBengaliNumerals(currentDue)}</td></tr>
+                <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 font-medium">{member.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{member.memberId || '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{member.group?.name || '-'} ({member.group?.code || '-'})</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">৳ {toBengaliNumerals(monthlyContribution)}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 text-red-600 font-bold">{toBengaliNumerals(totalDueMonths)} <Trans tKey="app.text" /></td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 text-red-600 font-bold">৳ {toBengaliNumerals(currentDue)}</td></tr>
                 {advanceBalance > 0 && (
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium">অগ্রিম জমা</td><td className="py-2 text-green-600 font-bold">৳ {toBengaliNumerals(advanceBalance)}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 text-green-600 font-bold">৳ {toBengaliNumerals(advanceBalance)}</td></tr>
                 )}
               </tbody>
             </table>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">মাসভিত্তিক বিবরণ</h2>
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6"><Trans tKey="app.text" /></h2>
             <div className="rounded-md border bg-card overflow-hidden">
               <table className="w-full text-sm border-collapse text-left">
                 <thead className="bg-muted text-muted-foreground">
                   <tr>
-                    <th className="py-3 px-4 font-medium border-b">মাস</th>
-                    <th className="py-3 px-4 font-medium border-b">নির্ধারিত চাঁদা</th>
-                    <th className="py-3 px-4 font-medium border-b text-right">অবস্থা</th>
+                    <th className="py-3 px-4 font-medium border-b"><Trans tKey="app.text" /></th>
+                    <th className="py-3 px-4 font-medium border-b"><Trans tKey="app.text" /></th>
+                    <th className="py-3 px-4 font-medium border-b text-right"><Trans tKey="app.text" /></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -159,8 +159,7 @@ export default async function DueDetailsPage({ params }: { params: Promise<{ id:
                   {monthData.length === 0 && (
                     <tr>
                       <td colSpan={3} className="py-8 text-center text-muted-foreground">
-                        কোনো তথ্য পাওয়া যায়নি
-                      </td>
+                        <Trans tKey="app.text" /></td>
                     </tr>
                   )}
                 </tbody>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
@@ -35,6 +35,7 @@ import type { Beneficiary } from "@prisma/client"
 import { MemberCombobox } from "@/components/member-combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface LoanFormProps {
   beneficiaries: Beneficiary[]
@@ -44,6 +45,7 @@ interface LoanFormProps {
 }
 
 export function LoanForm({ beneficiaries, groups, initialData, initialDocuments = [] }: LoanFormProps) {
+    const { t } = useLanguage();
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   
@@ -66,7 +68,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
       installmentType: "MONTHLY",
       installmentAmount: 0,
       totalInstallments: 0,
-      firstInstallmentDate: new Date(),
+      firstInstallmentDate: "",
       isMultiGroup: false,
       fundAllocations: [{ groupId: "", amount: 0 }]
     },
@@ -97,13 +99,18 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
     if (confirm("আপনি কি নিশ্চিত যে এই ডকুমেন্টটি মুছে ফেলতে চান?")) {
       const res = await deleteDocumentById(docId)
       if (res.success) {
-        toast.success("ডকুমেন্ট মুছে ফেলা হয়েছে")
+        toast.success(t("loans.k_f96d37"))
         setExistingDocs(prev => prev.filter(d => d.id !== docId))
       } else {
         toast.error("ডকুমেন্ট মুছতে ব্যর্থ হয়েছে: " + res.error)
       }
     }
   }
+
+  
+  useEffect(() => {
+    form.setValue("firstInstallmentDate", new Date())
+  }, [form])
 
   async function onSubmit(data: LoanFormValues) {
     setIsLoading(true)
@@ -117,7 +124,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
       const currentLoanId = isEditMode ? initialData?.id : (result as any).data?.id
 
       if (currentLoanId && pendingFiles.length > 0) {
-        toast.info("ডকুমেন্ট আপলোড করা হচ্ছে...")
+        toast.info(t("loans.k_c49823"))
         let uploadErrors = 0
         for (const file of pendingFiles) {
           const formData = new FormData()
@@ -154,32 +161,34 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ১. সুবিধাভোগী নির্বাচন */}
         <Card>
           <CardHeader>
-            <CardTitle>১. সুবিধাভোগী নির্বাচন</CardTitle>
-            <CardDescription>ঋণ গ্রহণের জন্য সুবিধাভোগী নির্বাচন করুন।</CardDescription>
+            <CardTitle>{t("loans.k_a183b1")}</CardTitle>
+            <CardDescription>{t("loans.k_7e46f0")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
               control={form.control}
               name="beneficiaryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>সুবিধাভোগী *</FormLabel>
-                  <FormControl>
-                    <MemberCombobox
-                      members={beneficiaries}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("loans.k_1a8a5d")}</FormLabel>
+                                <FormControl>
+                                  <MemberCombobox
+                                    members={beneficiaries}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
             {selectedBeneficiary && (
               <div className="bg-muted p-4 rounded-md space-y-2">
-                <div className="flex gap-2"><span className="font-semibold w-32">নাম:</span> <span>{selectedBeneficiary.fullName}</span></div>
-                <div className="flex gap-2"><span className="font-semibold w-32">সুবিধাভোগী আইডি:</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
-                <div className="flex gap-2"><span className="font-semibold w-32">মোবাইল নম্বর:</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.k_9d4717")}</span> <span>{selectedBeneficiary.fullName}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.k_9c72ba")}</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.k_1a1f1e")}</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
               </div>
             )}
           </CardContent>
@@ -188,39 +197,41 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ২. ঋণের তথ্য */}
         <Card>
           <CardHeader>
-            <CardTitle>২. ঋণের তথ্য</CardTitle>
-            <CardDescription>ঋণের পরিমাণ ও কারণ উল্লেখ করুন।</CardDescription>
+            <CardTitle>{t("loans.k_7f3e49")}</CardTitle>
+            <CardDescription>{t("loans.k_df8f89")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
               name="loanType"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>ঋণের কারণ *</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="BUSINESS" />
-                        </FormControl>
-                        <FormLabel className="font-normal">ব্যবসা</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="OTHER" />
-                        </FormControl>
-                        <FormLabel className="font-normal">অন্যান্য</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem className="space-y-3">
+                                <FormLabel>{t("loans.k_5d5310")}</FormLabel>
+                                <FormControl>
+                                  <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-col space-y-1"
+                                  >
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="BUSINESS" />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">{t("loans.k_dc2a97")}</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="OTHER" />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">{t("loans.k_8f019f")}</FormLabel>
+                                    </FormItem>
+                                  </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -229,28 +240,32 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                   <FormField
                     control={form.control}
                     name="businessType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ব্যবসার ধরন *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="যেমন: মুদি দোকান, খামার" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      return ((
+                                          <FormItem>
+                                            <FormLabel>{t("loans.k_6eeab3")}</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} placeholder={t("loans.k_8e9437")} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        ));
+                    }}
                   />
                   <FormField
                     control={form.control}
                     name="purpose"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ঋণ গ্রহণের উদ্দেশ্য *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="যেমন: মালামাল ক্রয়" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      return ((
+                                          <FormItem>
+                                            <FormLabel>{t("loans.k_ee6e42")}</FormLabel>
+                                            <FormControl>
+                                              <Input {...field} placeholder={t("loans.k_1f9448")} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        ));
+                    }}
                   />
                 </>
               )}
@@ -259,35 +274,39 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                 <FormField
                   control={form.control}
                   name="purpose"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>কারণ / Reason *</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="যেমন: চিকিৎসা, শিক্ষা" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    return ((
+                                      <FormItem>
+                                        <FormLabel>{t("loans.reason_c172f0")}</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} placeholder={t("loans.k_0c115b")} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    ));
+                  }}
                 />
               )}
 
               <FormField
                 control={form.control}
                 name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ঋণের পরিমাণ (৳) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("loans.k_791764")}</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        {...field}
+                                        value={field.value ?? ""}
+                                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
@@ -296,97 +315,107 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               <FormField
                 control={form.control}
                 name="installmentType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>কিস্তির ধরন</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="কিস্তির ধরন নির্বাচন করুন" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="DAILY">দৈনিক</SelectItem>
-                        <SelectItem value="WEEKLY">সাপ্তাহিক</SelectItem>
-                        <SelectItem value="MONTHLY">মাসিক</SelectItem>
-                        <SelectItem value="CUSTOM">কাস্টম</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("loans.k_917edc")}</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder={t("loans.k_426577")} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="DAILY">{t("loans.k_0e4836")}</SelectItem>
+                                        <SelectItem value="WEEKLY">{t("loans.k_d4f34e")}</SelectItem>
+                                        <SelectItem value="MONTHLY">{t("loans.k_1788bf")}</SelectItem>
+                                        <SelectItem value="CUSTOM">{t("loans.k_db09fd")}</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="installmentAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>কিস্তির পরিমাণ (৳)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("loans.k_91c500")}</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        {...field}
+                                        value={field.value ?? ""}
+                                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="totalInstallments"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>মোট কিস্তির সংখ্যা</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("loans.k_8befe3")}</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        {...field}
+                                        value={field.value ?? ""}
+                                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="firstInstallmentDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>প্রথম কিস্তির তারিখ</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
-                        onChange={e => { field.onChange(e.target.value ? new Date(e.target.value) : undefined); }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return ((
+                                  <FormItem>
+                                    <FormLabel>{t("loans.k_7b319f")}</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="date"
+                                        {...field}
+                                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
+                                        onChange={e => { field.onChange(e.target.value ? new Date(e.target.value) : undefined); }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                ));
+                }}
               />
             </div>
 
             <FormField
               control={form.control}
               name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>মন্তব্য (ঐচ্ছিক)</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="অতিরিক্ত কোনো তথ্য থাকলে লিখুন" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem>
+                                <FormLabel>{t("loans.k_d44d54")}</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} placeholder={t("loans.k_5e1208")} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            ));
+              }}
             />
           </CardContent>
         </Card>
@@ -394,37 +423,38 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ৪. ঋণের অর্থের উৎস */}
         <Card>
           <CardHeader>
-            <CardTitle>৪. ঋণের অর্থের উৎস (Funding Source)</CardTitle>
-            <CardDescription>ঋণের জন্য ফান্ডের উৎস নির্বাচন করুন।</CardDescription>
+            <CardTitle>{t("loans.funding_source_a41336")}</CardTitle>
+            <CardDescription>{t("loans.k_d6e037")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
               name="isMultiGroup"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked)
-                        if (!checked) {
-                          // keep only the first element
-                          if (fields.length > 1) {
-                            form.setValue("fundAllocations", [form.getValues().fundAllocations[0]])
-                          }
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>একাধিক গ্রুপ থেকে অর্থ প্রদান</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      একটি গ্রুপে পর্যাপ্ত ফান্ড না থাকলে একাধিক গ্রুপ ব্যবহার করুন।
-                    </p>
-                  </div>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return ((
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={(checked) => {
+                                      field.onChange(checked)
+                                      if (!checked) {
+                                        // keep only the first element
+                                        if (fields.length > 1) {
+                                          form.setValue("fundAllocations", [form.getValues().fundAllocations[0]])
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>{t("loans.k_d662de")}</FormLabel>
+                                  <p className="text-sm text-muted-foreground">
+                                    {t("loans.k_684437")}</p>
+                                </div>
+                              </FormItem>
+                            ));
+              }}
             />
 
             <div className="space-y-4">
@@ -441,29 +471,31 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                       <FormField
                         control={form.control}
                         name={`fundAllocations.${index}.groupId`}
-                        render={({ field: selectField }) => (
-                          <FormItem>
-                            <FormLabel>গ্রুপ (Group)</FormLabel>
-                            <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="গ্রুপ নির্বাচন করুন" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {groups?.map(g => (
-                                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        render={({ field: selectField }) => {
+                          return ((
+                                                  <FormItem>
+                                                    <FormLabel>{t("loans.group_d4d811")}</FormLabel>
+                                                    <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
+                                                      <FormControl>
+                                                        <SelectTrigger>
+                                                          <SelectValue placeholder={t("loans.k_0a2922")} />
+                                                        </SelectTrigger>
+                                                      </FormControl>
+                                                      <SelectContent>
+                                                        {groups?.map(g => (
+                                                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                                                        ))}
+                                                      </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                  </FormItem>
+                                                ));
+                        }}
                       />
                       {group && (
                         <div className="flex justify-between text-sm bg-muted p-2 rounded">
-                          <div><span className="text-muted-foreground">Available Balance:</span> ৳{currentBalance}</div>
-                          <div><span className="text-muted-foreground">Remaining After Loan:</span> <span className={remaining < 0 ? "text-red-500 font-bold" : "text-green-600 font-bold"}>৳{remaining}</span></div>
+                          <div><span className="text-muted-foreground">{t("loans.available_balance_01cdd5")}</span> ৳{currentBalance}</div>
+                          <div><span className="text-muted-foreground">{t("loans.remaining_after_loan_fcbbfd")}</span> <span className={remaining < 0 ? "text-red-500 font-bold" : "text-green-600 font-bold"}>৳{remaining}</span></div>
                         </div>
                       )}
                     </div>
@@ -471,20 +503,22 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                       <FormField
                         control={form.control}
                         name={`fundAllocations.${index}.amount`}
-                        render={({ field: inputField }) => (
-                          <FormItem>
-                            <FormLabel>পরিমাণ (৳)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...inputField}
-                                value={inputField.value ?? ""}
-                                onChange={e => { const v = parseInt(e.target.value); inputField.onChange(isNaN(v) ? "" : v); }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        render={({ field: inputField }) => {
+                          return ((
+                                                  <FormItem>
+                                                    <FormLabel>{t("loans.k_173a9f")}</FormLabel>
+                                                    <FormControl>
+                                                      <Input
+                                                        type="number"
+                                                        {...inputField}
+                                                        value={inputField.value ?? ""}
+                                                        onChange={e => { const v = parseInt(e.target.value); inputField.onChange(isNaN(v) ? "" : v); }}
+                                                      />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                  </FormItem>
+                                                ));
+                        }}
                       />
                     </div>
                     {form.watch("isMultiGroup") && index > 0 && (
@@ -503,8 +537,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               })}
               {form.watch("isMultiGroup") && (
                 <Button type="button" variant="outline" onClick={() => append({ groupId: "", amount: 0 })}>
-                  + নতুন সারি যুক্ত করুন
-                </Button>
+                  {t("loans.k_224764")}</Button>
               )}
               {form.formState.errors.fundAllocations?.root?.message && (
                 <p className="text-sm font-medium text-destructive">{form.formState.errors.fundAllocations.root.message}</p>
@@ -516,55 +549,55 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ৫. ডকুমেন্ট (ঐচ্ছিক) */}
         <Card>
           <CardHeader>
-            <CardTitle>৫. ডকুমেন্ট (ঐচ্ছিক)</CardTitle>
-            <CardDescription>প্রয়োজনীয় ফাইল আপলোড করুন (PDF, JPG, PNG)</CardDescription>
+            <CardTitle>{t("loans.k_550a27")}</CardTitle>
+            <CardDescription>{t("loans.pdf_jpg_png_7d9e99")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {existingDocs.length > 0 && (
               <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium">বিদ্যমান ডকুমেন্টস:</h4>
+                <h4 className="text-sm font-medium">{t("loans.k_63988f")}</h4>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {existingDocs.map((doc) => (
-                    <Card key={doc.id} className="relative overflow-hidden group">
-                      {doc.type === "IMAGE" ? (
-                        <div className="relative h-32 w-full bg-muted">
-                          <img src={doc.secureUrl || doc.url} alt={doc.title} className="object-cover h-full w-full" />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-32 w-full bg-muted/50">
-                          {doc.mimeType === "application/pdf" || doc.type === "PDF" ? (
-                            <FileText className="h-12 w-12 text-destructive" />
-                          ) : (
-                            <FileText className="h-12 w-12 text-muted-foreground" />
-                          )}
-                        </div>
-                      )}
-                      <CardHeader className="p-3 pb-0">
-                        <CardTitle className="text-sm truncate" title={doc.title}>{doc.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-3 pt-2 space-y-3">
-                        <Badge variant="secondary">{(doc.sizeBytes / 1024 / 1024).toFixed(2)} MB</Badge>
-                        
-                        <div className="flex space-x-2 pt-2 border-t">
-                          <Button type="button" variant="outline" size="sm" className="w-full" asChild>
-                            <a href={doc.secureUrl || doc.url} target="_blank" rel="noreferrer">
-                              <Eye className="mr-2 h-4 w-4" /> দেখুন
-                            </a>
-                          </Button>
-                          <Button type="button" variant="destructive" size="sm" className="w-full" onClick={() => handleDeleteExistingDoc(doc.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" /> মুছুন
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {existingDocs.map((doc) => {
+                    return ((
+                                      <Card key={doc.id} className="relative overflow-hidden group">
+                                        {doc.type === "IMAGE" ? (
+                                          <div className="relative h-32 w-full bg-muted">
+                                            <img src={doc.secureUrl || doc.url} alt={doc.title} className="object-cover h-full w-full" />
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center justify-center h-32 w-full bg-muted/50">
+                                            {doc.mimeType === "application/pdf" || doc.type === "PDF" ? (
+                                              <FileText className="h-12 w-12 text-destructive" />
+                                            ) : (
+                                              <FileText className="h-12 w-12 text-muted-foreground" />
+                                            )}
+                                          </div>
+                                        )}
+                                        <CardHeader className="p-3 pb-0">
+                                          <CardTitle className="text-sm truncate" title={doc.title}>{doc.title}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="p-3 pt-2 space-y-3">
+                                          <Badge variant="secondary">{(doc.sizeBytes / 1024 / 1024).toFixed(2)} MB</Badge>
+                                          
+                                          <div className="flex space-x-2 pt-2 border-t">
+                                            <Button type="button" variant="outline" size="sm" className="w-full" asChild>
+                                              <a href={doc.secureUrl || doc.url} target="_blank" rel="noreferrer">
+                                                <Eye className="mr-2 h-4 w-4" /> {t("loans.k_cb4158")}</a>
+                                            </Button>
+                                            <Button type="button" variant="destructive" size="sm" className="w-full" onClick={() => handleDeleteExistingDoc(doc.id)}>
+                                              <Trash2 className="mr-2 h-4 w-4" /> {t("loans.k_047838")}</Button>
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    ));
+                  })}
                 </div>
               </div>
             )}
 
             {pendingFiles.length > 0 && (
               <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium">নতুন যোগ করা ডকুমেন্টস:</h4>
+                <h4 className="text-sm font-medium">{t("loans.k_4474d3")}</h4>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {pendingFiles.map((file, idx) => {
                     const isImage = file.type.startsWith("image/")
@@ -594,12 +627,10 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                           <div className="flex space-x-2 pt-2 border-t">
                             {previewUrl && (
                               <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => window.open(previewUrl, "_blank")}>
-                                <Eye className="mr-2 h-4 w-4" /> দেখুন
-                              </Button>
+                                <Eye className="mr-2 h-4 w-4" /> {t("loans.k_cb4158")}</Button>
                             )}
                             <Button type="button" variant="destructive" size="sm" className={previewUrl ? "w-full" : "w-full"} onClick={() => removePendingFile(idx)}>
-                              <Trash2 className="mr-2 h-4 w-4" /> মুছুন
-                            </Button>
+                              <Trash2 className="mr-2 h-4 w-4" /> {t("loans.k_047838")}</Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -612,8 +643,8 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
             <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/30 transition-colors"
                  onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-10 w-10 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">ডকুমেন্ট আপলোড করতে এখানে ক্লিক করুন</p>
-              <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG, WEBP (সর্বোচ্চ ৫ MB)</p>
+              <p className="text-sm font-medium">{t("loans.k_97d873")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("loans.pdf_jpg_png_webp_mb_e8adfb")}</p>
               <input 
                 type="file" 
                 multiple 
@@ -628,8 +659,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
-            বাতিল করুন
-          </Button>
+            {t("loans.k_c94621")}</Button>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "প্রসেসিং..." : (isEditMode ? "সংরক্ষণ করুন" : "ঋণ আবেদন করুন")}
           </Button>

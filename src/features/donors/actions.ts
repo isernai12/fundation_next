@@ -193,7 +193,7 @@ export async function getDonorLedger(donorId: string) {
     // Only look at the credit entry to identify the fund/group
     const creditEntry = tx.entries.find(e => e.isCredit)
     const deposit = creditEntry ? creditEntry.amount : 0
-    const groupName = creditEntry?.fund?.group?.name || "সাধারন তহবিল"
+    const groupName = creditEntry?.fund?.group?.name || "General Fund"
 
     balance += deposit
 
@@ -202,7 +202,7 @@ export async function getDonorLedger(donorId: string) {
       date: tx.date,
       reference: tx.referenceId,
       groupName,
-      description: tx.notes || "অনুদান (Donation)",
+      description: tx.notes || "Donation",
       deposit,
       withdrawal: 0,
       balance
@@ -319,7 +319,7 @@ export async function getReceivedDonations(): Promise<DonationTransactionItem[]>
         nationalId: donor.nationalId
       } : null,
       groupId: group?.id || null,
-      groupName: group?.name || "সাধারন তহবিল",
+      groupName: group?.name || "General Fund",
       amount: creditEntry ? creditEntry.amount : 0,
       remarks: tx.notes || "",
       createdBy: tx.createdBy || "Admin",

@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Monitor, Smartphone, Tablet, LogOut } from "lucide-react"
 import { logoutDevice, logoutOtherDevices, logoutAllDevices } from "../actions"
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function DevicesTable({ sessions, currentJti }: { sessions: any[], currentJti: string }) {
+    const { t } = useLanguage();
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -18,14 +20,14 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
     setIsProcessing(true)
     try {
       await logoutDevice(jti)
-      toast.success("ডিভাইসটি সফলভাবে লগআউট করা হয়েছে")
+      toast.success(t("profile.k_b19441"))
       if (jti === currentJti) {
         signOut({ callbackUrl: window.location.origin + '/login' })
       } else {
         router.refresh()
       }
     } catch (err) {
-      toast.error("লগআউট ব্যর্থ হয়েছে")
+      toast.error(t("profile.k_dc3aa0"))
     } finally {
       setIsProcessing(false)
     }
@@ -35,10 +37,10 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
     setIsProcessing(true)
     try {
       await logoutOtherDevices()
-      toast.success("অন্যান্য সকল ডিভাইস থেকে লগআউট করা হয়েছে")
+      toast.success(t("profile.k_f34979"))
       router.refresh()
     } catch (err) {
-      toast.error("লগআউট ব্যর্থ হয়েছে")
+      toast.error(t("profile.k_dc3aa0"))
     } finally {
       setIsProcessing(false)
     }
@@ -50,11 +52,11 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
     try {
       const res = await logoutAllDevices()
       if (res.requireReauth) {
-        toast.success("সকল ডিভাইস থেকে লগআউট করা হয়েছে")
+        toast.success(t("profile.k_12f44a"))
         signOut({ callbackUrl: window.location.origin + '/login' })
       }
     } catch (err) {
-      toast.error("লগআউট ব্যর্থ হয়েছে")
+      toast.error(t("profile.k_dc3aa0"))
     } finally {
       setIsProcessing(false)
     }
@@ -70,18 +72,16 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
     <Card>
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <CardTitle>সক্রিয় সেশন (Active Sessions)</CardTitle>
-          <CardDescription>যে সকল ডিভাইস থেকে আপনি বর্তমানে লগইন আছেন।</CardDescription>
+          <CardTitle>{t("profile.active_sessions_8f93e4")}</CardTitle>
+          <CardDescription>{t("profile.k_b84c4f")}</CardDescription>
         </div>
         <div className="flex gap-2">
           {sessions.length > 1 && (
             <Button variant="outline" size="sm" onClick={handleLogoutOthers} disabled={isProcessing}>
-              অন্যান্য ডিভাইস লগআউট করুন
-            </Button>
+              {t("profile.k_67bca8")}</Button>
           )}
           <Button variant="destructive" size="sm" onClick={handleLogoutAll} disabled={isProcessing}>
-            সকল ডিভাইস লগআউট করুন
-          </Button>
+            {t("profile.k_7c2a7c")}</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -97,12 +97,12 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold">{session.os} - {session.browser}</h4>
-                      {isCurrent && <Badge variant="default" className="text-xs">বর্তমান ডিভাইস</Badge>}
+                      {isCurrent && <Badge variant="default" className="text-xs">{t("profile.k_b24731")}</Badge>}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1 space-x-2">
-                      <span>IP: {session.ipAddress}</span>
+                      <span>{t("profile.k_3901cd")}{session.ipAddress}</span>
                       <span>•</span>
-                      <span>সর্বশেষ সক্রিয়: {new Date(session.lastActive).toLocaleString('bn-BD')}</span>
+                      <span>{t("profile.k_b95719")}{new Date(session.lastActive).toLocaleString('bn-BD')}</span>
                     </div>
                   </div>
                 </div>
@@ -110,9 +110,11 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
                   variant="ghost" 
                   size="icon" 
                   className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => handleLogout(session.jti)}
+                  onClick={() => {
+                    return (handleLogout(session.jti));
+                  }}
                   disabled={isProcessing}
-                  title="এই ডিভাইস থেকে লগআউট করুন"
+                  title={t("profile.k_c7b00c")}
                 >
                   <LogOut className="w-4 h-4" />
                 </Button>
@@ -121,8 +123,7 @@ export function DevicesTable({ sessions, currentJti }: { sessions: any[], curren
           })}
           {sessions.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              কোন সক্রিয় সেশন পাওয়া যায়নি।
-            </div>
+              {t("profile.k_e5da6e")}</div>
           )}
         </div>
       </CardContent>

@@ -4,6 +4,7 @@ import { getMemberDuesList } from "@/features/members/due-actions"
 import { MemberDuesTable } from "@/features/members/components/member-dues-table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, AlertCircle, TrendingUp, Wallet, Banknote } from "lucide-react"
+import { Trans } from "@/components/shared/trans";
 
 export default async function MemberDuesPage() {
   const dues = await getMemberDuesList()
@@ -29,12 +30,12 @@ export default async function MemberDuesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-bold tracking-tight">সদস্য চাঁদা বকেয়া তালিকা</h1>
+      <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="members.dues_page.title" /></h1>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">মোট সদস্য</CardTitle>
+            <CardTitle className="text-sm font-medium"><Trans tKey="members.dues_page.total_members" /></CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -44,7 +45,7 @@ export default async function MemberDuesPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">বকেয়াসহ সদস্য</CardTitle>
+            <CardTitle className="text-sm font-medium"><Trans tKey="members.dues_page.members_in_due" /></CardTitle>
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
@@ -54,7 +55,7 @@ export default async function MemberDuesPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">মোট বকেয়া</CardTitle>
+            <CardTitle className="text-sm font-medium"><Trans tKey="members.dues_page.total_outstanding" /></CardTitle>
             <TrendingUp className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
@@ -64,7 +65,7 @@ export default async function MemberDuesPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">মোট অগ্রিম</CardTitle>
+            <CardTitle className="text-sm font-medium"><Trans tKey="members.dues_page.total_advance" /></CardTitle>
             <Wallet className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -74,7 +75,7 @@ export default async function MemberDuesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">এই মাসে সংগৃহীত</CardTitle>
+            <CardTitle className="text-sm font-medium"><Trans tKey="members.dues_page.collected_this_month" /></CardTitle>
             <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
