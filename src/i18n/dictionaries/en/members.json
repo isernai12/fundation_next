@@ -236,5 +236,23 @@
     "relation": "Relation",
     "cancel": "Cancel",
     "save": "Save"
+  },
+  "view": {
+    "title": "Member Details",
+    "personal_info": "Personal Information",
+    "emergency_contact": "Emergency Contact",
+    "reference": "Reference",
+    "membership_info": "Membership Information",
+    "documents": "Documents",
+    "audit_history": "Status History",
+    "date": "Date",
+    "from": "From",
+    "to": "To",
+    "reason": "Reason / Note",
+    "by": "Changed By",
+    "no_photo": "No Photo",
+    "member_id": "Member ID",
+    "group_code": "Group Code",
+    "join_date": "Join Date"
   }
 }
