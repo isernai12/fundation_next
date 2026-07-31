@@ -16,30 +16,33 @@ import {
 import Link from "next/link"
 
 import { useBranding } from "@/components/providers/branding-provider"
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher"
+import { useLanguage } from "@/i18n/LanguageProvider"
 
 export function Header() {
   const { data: session } = useSession()
   const { toggleSidebar } = useSidebar()
   const pathname = usePathname()
   const branding = useBranding()
+  const { t } = useLanguage()
 
   const getPageTitle = () => {
-    if (pathname === '/') return 'ড্যাশবোর্ড'
+    if (pathname === '/') return t('common.dashboard')
     const path = pathname.split('/')[1]
     
     const titles: Record<string, string> = {
-      'members': 'সদস্য',
-      'beneficiaries': 'সুবিধাভোগী',
-      'donors': 'অনুদানদাতা',
-      'campaigns': 'আর্থিক কার্যক্রম',
-      'loans': 'ঋণ',
-      'grants': 'অনুদান',
-      'groups': 'গ্রুপ',
-      'settings': 'সেটিংস',
-      'profile': 'প্রোফাইল'
+      'members': t('sidebar.members'),
+      'beneficiaries': t('sidebar.beneficiaries'),
+      'donors': t('sidebar.donors'),
+      'campaigns': t('sidebar.financials'), // Needs fine-tuning later based on exact mapping
+      'loans': t('sidebar.loans'),
+      'grants': t('sidebar.grants'),
+      'groups': t('sidebar.groups'),
+      'settings': t('common.settings'),
+      'profile': t('common.profile')
     }
     
-    return path && titles[path] ? titles[path] : (path ? path.charAt(0).toUpperCase() + path.slice(1) : 'ড্যাশবোর্ড')
+    return path && titles[path] ? titles[path] : (path ? path.charAt(0).toUpperCase() + path.slice(1) : t('common.dashboard'))
   }
 
   return (
@@ -61,14 +64,16 @@ export function Header() {
 
       <div className="flex items-center gap-1">
         
+        <LanguageSwitcher />
+
         <div className="tooltip-container">
           <ThemeToggle />
-          <span className="tooltip-custom">Theme</span>
+          <span className="tooltip-custom">{t('header.theme')}</span>
         </div>
 
         <button className="tooltip-container p-2 text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-all hidden sm:flex">
           <HelpCircle className="w-5 h-5" />
-          <span className="tooltip-custom">Help Center</span>
+          <span className="tooltip-custom">{t('header.help_center')}</span>
         </button>
 
         <div className="w-px h-6 bg-surface-200 mx-2 hidden sm:block"></div>
@@ -107,31 +112,31 @@ export function Header() {
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/profile">
                 <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <span>{t('common.profile')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>{t('common.settings')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/profile/devices">
                 <MonitorSmartphone className="mr-2 h-4 w-4" />
-                <span>Device Management</span>
+                <span>{t('header.device_management')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="hover:bg-surface-50 text-[13px] font-medium text-surface-700 cursor-pointer">
               <Link href="/profile/password">
                 <KeyRound className="mr-2 h-4 w-4" />
-                <span>Change Password</span>
+                <span>{t('header.change_password')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-surface-200" />
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: window.location.origin + '/login' })} className="hover:bg-accent-red/10 focus:bg-accent-red/10 text-accent-red focus:text-accent-red text-[13px] font-medium cursor-pointer transition-colors">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Logout</span>
+              <span>{t('common.logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

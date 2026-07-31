@@ -1,18 +1,12 @@
 import { getMembers } from "@/features/members/actions"
 import { getGroups } from "@/features/groups/actions"
 import { MembersTable } from "@/features/members/components/members-table"
-
-import { getAuthSession } from "@/lib/auth"
-
+import { authorizePage } from "@/lib/rbac"
 
 export default async function ManageMembersPage() {
+  await authorizePage("Members", "View")
   const members = await getMembers()
   const groups = await getGroups()
-  const session = await getAuthSession()
-  
-  // @ts-ignore
-  const userRole = session?.user?.role;
-  const isManage = userRole === "ADMIN" || userRole === "MANAGER" || userRole === "SUPER_ADMIN";
 
   return (
     <div className="space-y-4">
@@ -22,7 +16,7 @@ export default async function ManageMembersPage() {
           <p className="text-muted-foreground">প্রতিষ্ঠানের সদস্যদের ব্যবস্থাপনা করুন।</p>
         </div>
       </div>
-      <MembersTable data={members} groups={groups} isManage={isManage} />
+      <MembersTable data={members} groups={groups} isManage={true} />
     </div>
   )
 }

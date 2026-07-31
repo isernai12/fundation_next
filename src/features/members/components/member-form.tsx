@@ -153,28 +153,6 @@ export function MemberForm({
   const existingBC = getDoc("Birth Certificate")?.secureUrl;
 
   async function onSubmit(data: MemberFormValues) {
-    if (!data.signatureBase64 && !existingSignature) {
-      toast.error("স্বাক্ষর আপলোড করা আবশ্যক");
-      return;
-    }
-
-    // Validation for Identity Documents
-    if (data.idDocumentType === "NID") {
-      if (!data.nidFrontBase64 && !existingNidFront) {
-        toast.error("জাতীয় পরিচয়পত্রের সামনের অংশ আপলোড করা আবশ্যক");
-        return;
-      }
-      if (!data.nidBackBase64 && !existingNidBack) {
-        toast.error("জাতীয় পরিচয়পত্রের পেছনের অংশ আপলোড করা আবশ্যক");
-        return;
-      }
-    } else {
-      if (!data.birthCertificateBase64 && !existingBC) {
-        toast.error("জন্ম নিবন্ধন আপলোড করা আবশ্যক");
-        return;
-      }
-    }
-
     setIsSubmitting(true);
     try {
       const res = mode === "edit" ? await updateMember(memberId!, data) : await createMember(data);
@@ -640,7 +618,7 @@ export function MemberForm({
             />
             
             <UploadBox 
-              title="স্বাক্ষর *" 
+              title="স্বাক্ষর (ঐচ্ছিক)" 
               subtext="JPEG, PNG বা JPG" 
               inputRef={signatureInputRef} 
               field="signatureBase64" 
@@ -687,7 +665,7 @@ export function MemberForm({
             {form.watch("idDocumentType") === "NID" ? (
               <>
                 <UploadBox 
-                  title="জাতীয় পরিচয়পত্র (সামনের অংশ) *" 
+                  title="জাতীয় পরিচয়পত্র (সামনের অংশ)" 
                   subtext="JPEG, PNG বা JPG" 
                   inputRef={nidFrontInputRef} 
                   field="nidFrontBase64" 
@@ -695,7 +673,7 @@ export function MemberForm({
                   existingUrl={existingNidFront} 
                 />
                 <UploadBox 
-                  title="জাতীয় পরিচয়পত্র (পেছনের অংশ) *" 
+                  title="জাতীয় পরিচয়পত্র (পেছনের অংশ)" 
                   subtext="JPEG, PNG বা JPG" 
                   inputRef={nidBackInputRef} 
                   field="nidBackBase64" 
@@ -705,7 +683,7 @@ export function MemberForm({
               </>
             ) : (
               <UploadBox 
-                title="জন্ম নিবন্ধন *" 
+                title="জন্ম নিবন্ধন" 
                 subtext="JPEG, PNG বা JPG" 
                 inputRef={bcInputRef} 
                 field="birthCertificateBase64" 

@@ -112,15 +112,24 @@ export function FoundationBrandingForm({ initialSettings }: FoundationBrandingFo
     }
   };
 
-  const ImageUploadField = ({ 
-    id, 
-    label, 
-    description 
-  }: { 
-    id: keyof typeof formData, 
-    label: string, 
-    description: string 
-  }) => (
+function ImageUploadField({ 
+  id, 
+  label, 
+  description,
+  formData,
+  uploadingField,
+  handleFileChange,
+  setFormData
+}: { 
+  id: any, 
+  label: string, 
+  description: string,
+  formData: any,
+  uploadingField: string | null,
+  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>, fieldName: any) => Promise<void>,
+  setFormData: React.Dispatch<React.SetStateAction<any>>
+}) {
+  return (
     <div className="flex flex-col space-y-3">
       <Label htmlFor={id} className="text-base font-medium">{label}</Label>
       <p className="text-xs text-muted-foreground">{description}</p>
@@ -153,7 +162,7 @@ export function FoundationBrandingForm({ initialSettings }: FoundationBrandingFo
               type="button" 
               variant="destructive" 
               size="icon" 
-              onClick={() => setFormData(prev => ({ ...prev, [id]: "" }))}
+              onClick={() => setFormData((prev: any) => ({ ...prev, [id]: "" }))}
               title="Delete Logo"
             >
               <Trash2 className="h-4 w-4" />
@@ -163,7 +172,7 @@ export function FoundationBrandingForm({ initialSettings }: FoundationBrandingFo
       </div>
     </div>
   );
-
+}
   return (
     <Card>
       <CardHeader>
@@ -203,26 +212,46 @@ export function FoundationBrandingForm({ initialSettings }: FoundationBrandingFo
                 id="BRANDING_LOGO" 
                 label="Primary Logo" 
                 description="Used in main navigation and default displays." 
+                formData={formData}
+                uploadingField={uploadingField}
+                handleFileChange={handleFileChange}
+                setFormData={setFormData}
               />
               <ImageUploadField 
                 id="BRANDING_FAVICON" 
                 label="Favicon" 
                 description="Small icon shown in the browser tab (ideally 32x32px or 64x64px)." 
+                formData={formData}
+                uploadingField={uploadingField}
+                handleFileChange={handleFileChange}
+                setFormData={setFormData}
               />
               <ImageUploadField 
                 id="BRANDING_LOGIN_LOGO" 
                 label="Login Page Logo" 
                 description="Prominent logo displayed on the authentication screens." 
+                formData={formData}
+                uploadingField={uploadingField}
+                handleFileChange={handleFileChange}
+                setFormData={setFormData}
               />
               <ImageUploadField 
                 id="BRANDING_SIDEBAR_LOGO" 
                 label="Sidebar Logo" 
                 description="Logo shown at the top of the application sidebar." 
+                formData={formData}
+                uploadingField={uploadingField}
+                handleFileChange={handleFileChange}
+                setFormData={setFormData}
               />
               <ImageUploadField 
                 id="BRANDING_HEADER_LOGO" 
                 label="Header Logo" 
                 description="Logo shown in the top header or mobile view." 
+                formData={formData}
+                uploadingField={uploadingField}
+                handleFileChange={handleFileChange}
+                setFormData={setFormData}
               />
             </div>
           </div>

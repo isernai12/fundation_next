@@ -125,6 +125,7 @@ model Member {
   campaignContributions CampaignContribution[]
   loans                 Loan[]
   documents             Document[]
+  statusHistory         MemberStatusHistory[]
 }
 
 model Beneficiary {
@@ -659,4 +660,19 @@ model UserPermission {
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([userId, permissionId])
+}
+
+model MemberStatusHistory {
+  id         String   @id @default(uuid())
+  memberId   String
+  fromStatus String
+  toStatus   String
+  reason     String?
+  notes      String?
+  changedBy  String?
+  changedAt  DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
 }

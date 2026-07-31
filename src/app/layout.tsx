@@ -58,6 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import { BrandingProvider } from "@/components/providers/branding-provider"
+import { LanguageProvider } from "@/i18n/LanguageProvider"
 
 import { prisma } from "@/lib/prisma"
 
@@ -87,7 +88,9 @@ export default async function RootLayout({
   }
 
   if (typeof globalThis !== 'undefined') {
+    // eslint-disable-next-line
     (globalThis as any).APP_TIMEZONE = userTimezone;
+    // eslint-disable-next-line
     (globalThis as any).APP_DATE_FORMAT = userDateFormat;
   }
 
@@ -95,18 +98,18 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.6/index.min.css" rel="stylesheet" />
+      </head>
+      <body className={`${notoSansBengali.className} h-screen overflow-hidden flex`} suppressHydrationWarning>
         <Script
           id="app-settings"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `window.APP_TIMEZONE = "${userTimezone}"; window.APP_DATE_FORMAT = "${userDateFormat}";`
           }}
         />
-      </head>
-      <body className={`${notoSansBengali.className} h-screen overflow-hidden flex`} suppressHydrationWarning>
         <BrandingProvider branding={branding}>
-          <AuthProvider>
-            <RbacProvider permissions={permissions}>
+          <LanguageProvider>
+            <AuthProvider>
+              <RbacProvider permissions={permissions}>
               <ThemeProvider
                 attribute="class"
               defaultTheme="system"
@@ -124,8 +127,9 @@ export default async function RootLayout({
               </SidebarProvider>
               <Toaster />
             </ThemeProvider>
-            </RbacProvider>
-          </AuthProvider>
+              </RbacProvider>
+            </AuthProvider>
+          </LanguageProvider>
         </BrandingProvider>
       </body>
     </html>

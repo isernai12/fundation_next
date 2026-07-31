@@ -1,6 +1,6 @@
 import { prisma } from "./prisma"
 import { getAuthSession } from "./auth"
-import { hasPermission } from "./rbac-client"
+import { hasPermission, isSuperAdminRole } from "./rbac-client"
 import { cache } from "react"
 import { redirect } from "next/navigation"
 
@@ -8,9 +8,14 @@ import { redirect } from "next/navigation"
  * Fetch all permissions for a user (from their Role + Custom UserPermissions)
  */
 export const getUserPermissions = cache(async (userId: string) => {
+  if (!userId) return []
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
+      id: true,
+      name: true,
+      username: true,
       role: {
         select: {
           id: true,
@@ -34,19 +39,15 @@ export const getUserPermissions = cache(async (userId: string) => {
     }
   })
 
-  console.log(`[RBAC DEBUG] Fetching permissions for User ID: ${userId}`);
-
-  if (!user) {
-    console.log(`[RBAC DEBUG] User not found in DB!`);
+  if (!user || !user.role) {
+    console.log(`[RBAC DEBUG] User or Role not found for User ID: ${userId}`)
     return []
   }
 
-  console.log(`[RBAC DEBUG] User Role ID: ${user.role?.id}, Name: ${user.role?.name}`);
-
-  // If Super Admin, they inherently have all permissions (or we can just return a wildcard)
-  if (user.role.name === "Super Admin" || user.role.name === "SUPER_ADMIN") {
-    console.log(`[RBAC DEBUG] Super Admin detected. Returning wildcard.`);
-    return ["*"] // Wildcard meaning everything is permitted
+  // 1. HARDCODED SUPER_ADMIN BYPASS: Always return wildcard "*"
+  if (isSuperAdminRole(user.role.name)) {
+    console.log(`[RBAC DEBUG] Current User: ${user.name} (${user.username}) | Current Role: ${user.role.name} | Loaded Permissions: ["*"] (SUPER_ADMIN Wildcard)`)
+    return ["*"]
   }
 
   const permissions = new Set<string>()
@@ -61,40 +62,39 @@ export const getUserPermissions = cache(async (userId: string) => {
     permissions.add(`${up.permission.module}:${up.permission.action}`)
   })
 
-  const permissionsArray = Array.from(permissions);
-  console.log(`[RBAC DEBUG] Final permissions array length: ${permissionsArray.length}`);
-  console.log(`[RBAC DEBUG] Permissions: `, permissionsArray);
-  
+  const permissionsArray = Array.from(permissions)
+  console.log(`[RBAC DEBUG] Current User: ${user.name} (${user.username}) | Current Role: ${user.role.name} | Loaded Permissions Count: ${permissionsArray.length}`)
+
   return permissionsArray
 })
 
-export { hasPermission }
+export { hasPermission, isSuperAdminRole }
 
 /**
  * Helper to log and redirect on unauthorized access
  */
 async function handleUnauthorized(userId: string, module: string, action: string) {
   try {
-    const { headers } = await import("next/headers");
-    const h = await headers();
-    const ipAddress = h.get("x-forwarded-for") || h.get("x-real-ip") || "";
-    const userAgent = h.get("user-agent") || "";
+    const { headers } = await import("next/headers")
+    const h = await headers()
+    const ipAddress = h.get("x-forwarded-for") || h.get("x-real-ip") || ""
+    const userAgent = h.get("user-agent") || ""
     
     await prisma.auditLog.create({
       data: {
         userId: userId,
         action: "UNAUTHORIZED_ACCESS",
         module: module,
-        remarks: `Attempted to ${action} without permission`,
+        remarks: `Attempted to ${action} on module ${module} without permission`,
         ipAddress: ipAddress.split(',')[0].trim().substring(0, 45),
         browser: userAgent.substring(0, 255),
       }
-    });
+    })
   } catch (e) {
-    console.error("[RBAC] Failed to log audit:", e);
+    console.error("[RBAC] Failed to log audit:", e)
   }
   
-  redirect(`/unauthorized?module=${encodeURIComponent(module)}&action=${encodeURIComponent(action)}`);
+  redirect(`/unauthorized?module=${encodeURIComponent(module)}&action=${encodeURIComponent(action)}`)
 }
 
 /**
@@ -103,22 +103,30 @@ async function handleUnauthorized(userId: string, module: string, action: string
  */
 export async function requirePermission(module: string, action: string) {
   const session = await getAuthSession()
-  if (!(session?.user as any)?.id) {
+  const user = session?.user as any
+  if (!user?.id) {
     redirect("/login")
   }
 
-  const userId = (session!.user as any).id
+  const userId = user.id
+  const userRole = user.role
+
+  // 1. HARDCODED SUPER_ADMIN BYPASS
+  if (isSuperAdminRole(userRole)) {
+    console.log(`[RBAC DEBUG] Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ["*"] | Requested Module: ${module} | Requested Action: ${action} | Result: ALLOWED (SUPER_ADMIN Bypass)`)
+    return user
+  }
+
   const permissions = await getUserPermissions(userId)
-  
-  const hasPerm = hasPermission(permissions, module, action)
-  console.log(`[RBAC DEBUG] requirePermission check - User: ${userId}, Target: ${module}:${action}, Granted: ${hasPerm}`);
-  
-  if (!hasPerm) {
-    console.log(`[RBAC DEBUG] Permission DENIED! User has ${permissions.length} permissions. First few: ${permissions.slice(0, 5).join(", ")}`);
+  const isAllowed = hasPermission(permissions, module, action, userRole)
+
+  console.log(`[RBAC DEBUG] Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ${permissions.length} items | Requested Module: ${module} | Requested Action: ${action} | Result: ${isAllowed ? "ALLOWED" : "DENIED"}`)
+
+  if (!isAllowed) {
     await handleUnauthorized(userId, module, action)
   }
 
-  return session!.user
+  return user
 }
 
 /**
@@ -126,14 +134,26 @@ export async function requirePermission(module: string, action: string) {
  */
 export async function authorizePage(module: string, action: string) {
   const session = await getAuthSession()
-  if (!(session?.user as any)?.id) {
+  const user = session?.user as any
+  if (!user?.id) {
     redirect("/login")
   }
 
-  const userId = (session!.user as any).id
+  const userId = user.id
+  const userRole = user.role
+
+  // 1. HARDCODED SUPER_ADMIN BYPASS
+  if (isSuperAdminRole(userRole)) {
+    console.log(`[RBAC DEBUG] Authorize Page - Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ["*"] | Requested Module: ${module} | Requested Action: ${action} | Result: ALLOWED (SUPER_ADMIN Bypass)`)
+    return { session, permissions: ["*"] }
+  }
+
   const permissions = await getUserPermissions(userId)
-  
-  if (!hasPermission(permissions, module, action)) {
+  const isAllowed = hasPermission(permissions, module, action, userRole)
+
+  console.log(`[RBAC DEBUG] Authorize Page - Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ${permissions.length} items | Requested Module: ${module} | Requested Action: ${action} | Result: ${isAllowed ? "ALLOWED" : "DENIED"}`)
+
+  if (!isAllowed) {
     await handleUnauthorized(userId, module, action)
   }
 
@@ -145,8 +165,16 @@ export async function authorizePage(module: string, action: string) {
  */
 export async function checkPermission(module: string, action: string): Promise<boolean> {
   const session = await getAuthSession()
-  if (!(session?.user as any)?.id) return false
-  const userId = (session!.user as any).id
-  const permissions = await getUserPermissions(userId)
-  return hasPermission(permissions, module, action)
+  const user = session?.user as any
+  if (!user?.id) return false
+
+  const userRole = user.role
+
+  // 1. HARDCODED SUPER_ADMIN BYPASS
+  if (isSuperAdminRole(userRole)) {
+    return true
+  }
+
+  const permissions = await getUserPermissions(user.id)
+  return hasPermission(permissions, module, action, userRole)
 }

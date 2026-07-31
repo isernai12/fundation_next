@@ -6,24 +6,10 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-import { getAuthSession } from "@/lib/auth"
-
+import { authorizePage } from "@/lib/rbac"
 
 export default async function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await getAuthSession()
-  // @ts-ignore
-  const userRole = session?.user?.role;
-  const isManage = userRole === "ADMIN" || userRole === "MANAGER" || userRole === "SUPER_ADMIN";
-
-  if (!isManage) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
-        <h1 className="text-2xl font-bold">Unauthorized</h1>
-        <p className="text-muted-foreground">You do not have permission to edit members.</p>
-        <Button asChild><Link href="/members/manage">Go Back</Link></Button>
-      </div>
-    )
-  }
+  await authorizePage("Members", "Edit")
 
   const resolvedParams = await params;
   const member = await getMember(resolvedParams.id)

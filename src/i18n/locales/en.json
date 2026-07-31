@@ -1,0 +1,30 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "sidebar": {
+    "members": "Members",
+    "beneficiaries": "Beneficiaries",
+    "donors": "Donors",
+    "financials": "Financials",
+    "loans": "Loans",
+    "grants": "Grants",
+    "groups": "Groups",
+    "reports": "Reports",
+    "audit_logs": "Audit Logs"
+  },
+  "header": {
+    "theme": "Theme",
+    "help_center": "Help Center",
+    "device_management": "Device Management",
+    "change_password": "Change Password"
+  }
+}

@@ -5,10 +5,17 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission } from "@/lib/rbac";
 
 export async function generateMissingContributions() {
-    await requirePermission("Members", "Manage");
+  await requirePermission("Members", "Manage");
   const members = await prisma.member.findMany({
-    where: { status: "ACTIVE" },
-    select: { id: true, joinDate: true }
+    where: { status: { not: "DELETED" } },
+    select: {
+      id: true,
+      joinDate: true,
+      status: true,
+      statusHistory: {
+        orderBy: { changedAt: "asc" }
+      }
+    }
   });
 
   const setting = await prisma.systemSettings.findFirst({ where: { key: "DEFAULT_MONTHLY_CONTRIBUTION" } });
@@ -39,14 +46,35 @@ export async function generateMissingContributions() {
 
     while (tempY < currentYear || (tempY === currentYear && tempM <= currentMonth)) {
       if (!existingSet.has(`${tempY}-${tempM}`)) {
-        missingData.push({
-          memberId: member.id,
-          month: tempM,
-          year: tempY,
-          expectedAmount: defaultAmount,
-          isAdditional: false,
-          status: "PENDING"
-        });
+        // Calculate effective status at the end of month (tempY, tempM)
+        const endOfMonth = new Date(tempY, tempM, 0, 23, 59, 59);
+
+        let effectiveStatus = "ACTIVE"; // Initial state on joinDate
+        for (const history of member.statusHistory) {
+          if (history.changedAt <= endOfMonth) {
+            effectiveStatus = history.toStatus;
+          }
+        }
+
+        // If member currently INACTIVE and history log isn't present for past dates, check status
+        if (member.statusHistory.length === 0 && member.status === "INACTIVE") {
+          const monthStartDate = new Date(tempY, tempM - 1, 1);
+          if (monthStartDate > member.joinDate) {
+            effectiveStatus = "INACTIVE";
+          }
+        }
+
+        // ONLY generate due if member was ACTIVE in that period
+        if (effectiveStatus === "ACTIVE") {
+          missingData.push({
+            memberId: member.id,
+            month: tempM,
+            year: tempY,
+            expectedAmount: defaultAmount,
+            isAdditional: false,
+            status: "PENDING"
+          });
+        }
       }
 
       tempM++;

@@ -133,10 +133,41 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
                   <DocumentCard title="জাতীয় পরিচয়পত্র (পেছনের অংশ)" url={nidBackDoc} />
                 </>
               ) : (
-                <DocumentCard title="জন্ম নিবন্ধন" url={bcDoc} />
+                <DocumentCard title="जन्म নিবন্ধন" url={bcDoc} />
               )}
             </div>
           </section>
+
+          {/* SECTION 6 */}
+          {(member as any).statusHistory && (member as any).statusHistory.length > 0 && (
+            <section className="print:break-before-page">
+              <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">৬. সদস্য স্ট্যাটাস পরিক্রমা (Audit History)</h2>
+              <div className="border rounded-md overflow-hidden">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead className="bg-muted/50 font-semibold border-b">
+                    <tr>
+                      <th className="p-2">তারিখ ও সময়</th>
+                      <th className="p-2">আগের স্ট্যাটাস</th>
+                      <th className="p-2">নতুন স্ট্যাটাস</th>
+                      <th className="p-2">কারণ (Reason)</th>
+                      <th className="p-2">পরিবর্তনকারী</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(member as any).statusHistory.map((h: any) => (
+                      <tr key={h.id} className="border-b hover:bg-muted/20">
+                        <td className="p-2">{formatDate(h.changedAt)}</td>
+                        <td className="p-2 font-mono">{h.fromStatus}</td>
+                        <td className="p-2 font-mono font-semibold">{h.toStatus}</td>
+                        <td className="p-2">{h.reason || h.notes || '-'}</td>
+                        <td className="p-2 font-medium">{h.changedBy || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </div>
 
         {/* RIGHT COLUMN */}

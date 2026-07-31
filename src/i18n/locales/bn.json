@@ -1,0 +1,30 @@
+{
+  "common": {
+    "dashboard": "ড্যাশবোর্ড",
+    "settings": "সেটিংস",
+    "profile": "প্রোফাইল",
+    "logout": "লগআউট",
+    "loading": "লোড হচ্ছে...",
+    "save": "সংরক্ষণ করুন",
+    "cancel": "বাতিল",
+    "edit": "সম্পাদনা",
+    "delete": "মুছে ফেলুন"
+  },
+  "sidebar": {
+    "members": "সদস্য",
+    "beneficiaries": "সুবিধাভোগী",
+    "donors": "অনুদানদাতা",
+    "financials": "আর্থিক",
+    "loans": "ঋণ",
+    "grants": "অনুদান",
+    "groups": "গ্রুপ",
+    "reports": "রিপোর্ট",
+    "audit_logs": "অডিট লগ"
+  },
+  "header": {
+    "theme": "থিম",
+    "help_center": "সহায়তা কেন্দ্র",
+    "device_management": "ডিভাইস ব্যবস্থাপনা",
+    "change_password": "পাসওয়ার্ড পরিবর্তন"
+  }
+}

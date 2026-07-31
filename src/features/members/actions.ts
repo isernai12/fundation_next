@@ -6,10 +6,15 @@ import { memberSchema, type MemberFormValues } from "./schema"
 import { revalidatePath } from "next/cache"
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary"
 import { requirePermission, checkPermission } from "@/lib/rbac";
+import { getAuthSession } from "@/lib/auth";
+import { isSuperAdminRole } from "@/lib/rbac-client";
 
 export async function getMembers() {
   if (!await checkPermission("Members", "View")) return [];
   return prisma.member.findMany({
+    where: {
+      status: { not: "DELETED" }
+    },
     orderBy: { createdAt: "desc" },
     include: {
       group: {
@@ -92,17 +97,17 @@ export async function createMember(data: MemberFormValues) {
 
   const pd = parsed.data
 
-  // Check unique constraints only if provided
-  if (pd.nationalId) {
-    const existingNid = await prisma.member.findUnique({ where: { nationalId: pd.nationalId } })
+  // Check unique constraints only if non-empty string provided
+  if (pd.nationalId && pd.nationalId.trim() !== "") {
+    const existingNid = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
     if (existingNid) return { success: false, error: "এই জাতীয় পরিচয়পত্র নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
-  if (pd.mobile) {
-    const existingMobile = await prisma.member.findUnique({ where: { mobile: pd.mobile } })
+  if (pd.mobile && pd.mobile.trim() !== "") {
+    const existingMobile = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
     if (existingMobile) return { success: false, error: "এই মোবাইল নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
-  if (pd.email) {
-    const existingEmail = await prisma.member.findUnique({ where: { email: pd.email } })
+  if (pd.email && pd.email.trim() !== "") {
+    const existingEmail = await prisma.member.findUnique({ where: { email: pd.email.trim() } })
     if (existingEmail) return { success: false, error: "এই ইমেইলটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
 
@@ -121,23 +126,23 @@ export async function createMember(data: MemberFormValues) {
       data: {
         memberId,
         group: { connect: { id: pd.groupId as string } },
-        fullName: pd.fullName,
-        fatherName: pd.fatherName || null,
-        motherName: pd.motherName || null,
+        fullName: pd.fullName.trim(),
+        fatherName: pd.fatherName?.trim() || null,
+        motherName: pd.motherName?.trim() || null,
         dob: pd.dob ? new Date(pd.dob) : null,
-        nationalId: pd.nationalId || null,
-        occupation: pd.occupation || null,
-        education: pd.education || null,
-        presentAddress: pd.presentAddress || null,
-        permanentAddress: pd.permanentAddress || null,
-        mobile: pd.mobile || null,
-        email: pd.email || null,
-        bloodGroup: pd.bloodGroup || null,
+        nationalId: pd.nationalId?.trim() || null,
+        occupation: pd.occupation?.trim() || null,
+        education: pd.education?.trim() || null,
+        presentAddress: pd.presentAddress?.trim() || null,
+        permanentAddress: pd.permanentAddress?.trim() || null,
+        mobile: pd.mobile?.trim() || null,
+        email: pd.email?.trim() || null,
+        bloodGroup: pd.bloodGroup?.trim() || null,
         idDocumentType: pd.idDocumentType || "NID",
         
-        emergencyContactName: pd.emergencyContactName || null,
-        emergencyContactRelation: pd.emergencyContactRelation || null,
-        emergencyContactMobile: pd.emergencyContactMobile || null,
+        emergencyContactName: pd.emergencyContactName?.trim() || null,
+        emergencyContactRelation: pd.emergencyContactRelation?.trim() || null,
+        emergencyContactMobile: pd.emergencyContactMobile?.trim() || null,
         
         reference: referenceData,
         joinDate: new Date(),
@@ -187,16 +192,16 @@ export async function updateMember(id: string, data: MemberFormValues) {
   }
   const pd = parsed.data
 
-  if (pd.nationalId) {
-    const existing = await prisma.member.findUnique({ where: { nationalId: pd.nationalId } })
+  if (pd.nationalId && pd.nationalId.trim() !== "") {
+    const existing = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
     if (existing && existing.id !== id) return { success: false, error: "এই জাতীয় পরিচয়পত্র নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
-  if (pd.mobile) {
-    const existing = await prisma.member.findUnique({ where: { mobile: pd.mobile } })
+  if (pd.mobile && pd.mobile.trim() !== "") {
+    const existing = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
     if (existing && existing.id !== id) return { success: false, error: "এই মোবাইল নম্বরটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
-  if (pd.email) {
-    const existing = await prisma.member.findUnique({ where: { email: pd.email } })
+  if (pd.email && pd.email.trim() !== "") {
+    const existing = await prisma.member.findUnique({ where: { email: pd.email.trim() } })
     if (existing && existing.id !== id) return { success: false, error: "এই ইমেইলটি ইতোমধ্যে ব্যবহৃত হয়েছে" }
   }
 
@@ -213,23 +218,23 @@ export async function updateMember(id: string, data: MemberFormValues) {
       where: { id },
       data: {
         group: { connect: { id: pd.groupId as string } },
-        fullName: pd.fullName,
-        fatherName: pd.fatherName || null,
-        motherName: pd.motherName || null,
+        fullName: pd.fullName.trim(),
+        fatherName: pd.fatherName?.trim() || null,
+        motherName: pd.motherName?.trim() || null,
         dob: pd.dob ? new Date(pd.dob) : null,
-        nationalId: pd.nationalId || null,
-        occupation: pd.occupation || null,
-        education: pd.education || null,
-        presentAddress: pd.presentAddress || null,
-        permanentAddress: pd.permanentAddress || null,
-        mobile: pd.mobile || null,
-        email: pd.email || null,
-        bloodGroup: pd.bloodGroup || null,
+        nationalId: pd.nationalId?.trim() || null,
+        occupation: pd.occupation?.trim() || null,
+        education: pd.education?.trim() || null,
+        presentAddress: pd.presentAddress?.trim() || null,
+        permanentAddress: pd.permanentAddress?.trim() || null,
+        mobile: pd.mobile?.trim() || null,
+        email: pd.email?.trim() || null,
+        bloodGroup: pd.bloodGroup?.trim() || null,
         idDocumentType: pd.idDocumentType || "NID",
         
-        emergencyContactName: pd.emergencyContactName || null,
-        emergencyContactRelation: pd.emergencyContactRelation || null,
-        emergencyContactMobile: pd.emergencyContactMobile || null,
+        emergencyContactName: pd.emergencyContactName?.trim() || null,
+        emergencyContactRelation: pd.emergencyContactRelation?.trim() || null,
+        emergencyContactMobile: pd.emergencyContactMobile?.trim() || null,
         
         reference: referenceData,
       },
@@ -292,32 +297,146 @@ export async function deleteMemberDocument(memberId: string, title: string) {
   }
 }
 
-export async function toggleMemberStatus(id: string, newStatus: string) {
-    await requirePermission("Members", "Manage");
+export async function toggleMemberStatus(
+  id: string,
+  newStatus: string,
+  reason?: string,
+  notes?: string
+) {
+  const hasEdit = await checkPermission("Members", "Edit");
+  const hasManage = await checkPermission("Members", "Manage");
+  if (!hasEdit && !hasManage) {
+    await requirePermission("Members", "Edit");
+  }
+
   try {
-    await prisma.member.update({
-      where: { id },
-      data: { status: newStatus },
-    })
-    revalidatePath("/members/manage")
-    return { success: true }
+    const currentMember = await prisma.member.findUnique({ where: { id } });
+    if (!currentMember) return { success: false, error: "সদস্য পাওয়া যায়নি" };
+
+    const fromStatus = currentMember.status;
+    const session = await getAuthSession();
+    const changedBy = (session?.user as any)?.name || (session?.user as any)?.username || "System";
+
+    const member = await prisma.$transaction(async (tx) => {
+      const updated = await tx.member.update({
+        where: { id },
+        data: { status: newStatus },
+      });
+
+      await tx.memberStatusHistory.create({
+        data: {
+          memberId: id,
+          fromStatus: fromStatus,
+          toStatus: newStatus,
+          reason: reason || null,
+          notes: notes || null,
+          changedBy: changedBy,
+          changedAt: new Date(),
+        },
+      });
+
+      return updated;
+    });
+
+    revalidatePath("/members/manage");
+    revalidatePath("/members/dues");
+    revalidatePath(`/members/${id}`);
+    return { success: true, data: member };
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to update member status" }
+    return { success: false, error: error.message || "সদস্য স্ট্যাটাস পরিবর্তন করতে ব্যর্থ হয়েছে" };
   }
 }
 
-export async function deleteMember(id: string) {
-    await requirePermission("Members", "Delete");
+export async function restoreMember(id: string, reason?: string) {
+  const session = await getAuthSession();
+  const roleName = (session?.user as any)?.role;
+  if (!isSuperAdminRole(roleName)) {
+    return { success: false, error: "কেবলমাত্র সুপার এডমিন মুছে ফেলা সদস্য পুনঃস্থাপন করতে পারেন।" };
+  }
+
   try {
-    // Also delete associated documents from DB
-    await prisma.document.deleteMany({ where: { memberId: id } });
-    
-    await prisma.member.delete({
-      where: { id },
-    })
+    const currentMember = await prisma.member.findUnique({ where: { id } });
+    if (!currentMember) return { success: false, error: "সদস্য পাওয়া যায়নি" };
+
+    const changedBy = (session?.user as any)?.name || "Super Admin";
+
+    await prisma.$transaction(async (tx) => {
+      await tx.member.update({
+        where: { id },
+        data: { status: "ACTIVE" }
+      });
+
+      await tx.memberStatusHistory.create({
+        data: {
+          memberId: id,
+          fromStatus: currentMember.status,
+          toStatus: "ACTIVE",
+          reason: reason || "Restored by Super Admin",
+          changedBy: changedBy,
+          changedAt: new Date()
+        }
+      });
+    });
+
+    revalidatePath("/members/manage");
+    revalidatePath(`/members/${id}`);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "সদস্য পুনঃস্থাপন করতে ব্যর্থ হয়েছে" };
+  }
+}
+
+export async function getMemberStatusHistory(memberId: string) {
+  await requirePermission("Members", "View");
+  return prisma.memberStatusHistory.findMany({
+    where: { memberId },
+    orderBy: { changedAt: "desc" }
+  });
+}
+
+export async function deleteMember(id: string) {
+  await requirePermission("Members", "Delete");
+  try {
+    // 1. Check for linked financial records (contributions, loans, campaign contributions)
+    const [contributions, loans, campaignContributions] = await Promise.all([
+      prisma.monthlyContribution.count({ where: { memberId: id } }),
+      prisma.loan.count({ where: { memberId: id } }),
+      prisma.campaignContribution.count({ where: { memberId: id } }),
+    ]);
+
+    if (contributions > 0 || loans > 0 || campaignContributions > 0) {
+      return {
+        success: false,
+        error: "এই সদস্যের সাথে আর্থিক লেনদেন (চাঁদা/ঋণ/ক্যাম্পেইন) যুক্ত রয়েছে। আর্থিক তথ্যের সুরক্ষার জন্য সদস্যটিকে মোছা যাবে না। আপনি সদস্যকে 'নিষ্ক্রিয় (Inactive)' করতে পারেন।"
+      };
+    }
+
+    // 2. Soft Delete: update status to DELETED
+    const session = await getAuthSession();
+    const changedBy = (session?.user as any)?.name || "System";
+
+    await prisma.$transaction(async (tx) => {
+      await tx.member.update({
+        where: { id },
+        data: { status: "DELETED" }
+      });
+
+      await tx.memberStatusHistory.create({
+        data: {
+          memberId: id,
+          fromStatus: "ACTIVE",
+          toStatus: "DELETED",
+          reason: "Soft Deleted",
+          changedBy: changedBy,
+          changedAt: new Date()
+        }
+      });
+    });
+
     revalidatePath("/members/manage")
+    revalidatePath("/members")
     return { success: true }
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to delete member. Make sure there are no related financial records." }
+    return { success: false, error: error.message || "সদস্য মুছে ফেলতে ব্যর্থ হয়েছে" }
   }
 }

@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
 
 export type ComboboxMember = {
   id: string
@@ -25,6 +26,7 @@ export type ComboboxMember = {
   beneficiaryId?: string | null
   fullName: string | null
   group?: { name?: string; code?: string } | null
+  status?: string | null
 }
 
 interface MemberComboboxProps {
@@ -33,6 +35,7 @@ interface MemberComboboxProps {
   onChange: (value: string) => void
   placeholder?: string
   emptyText?: string
+  allowInactive?: boolean
 }
 
 export function MemberCombobox({
@@ -41,8 +44,17 @@ export function MemberCombobox({
   onChange,
   placeholder = "নির্বাচন করুন...",
   emptyText = "কাউকে পাওয়া যায়নি",
+  allowInactive = false,
 }: MemberComboboxProps) {
   const [open, setOpen] = React.useState(false)
+
+  // Filter selectable members unless allowInactive is true, or member is currently selected
+  const availableMembers = React.useMemo(() => {
+    if (allowInactive) return members
+    return members.filter(
+      (m) => m.id === value || (m.status !== "INACTIVE" && m.status !== "DELETED")
+    )
+  }, [members, value, allowInactive])
 
   const selectedMember = members.find((member) => member.id === value)
 
@@ -56,8 +68,15 @@ export function MemberCombobox({
           className="w-full justify-between"
         >
           {selectedMember ? (
-            <div className="flex flex-col items-start overflow-hidden text-left truncate">
-              <span className="truncate w-full">{selectedMember.memberId || selectedMember.beneficiaryId} — {selectedMember.fullName || 'নাম পাওয়া যায়নি'}</span>
+            <div className="flex items-center gap-2 overflow-hidden text-left truncate">
+              <span className="truncate">
+                {selectedMember.memberId || selectedMember.beneficiaryId} — {selectedMember.fullName || 'নাম পাওয়া যায়নি'}
+              </span>
+              {selectedMember.status === "INACTIVE" && (
+                <Badge variant="outline" className="text-xs bg-rose-50 text-rose-600 border-rose-200">
+                  Inactive
+                </Badge>
+              )}
             </div>
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>
@@ -66,19 +85,21 @@ export function MemberCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">
-        <Command filter={(value, search) => {
-           if (!search) return 1
-           const searchLower = search.toLowerCase()
-           const member = members.find(m => m.id === value)
-           if (!member) return 0
-           const searchableStr = `${member.memberId || member.beneficiaryId || ''} ${member.fullName || ''} ${member.group?.name || ''} ${member.group?.code || ''}`.toLowerCase()
-           return searchableStr.includes(searchLower) ? 1 : 0
-        }}>
+        <Command
+          filter={(val, search) => {
+            if (!search) return 1
+            const searchLower = search.toLowerCase()
+            const member = availableMembers.find((m) => m.id === val)
+            if (!member) return 0
+            const searchableStr = `${member.memberId || member.beneficiaryId || ''} ${member.fullName || ''} ${member.group?.name || ''} ${member.group?.code || ''}`.toLowerCase()
+            return searchableStr.includes(searchLower) ? 1 : 0
+          }}
+        >
           <CommandInput placeholder="খুঁজুন (আইডি, নাম, গ্রুপ)..." />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
-              {members.map((member) => (
+              {availableMembers.map((member) => (
                 <CommandItem
                   key={member.id}
                   value={member.id}
@@ -89,8 +110,13 @@ export function MemberCombobox({
                   className="flex flex-col items-start p-2 cursor-pointer"
                 >
                   <div className="flex w-full items-center justify-between">
-                    <span className="font-medium">
+                    <span className="font-medium flex items-center gap-1.5">
                       {member.memberId || member.beneficiaryId} — {member.fullName || 'নাম পাওয়া যায়নি'}
+                      {member.status === "INACTIVE" && (
+                        <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-600 border-rose-200">
+                          Inactive
+                        </Badge>
+                      )}
                     </span>
                     <Check
                       className={cn(

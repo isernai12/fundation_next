@@ -2,46 +2,47 @@ import { z } from "zod"
 
 export const beneficiarySchema = z.object({
   // Section 1: ব্যক্তিগত তথ্য
-  fullName: z.string().min(2, "পূর্ণ নাম আবশ্যক"),
-  fatherOrHusbandName: z.string().optional(),
-  nationalId: z.string().optional(),
-  mobile: z.string().optional(),
-  presentAddress: z.string().optional(),
-  permanentAddress: z.string().optional(),
+  fullName: z.string().min(1, "পূর্ণ নাম আবশ্যক"),
+  fatherOrHusbandName: z.string().optional().or(z.literal("")),
+  nationalId: z.string().optional().or(z.literal("")),
+  mobile: z.string().optional().or(z.literal("")),
+  presentAddress: z.string().optional().or(z.literal("")),
+  permanentAddress: z.string().optional().or(z.literal("")),
 
   // Internal overrides for compatibility
-  address: z.string().optional(), // maps to presentAddress if needed
-
+  address: z.string().optional().or(z.literal("")), // maps to presentAddress if needed
 
   // Section 4: জরুরি যোগাযোগ
-  emergencyContactName: z.string().optional(),
-  emergencyContactRelation: z.string().optional(),
-  emergencyContactMobile: z.string().optional(),
+  emergencyContactName: z.string().optional().or(z.literal("")),
+  emergencyContactRelation: z.string().optional().or(z.literal("")),
+  emergencyContactMobile: z.string().optional().or(z.literal("")),
 
   // Docs (Cloudinary URLs)
-  photoUrl: z.string().optional(),
-  documentUrl: z.string().optional(),
+  photoUrl: z.string().optional().or(z.literal("")),
+  documentUrl: z.string().optional().or(z.literal("")),
   
-  beneficiaryPhoto: z.string().optional(),
-  nidOrBirthCertificate: z.string().optional(),
+  beneficiaryPhoto: z.string().optional().or(z.literal("")),
+  nidOrBirthCertificate: z.string().optional().or(z.literal("")),
   
   // Base64 document uploads
-  photoBase64: z.string().optional(),
+  photoBase64: z.string().optional().or(z.literal("")),
   idDocumentType: z.enum(["NID", "BIRTH_CERTIFICATE"]).optional(),
-  nidFrontBase64: z.string().optional(),
-  nidBackBase64: z.string().optional(),
-  birthCertificateBase64: z.string().optional(),
-  signatureBase64: z.string().optional(),
+  nidFrontBase64: z.string().optional().or(z.literal("")),
+  nidBackBase64: z.string().optional().or(z.literal("")),
+  birthCertificateBase64: z.string().optional().or(z.literal("")),
+  signatureBase64: z.string().optional().or(z.literal("")),
 
-  memberId: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  occupation: z.string().optional(),
-  relationToMember: z.string().optional(),
-  remarks: z.string().optional(),
+  memberId: z.string().optional().or(z.literal("")),
+  email: z.string().optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
+  occupation: z.string().optional().or(z.literal("")),
+  relationToMember: z.string().optional().or(z.literal("")),
+  remarks: z.string().optional().or(z.literal("")),
 
   // Required for backend mapping
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
 })
 
-export type BeneficiaryFormValues = z.input<typeof beneficiarySchema>
+export type BeneficiaryFormValues = z.infer<typeof beneficiarySchema>
+
+
