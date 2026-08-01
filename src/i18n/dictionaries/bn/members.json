@@ -1,4 +1,8 @@
 {
+  "manage": {
+    "pageTitle": "সদস্য ব্যবস্থাপনা",
+    "pageDescription": "ফাউন্ডেশনের সকল সদস্যদের পরিচালনা করুন।"
+  },
   "new_member": "নতুন সদস্য",
   "group_selector": {
     "label": "গ্রুপ নির্বাচন করুন *",

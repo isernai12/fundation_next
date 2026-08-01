@@ -3,6 +3,11 @@ import { getGroups } from "@/features/groups/actions"
 import { MembersTable } from "@/features/members/components/members-table"
 import { authorizePage } from "@/lib/rbac"
 import { Trans } from "@/components/shared/trans";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Member Management",
+}
 
 export default async function ManageMembersPage() {
   await authorizePage("Members", "View")
@@ -13,8 +18,8 @@ export default async function ManageMembersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
-          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="members.manage.pageTitle" /></h1>
+          <p className="text-muted-foreground"><Trans tKey="members.manage.pageDescription" /></p>
         </div>
       </div>
       <MembersTable data={members} groups={groups} isManage={true} />

@@ -131,12 +131,12 @@ export function MemberForm({
       fullName: member?.fullName || "",
       fatherName: member?.fatherName || "",
       motherName: member?.motherName || "",
-      gender: member?.gender || "",
+      gender: member?.gender?.toLowerCase() || "",
       dob: member?.dob ? new Date(member.dob).toISOString().split('T')[0] : "",
       nationalId: member?.nationalId || "",
       occupation: member?.occupation || "",
       education: member?.education || "",
-      maritalStatus: member?.maritalStatus || "",
+      maritalStatus: member?.maritalStatus?.toLowerCase() || "",
       presentAddress: member?.presentAddress || "",
       permanentAddress: member?.permanentAddress || "",
       mobile: member?.mobile || "",
@@ -536,9 +536,9 @@ export function MemberForm({
                   <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                     <FormControl><SelectTrigger><SelectValue placeholder={t("member-requests.public.form.selectGender") || "Select Gender"} /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="Male">{t("member-requests.public.form.genderMale") || "Male"}</SelectItem>
-                      <SelectItem value="Female">{t("member-requests.public.form.genderFemale") || "Female"}</SelectItem>
-                      <SelectItem value="Other">{t("member-requests.public.form.genderOther") || "Other"}</SelectItem>
+                      <SelectItem value="male">{t("member-requests.public.form.male") || "Male"}</SelectItem>
+                      <SelectItem value="female">{t("member-requests.public.form.female") || "Female"}</SelectItem>
+                      <SelectItem value="other">{t("member-requests.public.form.other") || "Other"}</SelectItem>
                     </SelectContent>
                   </Select><FormMessage />
                 </FormItem>
@@ -627,10 +627,10 @@ export function MemberForm({
                   <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                     <FormControl><SelectTrigger><SelectValue placeholder={t("member-requests.public.form.selectMaritalStatus") || "Select Status"} /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="Single">{t("member-requests.public.form.statusSingle") || "Single"}</SelectItem>
-                      <SelectItem value="Married">{t("member-requests.public.form.statusMarried") || "Married"}</SelectItem>
-                      <SelectItem value="Divorced">{t("member-requests.public.form.statusDivorced") || "Divorced"}</SelectItem>
-                      <SelectItem value="Widowed">{t("member-requests.public.form.statusWidowed") || "Widowed"}</SelectItem>
+                      <SelectItem value="single">{t("member-requests.public.form.single") || "Single"}</SelectItem>
+                      <SelectItem value="married">{t("member-requests.public.form.married") || "Married"}</SelectItem>
+                      <SelectItem value="divorced">{t("member-requests.public.form.divorced") || "Divorced"}</SelectItem>
+                      <SelectItem value="widowed">{t("member-requests.public.form.widowed") || "Widowed"}</SelectItem>
                     </SelectContent>
                   </Select><FormMessage />
                 </FormItem>

@@ -7,6 +7,12 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import { Trans } from "@/components/shared/trans";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Qard Hasanah Management",
+};
+
 export default async function LoansPage() {
   const rawLoans = await getLoans()
   const beneficiaries = await getBeneficiaries()

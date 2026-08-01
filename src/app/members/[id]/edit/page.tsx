@@ -9,6 +9,12 @@ import Link from "next/link"
 import { authorizePage } from "@/lib/rbac"
 import { Trans } from "@/components/shared/trans";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Edit Member",
+};
+
 export default async function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
   await authorizePage("Members", "Edit")
 
@@ -70,8 +76,8 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
-          <p className="text-muted-foreground">{member.fullName || ''} <Trans tKey="app.text" /></p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="members.edit.title" fallback="Edit Member" /></h1>
+          <p className="text-muted-foreground">{member.fullName || ''} <Trans tKey="members.edit.title" fallback="Edit Member" /></p>
         </div>
       </div>
       

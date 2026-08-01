@@ -21,6 +21,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Trans } from "@/components/shared/trans";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sadaqah Management",
+};
+
 export default async function ManageCampaignsPage() {
   const campaigns = await getCampaigns()
 

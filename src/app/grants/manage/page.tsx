@@ -5,6 +5,12 @@ import { ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Trans } from "@/components/shared/trans";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Grant Management",
+};
+
 export default async function ManageGrantsPage() {
   const grants = await getGrants()
 

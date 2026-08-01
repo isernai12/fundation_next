@@ -1,4 +1,8 @@
 {
+  "manage": {
+    "pageTitle": "Member Management",
+    "pageDescription": "Manage all foundation members."
+  },
   "new_member": "New Member",
   "group_selector": {
     "label": "Group *",

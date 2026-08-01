@@ -4,6 +4,12 @@ import { DueListTable } from "@/features/loans/components/due-list-table"
 import { Card, CardContent } from "@/components/ui/card"
 import { Trans } from "@/components/shared/trans";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Today's Collection",
+};
+
 export default async function TodayCollectionPage() {
   const rawLoans = await getLoans()
 
@@ -44,7 +50,7 @@ export default async function TodayCollectionPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.today_s_collection" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            <Trans tKey="app.text" /></p>
+            <Trans tKey="loans.todayCollection.title" fallback="Today's Collection" /></p>
         </div>
       </div>
 

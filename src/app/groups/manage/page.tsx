@@ -1,3 +1,9 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Group Management",
+};
+
 import { getGroups } from "@/features/groups/actions"
 import { GroupsTable } from "@/features/groups/components/groups-table"
 import Link from "next/link"

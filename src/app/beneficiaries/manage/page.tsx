@@ -1,3 +1,9 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Beneficiary Management",
+};
+
 import { getBeneficiaries } from "@/features/beneficiaries/actions"
 import { getMembers } from "@/features/members/actions"
 import { BeneficiariesTable } from "@/features/beneficiaries/components/beneficiaries-table"
