@@ -61,6 +61,7 @@ export interface MemberProfileData {
   
   documents?: any[]
   position?: string | null
+  reasonForJoining?: string | null
 }
 
 export function MemberProfileLayout({
@@ -164,6 +165,28 @@ export function MemberProfileLayout({
               </tbody>
             </table>
           </section>
+
+          {data.reasonForJoining && (
+            <section>
+              <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">
+                <Trans tKey="member-requests.public.form.reasonForJoining" />
+              </h2>
+              <div className="border rounded-md p-4 bg-muted/10 text-sm whitespace-pre-wrap">
+                {data.reasonForJoining}
+              </div>
+            </section>
+          )}
+
+          {(!data.reasonForJoining && data.applicationNumber) && (
+            <section>
+              <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">
+                <Trans tKey="member-requests.public.form.reasonForJoining" />
+              </h2>
+              <div className="border rounded-md p-4 bg-muted/10 text-sm whitespace-pre-wrap text-muted-foreground italic">
+                Not provided
+              </div>
+            </section>
+          )}
           
           {/* SECTION 5 */}
           <section className="print:break-before-page">

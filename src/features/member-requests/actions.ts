@@ -179,7 +179,7 @@ export async function approveMemberRequest(id: string) {
           emergencyContactMobile: request.emergencyContactMobile,
           emergencyContactRelation: request.emergencyContactRelation,
           reference: referenceData,
-          joinDate: getNow(),
+          joinDate: request.submittedAt,
           status: "ACTIVE",
           position: "GENERAL_MEMBER",
           reasonForJoining: request.reasonForJoining,
