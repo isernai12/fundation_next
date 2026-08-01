@@ -77,11 +77,11 @@ export default async function CampaignLedgerPage({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium"><Trans tKey="campaigns.ledger.summary.totalCollection" /></CardTitle>
+                <CardTitle className="text-sm font-medium">Collected Amount</CardTitle>
                 <HandHeart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-primary">
                   ৳{campaign.contributions.reduce((sum, c) => sum + c.amount, 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -91,38 +91,35 @@ export default async function CampaignLedgerPage({
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium"><Trans tKey="campaigns.ledger.summary.memberContribution" /></CardTitle>
+                <CardTitle className="text-sm font-medium">Beneficiary Payments</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  ৳{campaign.contributions.filter(c => c.memberId).reduce((sum, c) => sum + c.amount, 0)}
+                <div className="text-2xl font-bold text-red-500">
+                  ৳{campaign.beneficiaryPayments.reduce((sum, p) => sum + p.amount, 0)}
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium"><Trans tKey="campaigns.ledger.summary.donorContribution" /></CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Remaining Balance</CardTitle>
+                <ReceiptText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  ৳{campaign.contributions.filter(c => c.donorId).reduce((sum, c) => sum + c.amount, 0)}
+                <div className="text-2xl font-bold text-green-500">
+                  ৳{campaign.contributions.reduce((sum, c) => sum + c.amount, 0) - campaign.beneficiaryPayments.reduce((sum, p) => sum + p.amount, 0)}
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium"><Trans tKey="campaigns.ledger.summary.transactions" /></CardTitle>
+                <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
                 <ReceiptText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ৳{campaign.contributions.reduce((sum, c) => sum + c.amount, 0)}
+                  {campaign.contributions.length + campaign.beneficiaryPayments.length}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  <Trans tKey="campaigns.ledger.summary.count" />{campaign.contributions.length}
-                </p>
               </CardContent>
             </Card>
           </div>
@@ -148,11 +145,31 @@ export default async function CampaignLedgerPage({
                   </TableHeader>
                   <TableBody>
                     {(() => {
-                      // We need to calculate running balance. Sort by date ascending to calculate, then reverse to display newest first
-                      const sorted = [...campaign.contributions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                      // Combine and sort by date ascending
+                      const combined = [
+                        ...campaign.contributions.map(c => ({
+                          ...c,
+                          isCredit: true,
+                          party: c.member ? c.member.fullName : (c.donor ? c.donor.fullName : "Unknown"),
+                          type: c.memberId ? "Member Contribution" : "Donor Contribution",
+                          remarks: c.remarks || "Deposit"
+                        })),
+                        ...campaign.beneficiaryPayments.map(p => ({
+                          ...p,
+                          isCredit: false,
+                          party: p.beneficiary.fullName,
+                          type: "Beneficiary Payment",
+                          remarks: p.reason
+                        }))
+                      ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
                       let balance = 0;
-                      const withBalance = sorted.map(c => {
-                        balance += c.amount;
+                      const withBalance = combined.map(c => {
+                        if (c.isCredit) {
+                          balance += c.amount;
+                        } else {
+                          balance -= c.amount;
+                        }
                         return { ...c, runningBalance: balance }
                       });
                       
@@ -162,17 +179,15 @@ export default async function CampaignLedgerPage({
                         <TableRow key={c.id}>
                           <TableCell>{formatDateBanglaLocal(c.date)}</TableCell>
                           <TableCell className="font-mono text-xs">{c.ledgerTransactionId.slice(0, 8)}</TableCell>
+                          <TableCell>{c.party}</TableCell>
                           <TableCell>
-                            {c.member ? c.member.fullName : c.donor ? c.donor.fullName : <Trans tKey="campaigns.ledger.table.unknown" />}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={c.memberId ? "default" : "secondary"}>
-                              {c.memberId ? <Trans tKey="campaigns.ledger.table.member" /> : <Trans tKey="campaigns.ledger.table.donor" />}
+                            <Badge variant={c.isCredit ? "default" : "destructive"}>
+                              {c.type}
                             </Badge>
                           </TableCell>
-                          <TableCell>{c.remarks || <Trans tKey="campaigns.ledger.table.deposit" />}</TableCell>
-                          <TableCell className="text-right">-</TableCell>
-                          <TableCell className="text-right text-green-600 font-medium">৳{c.amount}</TableCell>
+                          <TableCell>{c.remarks}</TableCell>
+                          <TableCell className="text-right text-red-500 font-medium">{!c.isCredit ? `৳${c.amount}` : '-'}</TableCell>
+                          <TableCell className="text-right text-green-600 font-medium">{c.isCredit ? `৳${c.amount}` : '-'}</TableCell>
                           <TableCell className="text-right font-bold">৳{c.runningBalance}</TableCell>
                         </TableRow>
                       )) : (

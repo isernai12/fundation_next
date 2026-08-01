@@ -1,4 +1,4 @@
-import { ContributionForm } from "@/features/contributions/components/contribution-form"
+import { BulkContributionForm } from "@/features/contributions/components/bulk-contribution-form"
 import { getMembers } from "@/features/members/actions"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
@@ -23,7 +23,7 @@ export default async function AddContributionPage() {
         </div>
       </div>
 
-      <ContributionForm members={members} />
+      <BulkContributionForm members={members} />
     </div>
   )
 }

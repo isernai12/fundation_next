@@ -26,6 +26,12 @@ export async function getBeneficiary(id: string) {
       loans: true,
       grants: true,
       documents: true,
+      beneficiaryPayments: {
+        include: {
+          campaign: true
+        },
+        orderBy: { date: "desc" }
+      }
     }
   })
 }

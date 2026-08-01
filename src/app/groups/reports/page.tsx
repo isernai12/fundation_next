@@ -100,12 +100,12 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="flex flex-col h-[300px]">
               <CardHeader>
-                <CardTitle className="text-lg">Loan Summary</CardTitle>
-                <CardDescription>Loan disbursement vs recovery</CardDescription>
+                <CardTitle className="text-lg">Qard Hasan Summary</CardTitle>
+                <CardDescription>Qard Hasan disbursement vs recovery</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col justify-center space-y-4">
                 <div className="flex justify-between text-sm items-center">
-                  <span className="text-muted-foreground font-medium">Loans by Group (Count):</span> 
+                  <span className="text-muted-foreground font-medium">Qard Hasan by Group (Count):</span> 
                   <span className="font-bold text-lg">{loanSummary.activeLoans}</span>
                 </div>
                 <div className="flex justify-between text-sm items-center">
@@ -113,7 +113,7 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
                   <span className="font-bold text-lg text-primary">৳{formatCurrency(loanSummary.totalLent)}</span>
                 </div>
                 <div className="flex justify-between text-sm items-center">
-                  <span className="text-muted-foreground font-medium">Outstanding Loan by Group:</span> 
+                  <span className="text-muted-foreground font-medium">Outstanding Qard Hasan by Group:</span> 
                   <span className="font-bold text-lg text-destructive">৳{formatCurrency(loanSummary.totalOutstanding)}</span>
                 </div>
               </CardContent>
@@ -135,12 +135,12 @@ export default async function GroupReportsPage({ searchParams }: { searchParams:
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Grant Summary</CardTitle>
+              <CardTitle className="text-lg">Sadakah Summary</CardTitle>
               <CardDescription>Overview of received and utilized grants</CardDescription>
             </CardHeader>
             <CardContent>
                <div className="flex items-center justify-center h-24 text-muted-foreground text-sm">
-                 No grants data available yet.
+                 No Sadakah data available yet.
                </div>
             </CardContent>
           </Card>

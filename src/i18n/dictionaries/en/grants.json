@@ -1,39 +1,39 @@
 {
   "new": {
-    "pageTitle": "New Grant",
-    "subtitle": "Create a new grant for a beneficiary",
+    "pageTitle": "New Sadakah",
+    "subtitle": "Create a new Sadakah for a beneficiary",
     "breadcrumb": {
-      "home": "Grants",
-      "new": "New Grant"
+      "home": "Sadakah",
+      "new": "New Sadakah"
     }
   },
   "manage": {
-    "pageTitle": "Manage Grants",
-    "subtitle": "View and manage all organization grants",
+    "pageTitle": "Manage Sadakah",
+    "subtitle": "View and manage all organization Sadakah",
     "breadcrumb": {
-      "home": "Grants",
-      "manage": "Manage Grants",
+      "home": "Sadakah",
+      "manage": "Manage Sadakah",
       "finance": "Financial Activities"
     },
-    "newBtn": "New Grant",
-    "totalGrants": "Total Grants",
+    "newBtn": "New Sadakah",
+    "totalGrants": "Total Sadakah",
     "approvedGrants": "Approved",
     "pendingGrants": "Pending",
     "rejectedGrants": "Rejected",
     "totalAmount": "Total Amount",
-    "filterGrants": "Filter Grants"
+    "filterGrants": "Filter Sadakah"
   },
   "ledger": {
-    "pageTitle": "Grant Ledger",
-    "subtitle": "View all grant disbursement ledger transactions.",
+    "pageTitle": "Sadakah Ledger",
+    "subtitle": "View all Sadakah disbursement ledger transactions.",
     "breadcrumb": {
-      "home": "Grants",
-      "ledger": "Grant Ledger"
+      "home": "Sadakah",
+      "ledger": "Sadakah Ledger"
     },
     "comingSoonTitle": "Ledger Coming Soon",
-    "comingSoonDesc": "The detailed grant ledger view is under development.",
+    "comingSoonDesc": "The detailed Sadakah ledger view is under development.",
     "summary": {
-      "totalGrants": "Total Grants",
+      "totalGrants": "Total Sadakah",
       "totalAmount": "Total Amount",
       "currentBalance": "Current Balance",
       "thisMonth": "This Month"
@@ -59,14 +59,14 @@
   "form": {
     "sections": {
       "beneficiary": "Beneficiary Selection",
-      "grantInfo": "Grant Information",
+      "grantInfo": "Sadakah Information",
       "documents": "Supporting Document (Optional)"
     },
     "beneficiary": "Beneficiary",
     "selectBeneficiary": "Select Beneficiary",
-    "grantDate": "Grant Date",
-    "amount": "Grant Amount",
-    "reason": "Reason for Grant",
+    "grantDate": "Sadakah Date",
+    "amount": "Sadakah Amount",
+    "reason": "Reason for Sadakah",
     "reasonPlaceholder": "Please specify the reason",
     "remarks": "Remarks",
     "remarksPlaceholder": "Any additional notes",
@@ -77,15 +77,15 @@
     "addFundingSource": "Add Funding Source",
     "totalAllocation": "Total Allocation",
     "availableBalance": "Available Balance",
-    "remainingAfterGrant": "Remaining after grant",
+    "remainingAfterGrant": "Remaining after Sadakah",
     "documentsDesc": "Upload supporting documents",
     "uploadTitle": "Upload Document",
     "uploadHelp": "PDF, JPG, PNG, WEBP (Max 5MB)",
     "cancel": "Cancel",
-    "save": "Submit Grant",
+    "save": "Submit Sadakah",
     "saving": "Saving...",
-    "success": "Grant created successfully",
-    "error": "Failed to create grant",
+    "success": "Sadakah created successfully",
+    "error": "Failed to create Sadakah",
     "removeDocument": "Remove Document",
     "viewDocument": "View Document",
     "existingDocs": "Existing Documents",
@@ -95,20 +95,20 @@
     "docDeleteFailed": "Failed to delete document: ",
     "uploadingDocs": "Uploading documents...",
     "docUploadFailed": " document(s) failed to upload.",
-    "updateSuccess": "Grant updated successfully",
-    "createSuccess": "Grant created successfully",
-    "processFailed": "Failed to process grant",
+    "updateSuccess": "Sadakah updated successfully",
+    "createSuccess": "Sadakah created successfully",
+    "processFailed": "Failed to process Sadakah",
     "updateBtn": "Update",
     "saveBtn": "Save",
     "confirmDeleteDoc": "Are you sure you want to delete this document?",
     "totalOutOf": " / ৳"
   },
   "table": {
-    "search": "Search grants...",
-    "empty": "No grants found.",
+    "search": "Search Sadakah...",
+    "empty": "No Sadakah found.",
     "columns": {
       "beneficiary": "Beneficiary",
-      "grantNo": "Grant No",
+      "grantNo": "Sadakah No",
       "amount": "Amount",
       "status": "Status",
       "date": "Date",
@@ -126,8 +126,8 @@
     "actions": {
       "menu": "Actions",
       "view": "View Details",
-      "edit": "Edit Grant",
-      "delete": "Delete Grant",
+      "edit": "Edit Sadakah",
+      "delete": "Delete Sadakah",
       "ledger": "View Ledger",
       "print": "Print"
     },
@@ -136,27 +136,27 @@
       "next": "Next"
     },
     "nameNotFound": "Name not found",
-    "deleteConfirm": "Are you sure you want to delete this grant?",
-    "deleteSuccess": "Grant deleted successfully",
-    "deleteFailed": "Failed to delete grant",
-    "emptyTitle": "No grants found.",
-    "emptySubtitle": "Create your first grant.",
+    "deleteConfirm": "Are you sure you want to delete this Sadakah?",
+    "deleteSuccess": "Sadakah deleted successfully",
+    "deleteFailed": "Failed to delete Sadakah",
+    "emptyTitle": "No Sadakah found.",
+    "emptySubtitle": "Create your first Sadakah.",
     "filters": {
       "min": "Min Amount",
       "max": "Max Amount"
     }
   },
   "details": {
-    "pageTitle": "Grant Details",
+    "pageTitle": "Sadakah Details",
     "editBtn": "Edit",
-    "summary": "Grant Summary",
-    "grantNo": "Grant No",
+    "summary": "Sadakah Summary",
+    "grantNo": "Sadakah No",
     "beneficiary": "Beneficiary",
     "mobile": "Mobile",
     "date": "Date",
     "amount": "Amount",
     "status": "Status",
-    "information": "Grant Information",
+    "information": "Sadakah Information",
     "purpose": "Purpose",
     "remarks": "Remarks",
     "allocations": "Allocations",
@@ -168,11 +168,11 @@
     "documents": "Documents"
   },
   "edit": {
-    "pageTitle": "Edit Grant",
-    "subtitle": "Modify existing grant details",
+    "pageTitle": "Edit Sadakah",
+    "subtitle": "Modify existing Sadakah details",
     "breadcrumb": {
-      "home": "Grants",
-      "edit": "Edit Grant"
+      "home": "Sadakah",
+      "edit": "Edit Sadakah"
     }
   }
 }

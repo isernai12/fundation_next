@@ -32,7 +32,10 @@ export default async function CampaignDetailsPage({ params }: { params: Promise<
   const totalDonorCollected = donorContributions.reduce((sum, c) => sum + c.amount, 0)
   const totalCollected = totalMemberCollected + totalDonorCollected
 
-  const remainingAmount = campaign.targetAmount ? Math.max(0, campaign.targetAmount - totalCollected) : null
+  const totalDistributed = campaign.beneficiaryPayments.reduce((sum, p) => sum + p.amount, 0)
+  const remainingBalance = totalCollected - totalDistributed
+  const beneficiariesPaid = new Set(campaign.beneficiaryPayments.map(p => p.beneficiaryId)).size
+
   const progress = campaign.targetAmount ? Math.min(100, Math.round((totalCollected / campaign.targetAmount) * 100)) : 0
 
   return (
@@ -64,41 +67,41 @@ export default async function CampaignDetailsPage({ params }: { params: Promise<
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card>
           <CardContent className="p-6 flex flex-col justify-center items-center text-center space-y-2">
-            <Wallet className="h-8 w-8 text-primary mb-2" />
-            <p className="text-sm font-medium text-muted-foreground"><Trans tKey="app.text" /></p>
-            <h2 className="text-2xl font-bold text-primary">৳{totalCollected}</h2>
+            <Target className="h-8 w-8 text-orange-500 mb-2" />
+            <p className="text-sm font-medium text-muted-foreground">Allocated Budget</p>
+            <h2 className="text-2xl font-bold">{campaign.targetAmount ? `৳${campaign.targetAmount}` : 'অনির্ধারিত'}</h2>
           </CardContent>
         </Card>
         
         <Card>
           <CardContent className="p-6 flex flex-col justify-center items-center text-center space-y-2">
-            <Target className="h-8 w-8 text-orange-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground"><Trans tKey="app.text" /></p>
-            <h2 className="text-2xl font-bold">{campaign.targetAmount ? `৳${campaign.targetAmount}` : 'অনির্ধারিত'}</h2>
+            <Wallet className="h-8 w-8 text-primary mb-2" />
+            <p className="text-sm font-medium text-muted-foreground">Collected Amount</p>
+            <h2 className="text-2xl font-bold text-primary">৳{totalCollected}</h2>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-6 flex flex-col justify-center items-center text-center space-y-2">
-            <Target className="h-8 w-8 text-red-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground"><Trans tKey="app.remaining" /></p>
-            <h2 className="text-2xl font-bold">{remainingAmount !== null ? `৳${remainingAmount}` : '-'}</h2>
+            <Landmark className="h-8 w-8 text-red-500 mb-2" />
+            <p className="text-sm font-medium text-muted-foreground">Distributed Amount</p>
+            <h2 className="text-2xl font-bold text-red-500">৳{totalDistributed}</h2>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 flex flex-col justify-center items-center text-center space-y-2">
+            <Wallet className="h-8 w-8 text-green-500 mb-2" />
+            <p className="text-sm font-medium text-muted-foreground">Remaining Balance</p>
+            <h2 className="text-2xl font-bold text-green-500">৳{remainingBalance}</h2>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-6 flex flex-col justify-center items-center text-center space-y-2">
             <Users className="h-8 w-8 text-blue-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground"><Trans tKey="app.text" /></p>
-            <h2 className="text-2xl font-bold">৳{totalMemberCollected}</h2>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 flex flex-col justify-center items-center text-center space-y-2">
-            <Landmark className="h-8 w-8 text-green-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground"><Trans tKey="app.text" /></p>
-            <h2 className="text-2xl font-bold">৳{totalDonorCollected}</h2>
+            <p className="text-sm font-medium text-muted-foreground">Beneficiaries Paid</p>
+            <h2 className="text-2xl font-bold">{beneficiariesPaid}</h2>
           </CardContent>
         </Card>
       </div>
@@ -106,7 +109,8 @@ export default async function CampaignDetailsPage({ params }: { params: Promise<
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview"><Trans tKey="app.text" /></TabsTrigger>
-          <TabsTrigger value="contributions"><Trans tKey="app.text" />{campaign.contributions.length})</TabsTrigger>
+          <TabsTrigger value="contributions">Contributions ({campaign.contributions.length})</TabsTrigger>
+          <TabsTrigger value="distributions">Distributions ({campaign.beneficiaryPayments.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <Card>
@@ -204,6 +208,50 @@ export default async function CampaignDetailsPage({ params }: { params: Promise<
                       <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                           <Trans tKey="app.text" /></TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="distributions">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Beneficiary Payments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Beneficiary</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Reason</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {campaign.beneficiaryPayments.length ? (
+                      campaign.beneficiaryPayments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell>{format(new Date(payment.date), "dd MMM, yyyy")}</TableCell>
+                          <TableCell className="font-medium">
+                            <Link href={`/beneficiaries/${payment.beneficiary.id}`} className="hover:underline text-primary">
+                              {payment.beneficiary.fullName} ({payment.beneficiary.beneficiaryId})
+                            </Link>
+                          </TableCell>
+                          <TableCell className="font-bold text-red-500">৳{payment.amount}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">{payment.reason}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                          No distributions found.
+                        </TableCell>
                       </TableRow>
                     )}
                   </TableBody>

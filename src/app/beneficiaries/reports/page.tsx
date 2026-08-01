@@ -60,8 +60,8 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Loan Summary</CardTitle>
-                <CardDescription>Loan disbursement vs recovery</CardDescription>
+                <CardTitle className="text-lg">Qard Hasan Summary</CardTitle>
+                <CardDescription>Qard Hasan disbursement vs recovery</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Loans:</span> <span><Trans tKey="app.0_00" /></span></div>
@@ -72,7 +72,7 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Grant Summary</CardTitle>
+                <CardTitle className="text-lg">Sadakah Summary</CardTitle>
                 <CardDescription>Assistance overview</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -86,7 +86,7 @@ export default async function BeneficiaryReportsPage({ searchParams }: { searchP
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="flex flex-col h-[300px]">
               <CardHeader>
-                <CardTitle className="text-lg">Loan Recovery</CardTitle>
+                <CardTitle className="text-lg">Qard Hasan Recovery</CardTitle>
                 <CardDescription>Chart displaying repayment history</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-1 items-center justify-center text-muted-foreground">

@@ -6,6 +6,53 @@ import { LedgerEngine } from "@/services/ledger"
 import { revalidatePath } from "next/cache"
 import { requirePermission, checkPermission } from "@/lib/rbac";
 
+async function updateMemberPaidUntil(memberId: string, tx: any) {
+  const allPaid = await tx.monthlyContribution.findMany({
+     where: { memberId: memberId, status: "PAID", isAdditional: false },
+     select: { month: true, year: true }
+  });
+  
+  if (allPaid.length > 0) {
+     allPaid.sort((a: any, b: any) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+     });
+     
+     let cur = allPaid[0];
+     let maxContiguous = cur;
+     
+     for (let i = 1; i < allPaid.length; i++) {
+       const next = allPaid[i];
+       if ((next.year === cur.year && next.month === cur.month + 1) || 
+           (next.year === cur.year + 1 && next.month === 1 && cur.month === 12)) {
+         cur = next;
+         maxContiguous = next;
+       } else if (next.year === cur.year && next.month === cur.month) {
+         // Same month, skip
+         continue;
+       } else {
+         break;
+       }
+     }
+
+     await tx.member.update({
+       where: { id: memberId },
+       data: {
+         paidUntilMonth: maxContiguous.month,
+         paidUntilYear: maxContiguous.year
+       }
+     });
+  } else {
+     await tx.member.update({
+       where: { id: memberId },
+       data: {
+         paidUntilMonth: null,
+         paidUntilYear: null
+       }
+     });
+  }
+}
+
 export async function createContribution(data: ContributionFormValues) {
     await requirePermission("Fund Collection", "Add");
   const parsed = contributionSchema.safeParse(data)
@@ -88,6 +135,8 @@ export async function createContribution(data: ContributionFormValues) {
           }
         })
       }
+
+      await updateMemberPaidUntil(pd.memberId, tx)
 
       revalidatePath("/contributions")
       revalidatePath(`/members/${member.id}`)
@@ -222,6 +271,8 @@ export async function updateContribution(id: string, data: ContributionFormValue
         }
       }
 
+      await updateMemberPaidUntil(pd.memberId, tx)
+
       revalidatePath("/contributions");
       revalidatePath(`/members/${member.id}`);
       revalidatePath(`/groups/${member.groupId}`);
@@ -249,12 +300,142 @@ export async function deleteContribution(id: string) {
       }
 
       await tx.monthlyContribution.delete({ where: { id } });
+      
+      await updateMemberPaidUntil(contribution.memberId, tx);
 
-      revalidatePath("/contributions");
       revalidatePath("/");
       return { success: true, error: undefined };
     });
   } catch (error: any) {
     return { success: false, error: error.message || "চাঁদা মুছে ফেলতে ব্যর্থ হয়েছে" };
   }
+}
+
+import { bulkContributionSchema, type BulkContributionFormValues } from "./schema"
+
+export async function createBulkContribution(data: BulkContributionFormValues) {
+  await requirePermission("Fund Collection", "Add");
+  const parsed = bulkContributionSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" };
+  const pd = parsed.data;
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const member = await tx.member.findUnique({ where: { id: pd.memberId } });
+      if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি");
+
+      // Generate all month-year pairs in range
+      const targetMonths: { month: number, year: number }[] = [];
+      let curMonth = pd.fromMonth;
+      let curYear = pd.fromYear;
+      
+      const endMonth = pd.toMonth;
+      const endYear = pd.toYear;
+
+      while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
+        targetMonths.push({ month: curMonth, year: curYear });
+        curMonth++;
+        if (curMonth > 12) {
+          curMonth = 1;
+          curYear++;
+        }
+      }
+
+      if (pd.fromYear > pd.toYear || (pd.fromYear === pd.toYear && pd.fromMonth > pd.toMonth)) {
+         throw new Error("শুরুর মাস শেষের মাসের চেয়ে বড় হতে পারে না");
+      }
+
+      // Find existing
+      const existing = await tx.monthlyContribution.findMany({
+        where: {
+          memberId: pd.memberId,
+          isAdditional: false,
+          OR: targetMonths.map(m => ({ month: m.month, year: m.year }))
+        }
+      });
+
+      const paidSet = new Set(existing.filter(e => e.status === "PAID").map(e => `${e.month}-${e.year}`));
+      const pendingMap = new Map(existing.filter(e => e.status !== "PAID").map(e => [`${e.month}-${e.year}`, e]));
+
+      let processedCount = 0;
+      
+      const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(member.groupId, tx);
+
+      for (const m of targetMonths) {
+        const key = `${m.month}-${m.year}`;
+        if (paidSet.has(key)) continue; // Skip already paid
+
+        let monthlyContributionId = pendingMap.get(key)?.id;
+
+        if (monthlyContributionId) {
+          await tx.monthlyContribution.update({
+            where: { id: monthlyContributionId },
+            data: { status: "PAID", expectedAmount: pd.monthlyAmount }
+          });
+        } else {
+          const newMc = await tx.monthlyContribution.create({
+            data: {
+              memberId: pd.memberId,
+              month: m.month,
+              year: m.year,
+              expectedAmount: pd.monthlyAmount,
+              isAdditional: false,
+              status: "PAID",
+            }
+          });
+          monthlyContributionId = newMc.id;
+        }
+
+        const refNumber = pd.referenceNumber ? `${pd.referenceNumber}-${m.month}-${m.year}` : undefined;
+
+        const ledgerTx = await LedgerEngine.createTransaction({
+          date: new Date(pd.paymentDate),
+          type: "CONTRIBUTION",
+          referenceId: refNumber,
+          notes: pd.notes,
+          entries: [
+            { fundId: generalFund.id, isCredit: false, amount: pd.monthlyAmount },
+            { fundId: groupFund.id, isCredit: true, amount: pd.monthlyAmount }
+          ]
+        }, tx);
+
+        await tx.contributionPayment.create({
+          data: {
+            monthlyContributionId: monthlyContributionId,
+            ledgerTransactionId: ledgerTx.id,
+            amount: pd.monthlyAmount,
+            paymentDate: new Date(pd.paymentDate),
+            paymentMethod: pd.paymentMethod,
+            referenceNumber: refNumber,
+            notes: pd.notes,
+          }
+        });
+        
+        processedCount++;
+      }
+
+      if (processedCount === 0) {
+         throw new Error("নির্বাচিত সমস্ত মাস ইতিমধ্যেই পরিশোধিত।");
+      }
+
+      await updateMemberPaidUntil(pd.memberId, tx);
+
+      revalidatePath("/contributions");
+      revalidatePath(`/members/${member.id}`);
+      revalidatePath(`/groups/${member.groupId}`);
+      revalidatePath("/");
+      return { success: true, count: processedCount, error: undefined };
+    });
+  } catch (error: any) {
+    return { success: false, error: error.message || "একাধিক মাসের চাঁদা প্রক্রিয়া করতে ব্যর্থ হয়েছে" };
+  }
+}
+
+export async function getMemberPaidMonths(memberId: string) {
+  if (!memberId) return [];
+  const paid = await prisma.monthlyContribution.findMany({
+    where: { memberId, status: "PAID", isAdditional: false },
+    select: { month: true, year: true }
+  });
+  return paid.map(p => `${p.month}-${p.year}`);
 }

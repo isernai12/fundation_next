@@ -7,8 +7,12 @@ export const metadata = {
   title: "Edit Donor | Foundation ERP",
 }
 
-export default async function EditDonorPage({ params }: { params: { id: string } }) {
-  const donor = await getDonor(params.id)
+export default async function EditDonorPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  if (!resolvedParams.id) {
+    notFound()
+  }
+  const donor = await getDonor(resolvedParams.id)
   
   if (!donor) {
     notFound()

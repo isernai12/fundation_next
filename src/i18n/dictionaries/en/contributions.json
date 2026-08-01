@@ -153,6 +153,37 @@
     "November",
     "December"
   ],
+  "bulk": {
+    "title": "Monthly Dues Payment",
+    "description": "Process dues for a single month or multiple months at once.",
+    "paymentMode": "Payment Mode",
+    "singleMonth": "Single Month",
+    "multipleMonths": "Multiple Months",
+    "month": "Month",
+    "year": "Year",
+    "fromMonth": "From Month",
+    "fromYear": "From Year",
+    "toMonth": "To Month",
+    "toYear": "To Year",
+    "monthlyAmount": "Monthly Amount",
+    "totalMonths": "Total Months",
+    "totalAmount": "Total Amount",
+    "preview": "Payment Preview",
+    "alreadyPaidTitle": "Already Paid",
+    "alreadyPaidDesc": "These months are already paid and will be skipped:",
+    "newRecordsTitle": "New Records To Be Created",
+    "newRecordsDesc": "Payments will be recorded for:",
+    "noNewRecordsTitle": "No Action Required",
+    "noNewRecordsDesc": "All selected months have already been paid.",
+    "noNewRecords": "No new records to create. All selected months are already paid.",
+    "successMessage": "Successfully processed {{count}} months.",
+    "actualCharge": "Actual Charge:"
+  },
+  "member": {
+    "paidUntil": "Paid Until",
+    "outstanding": "Outstanding",
+    "alreadyPaid": "Already Paid"
+  },
   "due": {
     "pageTitle": "Outstanding Dues",
     "subtitle": "Members with unpaid dues for",

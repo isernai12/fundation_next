@@ -168,27 +168,25 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
             <FormField
               control={form.control}
               name="beneficiaryId"
-              render={({ field }) => {
-                return ((
-                              <FormItem>
-                                <FormLabel>{t("loans.form.selectPurpose")}</FormLabel>
-                                <FormControl>
-                                  <MemberCombobox
-                                    members={beneficiaries}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            ));
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("loans.form.beneficiary")}</FormLabel>
+                  <FormControl>
+                    <MemberCombobox
+                      members={beneficiaries}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             {selectedBeneficiary && (
               <div className="bg-muted p-4 rounded-md space-y-2">
-                <div className="flex gap-2"><span className="font-semibold w-32">""</span> <span>{selectedBeneficiary.fullName}</span></div>
-                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.form.saving")}</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
-                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.form.beneficiary")}</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.form.beneficiary")}</span> <span>{selectedBeneficiary.fullName}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">ID</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.summary.mobile")}</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
               </div>
             )}
           </CardContent>
@@ -204,34 +202,28 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
             <FormField
               control={form.control}
               name="loanType"
-              render={({ field }) => {
-                return ((
-                              <FormItem className="space-y-3">
-                                <FormLabel>""</FormLabel>
-                                <FormControl>
-                                  <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="flex flex-col space-y-1"
-                                  >
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem value="BUSINESS" />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">""</FormLabel>
-                                    </FormItem>
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem value="OTHER" />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">""</FormLabel>
-                                    </FormItem>
-                                  </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            ));
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("loans.form.loanType")}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("loans.form.loanType")} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="BUSINESS">{t("loans.form.purposes.business")}</SelectItem>
+                      <SelectItem value="EDUCATION">{t("loans.form.purposes.education")}</SelectItem>
+                      <SelectItem value="MEDICAL">{t("loans.form.purposes.medical")}</SelectItem>
+                      <SelectItem value="AGRICULTURE">{t("loans.form.purposes.agriculture")}</SelectItem>
+                      <SelectItem value="EMERGENCY">{t("loans.form.purposes.emergency")}</SelectItem>
+                      <SelectItem value="HOUSING">{t("loans.form.purposes.housing")}</SelectItem>
+                      <SelectItem value="OTHER">{t("loans.form.purposes.other")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,73 +232,65 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                   <FormField
                     control={form.control}
                     name="businessType"
-                    render={({ field }) => {
-                      return ((
-                                          <FormItem>
-                                            <FormLabel>{t("loans.form.guarantorName")}</FormLabel>
-                                            <FormControl>
-                                              <Input {...field} placeholder={t("loans.form.save")} />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        ));
-                    }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("loans.form.businessType")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder={t("loans.form.businessTypePlaceholder")} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                   <FormField
                     control={form.control}
                     name="purpose"
-                    render={({ field }) => {
-                      return ((
-                                          <FormItem>
-                                            <FormLabel>{t("loans.form.guarantorPhone")}</FormLabel>
-                                            <FormControl>
-                                              <Input {...field} placeholder={"01XXXXXXXXX"} />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        ));
-                    }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("loans.form.reason")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder={t("loans.form.reasonPlaceholder")} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </>
               )}
 
-              {watchedLoanType === "OTHER" && (
+              {watchedLoanType !== "BUSINESS" && (
                 <FormField
                   control={form.control}
                   name="purpose"
-                  render={({ field }) => {
-                    return ((
-                                      <FormItem>
-                                        <FormLabel>{t("loans.form.reason")}</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} placeholder={t("loans.form.reasonPlaceholder")} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    ));
-                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("loans.form.reason")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder={t("loans.form.reasonPlaceholder")} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               )}
 
               <FormField
                 control={form.control}
                 name="amount"
-                render={({ field }) => {
-                  return ((
-                                  <FormItem>
-                                    <FormLabel>{t("loans.form.purpose")}</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        type="number"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                ));
-                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("loans.form.amount")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
@@ -362,43 +346,39 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               <FormField
                 control={form.control}
                 name="totalInstallments"
-                render={({ field }) => {
-                  return ((
-                                  <FormItem>
-                                    <FormLabel>{t("loans.form.amount")}</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        type="number"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                ));
-                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("loans.form.numberOfInstallments")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={e => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
 
               <FormField
                 control={form.control}
                 name="firstInstallmentDate"
-                render={({ field }) => {
-                  return ((
-                                  <FormItem>
-                                    <FormLabel>{t("loans.form.numberOfInstallments")}</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        type="date"
-                                        {...field}
-                                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
-                                        onChange={e => { field.onChange(e.target.value ? new Date(e.target.value) : undefined); }}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                ));
-                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("loans.form.firstInstallmentDate")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ""}
+                        onChange={e => { field.onChange(e.target.value ? new Date(e.target.value) : undefined); }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
@@ -430,31 +410,27 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
             <FormField
               control={form.control}
               name="isMultiGroup"
-              render={({ field }) => {
-                return ((
-                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={(checked) => {
-                                      field.onChange(checked)
-                                      if (!checked) {
-                                        // keep only the first element
-                                        if (fields.length > 1) {
-                                          form.setValue("fundAllocations", [form.getValues().fundAllocations[0]])
-                                        }
-                                      }
-                                    }}
-                                  />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                  <FormLabel>{t("loans.form.guarantors")}</FormLabel>
-                                  <p className="text-sm text-muted-foreground">
-                                    {t("loans.form.guarantorsDesc")}</p>
-                                </div>
-                              </FormItem>
-                            ));
-              }}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked)
+                        if (!checked) {
+                          // keep only the first element
+                          if (fields.length > 1) {
+                            form.setValue("fundAllocations", [form.getValues().fundAllocations[0]])
+                          }
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>{t("loans.form.fundingSource")}</FormLabel>
+                  </div>
+                </FormItem>
+              )}
             />
 
             <div className="space-y-4">
@@ -503,22 +479,20 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                       <FormField
                         control={form.control}
                         name={`fundAllocations.${index}.amount`}
-                        render={({ field: inputField }) => {
-                          return ((
-                                                  <FormItem>
-                                                    <FormLabel>{t("loans.form.guarantorRelation")}</FormLabel>
-                                                    <FormControl>
-                                                      <Input
-                                                        type="number"
-                                                        {...inputField}
-                                                        value={inputField.value ?? ""}
-                                                        onChange={e => { const v = parseInt(e.target.value); inputField.onChange(isNaN(v) ? "" : v); }}
-                                                      />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                  </FormItem>
-                                                ));
-                        }}
+                        render={({ field: inputField }) => (
+                          <FormItem>
+                            <FormLabel>{t("loans.form.amount")}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                {...inputField}
+                                value={inputField.value ?? ""}
+                                onChange={e => { const v = parseInt(e.target.value); inputField.onChange(isNaN(v) ? "" : v); }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                     </div>
                     {form.watch("isMultiGroup") && index > 0 && (
@@ -537,7 +511,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               })}
               {form.watch("isMultiGroup") && (
                 <Button type="button" variant="outline" onClick={() => append({ groupId: "", amount: 0 })}>
-                  {t("loans.form.addGuarantor")}</Button>
+                  + {t("loans.form.group")}</Button>
               )}
               {form.formState.errors.fundAllocations?.root?.message && (
                 <p className="text-sm font-medium text-destructive">{form.formState.errors.fundAllocations.root.message}</p>

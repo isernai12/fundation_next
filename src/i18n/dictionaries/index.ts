@@ -9,6 +9,7 @@ import enContributions from './en/contributions.json';
 import enLoans from './en/loans.json';
 import enGrants from './en/grants.json';
 import enGroups from './en/groups.json';
+import enMemberRequests from './en/member-requests.json';
 
 import bnCommon from './bn/common.json';
 import bnLayout from './bn/layout.json';
@@ -21,6 +22,7 @@ import bnContributions from './bn/contributions.json';
 import bnLoans from './bn/loans.json';
 import bnGrants from './bn/grants.json';
 import bnGroups from './bn/groups.json';
+import bnMemberRequests from './bn/member-requests.json';
 
 export const enDictionaries = {
   common: enCommon,
@@ -34,6 +36,7 @@ export const enDictionaries = {
   loans: enLoans,
     grants: enGrants,
   groups: enGroups,
+  "member-requests": enMemberRequests,
 };
 
 export const bnDictionaries = {
@@ -48,4 +51,5 @@ export const bnDictionaries = {
   loans: bnLoans,
     grants: bnGrants,
   groups: bnGroups,
+  "member-requests": bnMemberRequests,
 };

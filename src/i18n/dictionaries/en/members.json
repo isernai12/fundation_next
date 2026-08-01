@@ -97,7 +97,7 @@
     "status_change_error": "Failed to change member status",
     "super_admin_restore_only": "Only Super Admin can restore deleted members.",
     "restore_error": "Failed to restore member",
-    "delete_prevented_financial": "This member has financial transactions (contributions/loans/campaigns) associated with them. To protect financial data, the member cannot be deleted. You can set the member to Inactive instead.",
+    "delete_prevented_financial": "This member has financial transactions (contributions/Qard Hasan/campaigns) associated with them. To protect financial data, the member cannot be deleted. You can set the member to Inactive instead.",
     "no_name": "Name not found",
     "activated_success": "Member activated successfully",
     "deactivated_success": "Member deactivated successfully",
@@ -113,7 +113,10 @@
     "toggle": "Toggle"
   },
   "validation": {
-    "group_required": "Group is required",
+    "memberId_required": "Member ID is required",
+    "memberId_exists": "Member ID already exists",
+    "joinDate_required": "Joining Date is required",
+    "group_required": "Group selection is required",
     "name_required": "Member name is required",
     "invalid_email": "Please enter a valid email or leave blank",
     "invalid_form": "Invalid form data",

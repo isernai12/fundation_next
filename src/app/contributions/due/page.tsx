@@ -22,14 +22,46 @@ export default async function DueContributionsPage() {
   const currentMonth = getNow().getMonth() + 1
   const currentYear = getNow().getFullYear()
 
-  // Determine who has paid this month
-  const paidMemberIds = new Set(
-    contributions
-      .filter(c => c.month === currentMonth && c.year === currentYear && c.status === "PAID")
-      .map(c => c.memberId)
-  )
+  // Determine who has dues up to the current month
+  // A member has dues if their paidUntil is before the current month (or if it's null)
+  const dueMembers = members.filter(m => m.status === "ACTIVE").map(m => {
+    let dueFromMonth = m.joinDate ? new Date(m.joinDate).getMonth() + 1 : 1;
+    let dueFromYear = m.joinDate ? new Date(m.joinDate).getFullYear() : currentYear;
 
-  const dueMembers = members.filter(m => !paidMemberIds.has(m.id) && m.status === "ACTIVE")
+    if (m.paidUntilMonth && m.paidUntilYear) {
+      dueFromMonth = m.paidUntilMonth + 1;
+      dueFromYear = m.paidUntilYear;
+      if (dueFromMonth > 12) {
+        dueFromMonth = 1;
+        dueFromYear++;
+      }
+    }
+    
+    // If dueFrom is in the future, they don't have dues
+    if (dueFromYear > currentYear || (dueFromYear === currentYear && dueFromMonth > currentMonth)) {
+      return null;
+    }
+    
+    // Calculate total due months up to current month
+    let monthsDue = 0;
+    let cy = dueFromYear;
+    let cm = dueFromMonth;
+    while(cy < currentYear || (cy === currentYear && cm <= currentMonth)) {
+      monthsDue++;
+      cm++;
+      if (cm > 12) {
+        cm = 1;
+        cy++;
+      }
+    }
+
+    return {
+      ...m,
+      dueFromMonth,
+      dueFromYear,
+      monthsDue
+    }
+  }).filter(Boolean) as (typeof members[0] & { dueFromMonth: number, dueFromYear: number, monthsDue: number })[];
 
   return (
     <div className="space-y-4">
@@ -67,9 +99,14 @@ export default async function DueContributionsPage() {
                   <TableCell>{member.group?.name || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="destructive" className="flex w-fit items-center gap-1">
-                      <AlertCircle className="h-3 w-3" /> <Trans tKey="contributions.due.unpaid" /></Badge>
+                      <AlertCircle className="h-3 w-3" /> {member.monthsDue} <Trans tKey="contributions.bulk.totalMonths" />
+                    </Badge>
                   </TableCell>
-                  <TableCell>{formatMonth(currentMonth - 1)} {currentYear}</TableCell>
+                  <TableCell className="text-xs">
+                    {formatMonth(member.dueFromMonth - 1)} {member.dueFromYear} <br/> 
+                    <span className="text-muted-foreground">to</span> <br/> 
+                    {formatMonth(currentMonth - 1)} {currentYear}
+                  </TableCell>
                   <TableCell>
                     <Link href={`/contributions/new?memberId=${member.id}`} className="text-primary hover:underline text-sm font-medium">
                       <Trans tKey="contributions.due.receiveAction" /></Link>

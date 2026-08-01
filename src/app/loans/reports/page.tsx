@@ -41,16 +41,16 @@ export default async function LoanReportsPage() {
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-5xl space-y-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Loan Reports</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Qard Hasan Reports</h1>
             <p className="text-muted-foreground">
-              Overview of loan performance, outstanding balances, and completion rates.
+              Overview of Qard Hasan performance, outstanding balances, and completion rates.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Loans</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Qard Hasan</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalLoans}</div>
@@ -58,7 +58,7 @@ export default async function LoanReportsPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Active Loans</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Active Qard Hasan</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{activeLoans}</div>
@@ -123,7 +123,7 @@ export default async function LoanReportsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest loans and payments</CardDescription>
+                <CardDescription>Latest Qard Hasan and payments</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">

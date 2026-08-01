@@ -1,11 +1,11 @@
 import { z } from "zod"
 
 export const loanSchema = z.object({
-  beneficiaryId: z.string().min(1, "সুবিধাভোগী নির্বাচন করুন"),
-  loanType: z.enum(["BUSINESS", "OTHER"]),
+  beneficiaryId: z.string().min(1, "loans.validation.required"),
+  loanType: z.enum(["BUSINESS", "EDUCATION", "MEDICAL", "AGRICULTURE", "EMERGENCY", "HOUSING", "OTHER"]),
   businessType: z.string().optional(),
   purpose: z.string().optional(),
-  amount: z.number().min(1, "ঋণের পরিমাণ শূন্যের বেশি হতে হবে"),
+  amount: z.number().min(1, "loans.validation.minAmount"),
   notes: z.string().optional(),
   
   // Installment Details
@@ -16,9 +16,9 @@ export const loanSchema = z.object({
   
   isMultiGroup: z.boolean(),
   fundAllocations: z.array(z.object({
-    groupId: z.string().min(1, "গ্রুপ নির্বাচন করুন"),
-    amount: z.number().min(1, "পরিমাণ শূন্যের বেশি হতে হবে")
-  })).min(1, "অন্তত একটি ফান্ডের উৎস নির্বাচন করতে হবে"),
+    groupId: z.string().min(1, "loans.validation.required"),
+    amount: z.number().min(1, "loans.validation.minAmount")
+  })).min(1, "loans.validation.required")
 
 }).superRefine((data, ctx) => {
   if (data.loanType === "BUSINESS") {
@@ -26,22 +26,23 @@ export const loanSchema = z.object({
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["businessType"],
-        message: "ব্যবসার ধরন প্রদান করুন",
+        message: "loans.validation.required",
       });
     }
     if (!data.purpose || data.purpose.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["purpose"],
-        message: "ঋণ গ্রহণের উদ্দেশ্য প্রদান করুন",
+        message: "loans.validation.required",
       });
     }
-  } else if (data.loanType === "OTHER") {
+  } else {
+    // For any non-business type, purpose (Reason) is required
     if (!data.purpose || data.purpose.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["purpose"],
-        message: "কারণ প্রদান করুন",
+        message: "loans.validation.required",
       });
     }
   }
@@ -51,7 +52,7 @@ export const loanSchema = z.object({
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["fundAllocations"],
-      message: `মোট বরাদ্দকৃত পরিমাণ (৳${totalAllocated}) ঋণের পরিমাণের (৳${data.amount}) সমান হতে হবে`,
+      message: "loans.validation.fundMismatch",
     });
   }
 });

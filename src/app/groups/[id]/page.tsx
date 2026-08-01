@@ -145,16 +145,16 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
 
       <Separator />
 
-      <h2 className="text-xl font-bold tracking-tight">Financed Loans</h2>
+      <h2 className="text-xl font-bold tracking-tight">Financed Qard Hasan</h2>
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium">Loan No</th>
+                  <th className="px-4 py-2 text-left font-medium">Qard Hasan No</th>
                   <th className="px-4 py-2 text-left font-medium">Beneficiary</th>
-                  <th className="px-4 py-2 text-right font-medium">Total Loan</th>
+                  <th className="px-4 py-2 text-right font-medium">Total Qard Hasan</th>
                   <th className="px-4 py-2 text-right font-medium">Group Financed</th>
                   <th className="px-4 py-2 text-center font-medium">Status</th>
                   <th className="px-4 py-2 text-center font-medium">Action</th>
@@ -164,7 +164,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
                 {loans.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
-                      No loans financed by this group yet.
+                      No Qard Hasan financed by this group yet.
                     </td>
                   </tr>
                 ) : (

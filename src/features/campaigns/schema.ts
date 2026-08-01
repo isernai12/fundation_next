@@ -32,3 +32,15 @@ export const campaignContributionSchema = z.object({
 })
 
 export type CampaignContributionFormValues = z.infer<typeof campaignContributionSchema>
+
+export const beneficiaryPaymentSchema = z.object({
+  campaignId: z.string().min(1, "তহবিল নির্বাচন করুন (Financial Activity required)"),
+  beneficiaryId: z.string().min(1, "সুবিধাভোগী নির্বাচন করুন (Beneficiary required)"),
+  amount: z.number().min(1, "পরিমাণ ০ এর বেশি হতে হবে (Amount must be > 0)"),
+  date: z.string().min(1, "তারিখ আবশ্যক"),
+  reason: z.string().min(1, "কারণ আবশ্যক (Reason required)"),
+  referenceNumber: z.string().optional(),
+  comments: z.string().optional(),
+})
+
+export type BeneficiaryPaymentFormValues = z.infer<typeof beneficiaryPaymentSchema>

@@ -291,22 +291,35 @@ export function MemberForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto space-y-6">
         
-        {mode === "edit" && member && (
-          <Card className="bg-muted/30">
-            <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">{t("members.edit_header.member_id")}</p>
-                <p className="font-mono font-medium">{member.memberId}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">{t("members.edit_header.join_date")}</p>
-                <p className="font-medium">{formatDate(member.createdAt)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <FormField
+            control={form.control}
+            name="memberId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-lg">{t("members.edit_header.member_id") || "Member ID"}</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. MBR-2026-0001" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="mb-6">
+          <FormField
+            control={form.control}
+            name="joinDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-lg">{t("members.edit_header.join_date") || "Joining Date"}</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="groupId"
@@ -316,7 +329,7 @@ export function MemberForm({
                             <FormLabel className="text-lg">{t("members.group_selector.label")}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
-                                <SelectTrigger className="w-full md:w-[400px]">
+                                <SelectTrigger className="w-full">
                                   <SelectValue placeholder={t("members.group_selector.placeholder")} />
                                 </SelectTrigger>
                               </FormControl>

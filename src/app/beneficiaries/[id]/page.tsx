@@ -28,7 +28,14 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
   const resolvedParams = await params;
   const beneficiary = await prisma.beneficiary.findUnique({
     where: { id: resolvedParams.id },
-    include: { member: true, documents: true }
+    include: { 
+      member: true, 
+      documents: true,
+      beneficiaryPayments: {
+        include: { campaign: true },
+        orderBy: { date: 'desc' }
+      }
+    }
   })
 
   if (!beneficiary) return notFound()
@@ -102,6 +109,39 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
                 <DocumentCard title={<Trans tKey="beneficiaries.form.id_birth_cert" />} url={bcDoc} />
               )}
             </div>
+          </section>
+
+          {/* SECTION 4 - Financial Activity History */}
+          <section className="print:break-before-page">
+            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">Financial Activity History</h2>
+            <table className="w-full text-sm border-collapse border">
+              <thead>
+                <tr className="bg-muted">
+                  <th className="py-2 px-3 text-left border-b">Date</th>
+                  <th className="py-2 px-3 text-left border-b">Activity</th>
+                  <th className="py-2 px-3 text-left border-b">Amount</th>
+                  <th className="py-2 px-3 text-left border-b">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {beneficiary.beneficiaryPayments?.length ? (
+                  beneficiary.beneficiaryPayments.map(p => (
+                    <tr key={p.id} className="border-b">
+                      <td className="py-2 px-3">{new Date(p.date).toLocaleDateString()}</td>
+                      <td className="py-2 px-3 font-medium">
+                        <Link href={`/campaigns/${p.campaignId}`} className="text-primary hover:underline">{p.campaign.name}</Link>
+                      </td>
+                      <td className="py-2 px-3 font-bold text-red-600">৳{p.amount}</td>
+                      <td className="py-2 px-3 text-muted-foreground">{p.reason}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-muted-foreground">No financial activity history found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </section>
         </div>
 

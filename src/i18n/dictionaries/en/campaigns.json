@@ -134,5 +134,35 @@
       "donor": "Donor",
       "empty": "No transactions found for this activity."
     }
+  },
+  "distribute": {
+    "pageTitle": "Distribute Funds",
+    "subtitle": "Record a new payment to a beneficiary from a financial activity.",
+    "breadcrumb": {
+      "manage": "Financial Activities",
+      "distribute": "Distribute Funds"
+    },
+    "form": {
+      "title": "Beneficiary Payment",
+      "description": "Enter payment details below",
+      "activity": "Financial Activity *",
+      "activityPlaceholder": "Choose an activity",
+      "currentBalance": "Remaining Balance",
+      "beneficiary": "Beneficiary *",
+      "beneficiaryPlaceholder": "Choose a beneficiary",
+      "amount": "Payment Amount *",
+      "date": "Payment Date *",
+      "reason": "Reason *",
+      "reasonPlaceholder": "Reason for payment",
+      "reference": "Reference Number (optional)",
+      "referencePlaceholder": "e.g. Receipt No",
+      "comments": "Comment",
+      "commentsPlaceholder": "Any additional comments",
+      "document": "Supporting Document (optional)",
+      "cancel": "Cancel",
+      "save": "Save Payment",
+      "successMessage": "Payment successfully recorded",
+      "errorMessage": "Failed to record payment"
+    }
   }
 }

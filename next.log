@@ -123,3 +123,8 @@ https://nextjs.org/telemetry
 [Prisma Query] 121ms - SELECT `main`.`Grant`.`id`, `main`.`Grant`.`amount`, `main`.`Grant`.`createdAt` FROM `main`.`Grant` WHERE `main`.`Grant`.`createdAt` >= ? LIMIT ? OFFSET ?
 [Prisma Query] 176ms - SELECT `main`.`MonthlyContribution`.`id`, `main`.`MonthlyContribution`.`expectedAmount`, `main`.`MonthlyContribution`.`createdAt` FROM `main`.`MonthlyContribution` WHERE (`main`.`MonthlyContribution`.`status` = ? AND `main`.`MonthlyContribution`.`createdAt` >= ?) LIMIT ? OFFSET ?
  GET / 200 in 2.6s (next.js: 989ms, proxy.ts: 5ms, application-code: 1609ms)
+[AUTH DEBUG] JWT Callback - User ID: 3925a03f-e627-49bc-b40d-a588e38da103, Role: Super Admin, Session ID: 7429b562-544f-433d-ae1e-14b15e0406a7
+[Prisma Query] 334ms - SELECT `main`.`UserSession`.`id`, `main`.`UserSession`.`userId`, `main`.`UserSession`.`jti`, `main`.`UserSession`.`device`, `main`.`UserSession`.`browser`, `main`.`UserSession`.`os`, `main`.`UserSession`.`ipAddress`, `main`.`UserSession`.`lastActive`, `main`.`UserSession`.`expiresAt`, `main`.`UserSession`.`createdAt` FROM `main`.`UserSession` WHERE (`main`.`UserSession`.`jti` = ? AND 1=1) LIMIT ? OFFSET ?
+[Prisma Query] 76ms - UPDATE `main`.`UserSession` SET `lastActive` = ? WHERE (`main`.`UserSession`.`jti` = ? AND 1=1) RETURNING `id` AS `id`, `userId` AS `userId`, `jti` AS `jti`, `device` AS `device`, `browser` AS `browser`, `os` AS `os`, `ipAddress` AS `ipAddress`, `lastActive` AS `lastActive`, `expiresAt` AS `expiresAt`, `createdAt` AS `createdAt`
+[AUTH DEBUG] Session Callback - Valid Session for User ID: 3925a03f-e627-49bc-b40d-a588e38da103, Role: Super Admin
+ GET /api/auth/session 200 in 469ms (next.js: 37ms, application-code: 432ms)

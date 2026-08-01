@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { campaignSchema, CampaignFormValues, campaignContributionSchema, CampaignContributionFormValues } from "./schema"
+import { campaignSchema, CampaignFormValues, campaignContributionSchema, CampaignContributionFormValues, beneficiaryPaymentSchema, BeneficiaryPaymentFormValues } from "./schema"
 // generateEntityId removed
 import { LedgerEngine } from "@/services/ledger"
 import { requirePermission, checkPermission } from "@/lib/rbac";
@@ -26,6 +26,12 @@ export async function getCampaign(id: string) {
         include: {
           member: true,
           donor: true,
+        },
+        orderBy: { date: 'desc' }
+      },
+      beneficiaryPayments: {
+        include: {
+          beneficiary: true
         },
         orderBy: { date: 'desc' }
       }
@@ -264,5 +270,77 @@ export async function updateCampaignContribution(id: string, data: Partial<Campa
     })
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "আপডেট করতে ব্যর্থ হয়েছে" }
+  }
+}
+
+export async function createBeneficiaryPayment(data: BeneficiaryPaymentFormValues) {
+  await requirePermission("Fund Collection", "Add");
+  const parsed = beneficiaryPaymentSchema.safeParse(data)
+  if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" }
+  
+  const pd = parsed.data
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const campaign = await tx.campaign.findUnique({ where: { id: pd.campaignId } })
+      if (!campaign) throw new Error("তহবিল কার্যক্রম খুঁজে পাওয়া যায়নি")
+
+      const beneficiary = await tx.beneficiary.findUnique({ where: { id: pd.beneficiaryId } })
+      if (!beneficiary) throw new Error("সুবিধাভোগী খুঁজে পাওয়া যায়নি")
+
+      let campaignFund = await tx.fund.findFirst({ where: { name: `Campaign: ${campaign.name}` } })
+      if (!campaignFund) {
+        campaignFund = await tx.fund.create({ data: { name: `Campaign: ${campaign.name}`, description: `Fund for ${campaign.name}` } })
+      }
+
+      const { generalFund } = await LedgerEngine.getOrCreateFunds(null, tx)
+
+      // Calculate Current Balance
+      const campaignLedgerEntries = await tx.ledgerEntry.findMany({
+        where: { fundId: campaignFund.id }
+      })
+      const currentBalance = campaignLedgerEntries.reduce((sum, entry) => sum + (entry.isCredit ? entry.amount : -entry.amount), 0)
+
+      if (pd.amount > currentBalance) {
+        throw new Error(`অপর্যাপ্ত ব্যালেন্স। বর্তমান ব্যালেন্স: ${currentBalance}`)
+      }
+
+      const ledgerTx = await LedgerEngine.createTransaction({
+        date: new Date(pd.date),
+        type: "CAMPAIGN_PAYMENT",
+        referenceId: pd.beneficiaryId,
+        notes: pd.reason,
+        entries: [
+          { fundId: campaignFund.id, isCredit: false, amount: pd.amount }, // Debit Campaign Fund
+          { fundId: generalFund.id, isCredit: true, amount: pd.amount }  // Credit Cash
+        ]
+      }, tx)
+
+      await tx.beneficiaryPayment.create({
+        data: {
+          campaignId: pd.campaignId,
+          beneficiaryId: pd.beneficiaryId,
+          ledgerTransactionId: ledgerTx.id,
+          amount: pd.amount,
+          date: new Date(pd.date),
+          reason: pd.reason,
+          referenceNumber: pd.referenceNumber,
+          comments: pd.comments
+        }
+      })
+
+      revalidatePath("/")
+      revalidatePath("/campaigns")
+      revalidatePath("/campaigns/distribute")
+      revalidatePath(`/campaigns/${campaign.id}`)
+      revalidatePath("/campaigns/manage")
+      revalidatePath("/campaigns/ledger")
+      revalidatePath("/beneficiaries")
+      revalidatePath(`/beneficiaries/${beneficiary.id}`)
+      revalidatePath("/ledger")
+      return { success: true, error: undefined }
+    })
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : "অর্থ প্রদান করতে ব্যর্থ হয়েছে" }
   }
 }

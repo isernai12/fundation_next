@@ -59,7 +59,7 @@ export function Sidebar() {
   {
     title: t("layout.sidebar.main_menu"),
     items: [
-      { name: t("layout.sidebar.dashboard"), href: "/", icon: LayoutDashboard },
+      { name: t("layout.sidebar.dashboard"), href: "/dashboard", icon: LayoutDashboard },
       { 
         name: t("layout.sidebar.members"), 
         href: "/members", 
@@ -70,6 +70,7 @@ export function Sidebar() {
           { name: t("layout.sidebar.manage_members"), href: "/members/manage", permission: "Members:View" },
           { name: t("layout.sidebar.member_ledger"), href: "/members/ledger", permission: "Members:View" },
           { name: t("layout.sidebar.due_dues"), href: "/members/dues", permission: "Members:View" },
+          { name: t("layout.sidebar.member_requests"), href: "/members/requests", permission: "Members:View" },
         ]
       },
       { 
@@ -111,6 +112,7 @@ export function Sidebar() {
           { name: t("layout.sidebar.new_fund"), href: "/campaigns/new", permission: "Fund Collection:Add" },
           { name: t("layout.sidebar.manage_funds"), href: "/campaigns/manage", permission: "Fund Collection:View" },
           { name: t("layout.sidebar.receive_fund_contribution"), href: "/campaigns/contribute", permission: "Fund Collection:Add" },
+          { name: t("layout.sidebar.distribute_funds"), href: "/campaigns/distribute", permission: "Fund Collection:Add" },
           { name: t("layout.sidebar.fund_ledger"), href: "/campaigns/ledger", permission: "Fund Collection:View" },
         ]
       },

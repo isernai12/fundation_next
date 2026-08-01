@@ -32,6 +32,8 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
 
   // Convert the DB member to initial form data matching MemberFormValues
   const initialData = {
+    memberId: member.memberId || "",
+    joinDate: member.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : "",
     groupId: member.groupId || "",
     fullName: member.fullName || "",
     fatherName: member.fatherName || "",

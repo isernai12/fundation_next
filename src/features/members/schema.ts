@@ -1,6 +1,8 @@
 import { z } from "zod"
 
 export const memberSchema = z.object({
+  memberId: z.string().min(1, "members.validation.memberId_required").transform((v) => v.trim()),
+  joinDate: z.string().min(1, "members.validation.joinDate_required"),
   groupId: z.string().min(1, "members.validation.group_required"),
   fullName: z.string().min(1, "members.validation.name_required").transform((v) => v.trim()),
   fatherName: z.string().optional().or(z.literal("")),

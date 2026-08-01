@@ -52,7 +52,7 @@ export function GrantLedgerTable({ transactions }: { transactions: any[] }) {
       accessorKey: "type",
       header: "Type", // Grant type is fixed
       cell: ({ row }) => {
-        return <Badge variant="destructive">GRANT</Badge>
+        return <Badge variant="destructive">SADAKAH</Badge>
       }
     },
     {

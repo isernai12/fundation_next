@@ -140,8 +140,8 @@
         "desc": "External donations received"
       },
       "totalGrants": {
-        "title": "Total Grants",
-        "desc": "Grants disbursed"
+        "title": "Total Sadakah",
+        "desc": "Sadakah disbursed"
       },
       "totalExpenses": {
         "title": "Total Expenses",
@@ -178,9 +178,9 @@
     },
     "types": {
       "contribution": "Contribution",
-      "loan": "Loan",
+      "loan": "Qard Hasan",
       "repayment": "Repayment",
-      "grant": "Grant",
+      "grant": "Sadakah",
       "adjustment": "Adjustment",
       "transfer": "Transfer"
     }

@@ -35,7 +35,7 @@ export async function getMember(id: string) {
   })
 }
 
-async function generateMemberId() {
+export async function generateMemberId() {
   const count = await prisma.member.count()
   const year = getNow().getFullYear()
   return `MBR-${year}-${(count + 1).toString().padStart(4, '0')}`
@@ -111,7 +111,9 @@ export async function createMember(data: MemberFormValues) {
     if (existingEmail) return { success: false, error: "members.validation.email_exists" }
   }
 
-  const memberId = await generateMemberId()
+  // Validate memberId
+  const existingId = await prisma.member.findUnique({ where: { memberId: pd.memberId } })
+  if (existingId) return { success: false, error: "members.validation.memberId_exists" }
 
   try {
     const referenceData = (pd.referenceName || pd.referenceMobile || pd.referenceRelation) 
@@ -124,7 +126,7 @@ export async function createMember(data: MemberFormValues) {
 
     const member = await prisma.member.create({
       data: {
-        memberId,
+        memberId: pd.memberId,
         group: { connect: { id: pd.groupId as string } },
         fullName: pd.fullName.trim(),
         fatherName: pd.fatherName?.trim() || null,
@@ -145,7 +147,7 @@ export async function createMember(data: MemberFormValues) {
         emergencyContactMobile: pd.emergencyContactMobile?.trim() || null,
         
         reference: referenceData,
-        joinDate: new Date(),
+        joinDate: pd.joinDate ? new Date(pd.joinDate) : new Date(),
         status: "ACTIVE",
         declarationAccepted: true,
       },
@@ -196,6 +198,11 @@ export async function updateMember(id: string, data: MemberFormValues) {
     const existing = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
     if (existing && existing.id !== id) return { success: false, error: "members.validation.nid_exists" }
   }
+  
+  if (pd.memberId) {
+    const existing = await prisma.member.findUnique({ where: { memberId: pd.memberId } })
+    if (existing && existing.id !== id) return { success: false, error: "members.validation.memberId_exists" }
+  }
   if (pd.mobile && pd.mobile.trim() !== "") {
     const existing = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
     if (existing && existing.id !== id) return { success: false, error: "members.validation.mobile_exists" }
@@ -214,9 +221,14 @@ export async function updateMember(id: string, data: MemberFormValues) {
         }) 
       : null;
 
+    const currentMember = await prisma.member.findUnique({ where: { id } });
+    if (!currentMember) return { success: false, error: "members.messages.update_error" };
+
     const member = await prisma.member.update({
       where: { id },
       data: {
+        memberId: pd.memberId,
+        joinDate: pd.joinDate ? new Date(pd.joinDate) : currentMember.joinDate,
         group: { connect: { id: pd.groupId as string } },
         fullName: pd.fullName.trim(),
         fatherName: pd.fatherName?.trim() || null,
@@ -262,6 +274,36 @@ export async function updateMember(id: string, data: MemberFormValues) {
       for (const d of nidDocs) {
         if (d.cloudinaryPublicId) await deleteFromCloudinary(d.cloudinaryPublicId).catch(() => {});
         await prisma.document.delete({ where: { id: d.id } });
+      }
+    }
+
+    // Audit Log for Member ID or Join Date Change
+    if (pd.memberId !== currentMember.memberId) {
+      await prisma.auditLog.create({
+        data: {
+          action: "UPDATE",
+          module: "MEMBER",
+          referenceId: id,
+          oldValue: currentMember.memberId,
+          newValue: pd.memberId,
+          remarks: "Member ID changed",
+        }
+      });
+    }
+
+    if (pd.joinDate) {
+      const oldJoinDate = currentMember.joinDate ? currentMember.joinDate.toISOString().split('T')[0] : null;
+      if (oldJoinDate && pd.joinDate !== oldJoinDate) {
+        await prisma.auditLog.create({
+          data: {
+            action: "UPDATE",
+            module: "MEMBER",
+            referenceId: id,
+            oldValue: oldJoinDate,
+            newValue: pd.joinDate,
+            remarks: "Joining Date changed",
+          }
+        });
       }
     }
 

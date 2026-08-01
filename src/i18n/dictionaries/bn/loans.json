@@ -1,50 +1,50 @@
 {
   "new": {
-    "pageTitle": "নতুন ঋণ",
-    "subtitle": "একটি নতুন ঋণের আবেদন তৈরি এবং কনফিগার করুন",
+    "pageTitle": "নতুন কর্জে হাসানা",
+    "subtitle": "একটি নতুন কর্জে হাসানাের আবেদন তৈরি এবং কনফিগার করুন",
     "breadcrumb": {
-      "home": "ঋণ",
-      "new": "নতুন ঋণ"
+      "home": "কর্জে হাসানা",
+      "new": "নতুন কর্জে হাসানা"
     }
   },
   "manage": {
-    "pageTitle": "ঋণ ব্যবস্থাপনা",
-    "subtitle": "সংস্থার সকল ঋণ দেখুন এবং পরিচালনা করুন",
+    "pageTitle": "কর্জে হাসানা ব্যবস্থাপনা",
+    "subtitle": "সংস্থার সকল কর্জে হাসানা দেখুন এবং পরিচালনা করুন",
     "breadcrumb": {
-      "home": "ঋণ",
-      "manage": "ঋণ ব্যবস্থাপনা"
+      "home": "কর্জে হাসানা",
+      "manage": "কর্জে হাসানা ব্যবস্থাপনা"
     },
-    "newBtn": "নতুন ঋণ",
-    "totalLoans": "মোট ঋণ",
-    "activeLoans": "সক্রিয় ঋণ",
-    "completedLoans": "সম্পন্ন ঋণ",
-    "overdueLoans": "মেয়াদোত্তীর্ণ ঋণ",
+    "newBtn": "নতুন কর্জে হাসানা",
+    "totalLoans": "মোট কর্জে হাসানা",
+    "activeLoans": "সক্রিয় কর্জে হাসানা",
+    "completedLoans": "সম্পন্ন কর্জে হাসানা",
+    "overdueLoans": "মেয়াদোত্তীর্ণ কর্জে হাসানা",
     "totalOutstanding": "মোট বকেয়া",
     "totalRecovered": "মোট আদায়",
-    "filterLoans": "ঋণ ফিল্টার করুন",
-    "deleteErrorHasRepayments": "পরিশোধিত ঋণ মুছে ফেলা যাবে না।",
-    "deleteConfirm": "আপনি কি নিশ্চিত যে এই ঋণটি মুছে ফেলতে চান?",
-    "deleteSuccess": "ঋণ সফলভাবে মুছে ফেলা হয়েছে।",
+    "filterLoans": "কর্জে হাসানা ফিল্টার করুন",
+    "deleteErrorHasRepayments": "পরিশোধিত কর্জে হাসানা মুছে ফেলা যাবে না।",
+    "deleteConfirm": "আপনি কি নিশ্চিত যে এই কর্জে হাসানাটি মুছে ফেলতে চান?",
+    "deleteSuccess": "কর্জে হাসানা সফলভাবে মুছে ফেলা হয়েছে।",
     "comingSoon": "শীঘ্রই আসছে!"
   },
   "repay": {
-    "pageTitle": "ঋণ পরিশোধ",
-    "subtitle": "বিস্তারিত দেখতে এবং নতুন পরিশোধ রেকর্ড করতে একটি ঋণ নির্বাচন করুন।",
+    "pageTitle": "কর্জে হাসানা পরিশোধ",
+    "subtitle": "বিস্তারিত দেখতে এবং নতুন পরিশোধ রেকর্ড করতে একটি কর্জে হাসানা নির্বাচন করুন।",
     "breadcrumb": {
-      "home": "ঋণ",
+      "home": "কর্জে হাসানা",
       "repay": "কিস্তি গ্রহণ"
     }
   },
   "ledger": {
-    "pageTitle": "ঋণ লেজার",
-    "subtitle": "সকল ঋণ প্রদান এবং পরিশোধের লেজার লেনদেন দেখুন।",
-    "subtitleSpecific": "{name} এর লেজার। মোট ঋণ: ৳{amount}, অবশিষ্ট: ৳{remaining}",
+    "pageTitle": "কর্জে হাসানা লেজার",
+    "subtitle": "সকল কর্জে হাসানা প্রদান এবং পরিশোধের লেজার লেনদেন দেখুন।",
+    "subtitleSpecific": "{name} এর লেজার। মোট কর্জে হাসানা: ৳{amount}, অবশিষ্ট: ৳{remaining}",
     "breadcrumb": {
-      "home": "ঋণ",
-      "ledger": "ঋণ লেজার"
+      "home": "কর্জে হাসানা",
+      "ledger": "কর্জে হাসানা লেজার"
     },
     "ledgerFor": "লেজার:",
-    "totalLoan": "মোট ঋণ",
+    "totalLoan": "মোট কর্জে হাসানা",
     "remaining": "অবশিষ্ট"
   },
   "form": {
@@ -52,7 +52,7 @@
       "step1": "ধাপ ১",
       "beneficiarySelection": "সুবিধাভোগী নির্বাচন",
       "step2": "ধাপ ২",
-      "loanInfo": "ঋণের তথ্য",
+      "loanInfo": "কর্জে হাসানাের তথ্য",
       "step3": "ধাপ ৩",
       "repaymentInfo": "পরিশোধের তথ্য",
       "step4": "ধাপ ৪",
@@ -64,8 +64,8 @@
     "selectFundingSource": "তহবিলের উৎস নির্বাচন করুন",
     "group": "গ্রুপ",
     "availableBalance": "বিদ্যমান ব্যালেন্স",
-    "remainingAfterLoan": "ঋণের পর অবশিষ্ট",
-    "purpose": "ঋণের উদ্দেশ্য",
+    "remainingAfterLoan": "কর্জে হাসানাের পর অবশিষ্ট",
+    "purpose": "কর্জে হাসানাের উদ্দেশ্য",
     "selectPurpose": "উদ্দেশ্য নির্বাচন করুন",
     "purposes": {
       "business": "ব্যবসা",
@@ -74,14 +74,14 @@
       "agriculture": "কৃষি",
       "housing": "বাসস্থান",
       "other": "অন্যান্য",
-      "emergency": "জরুরি প্রয়োজন",
+      "emergency": "জরুরি",
       "houseRepair": "ঘর মেরামত",
       "marriage": "বিবাহ",
       "smallBusiness": "ক্ষুদ্র ব্যবসা"
     },
-    "reason": "কারণ",
-    "reasonPlaceholder": "অনুগ্রহ করে কারণ উল্লেখ করুন",
-    "amount": "ঋণের পরিমাণ",
+    "reason": "কর্জে হাসানাের কারণ",
+    "reasonPlaceholder": "কর্জে হাসানাের কারণ লিখুন...",
+    "amount": "কর্জে হাসানাের পরিমাণ",
     "installmentType": "কিস্তির ধরন",
     "types": {
       "monthly": "মাসিক",
@@ -93,9 +93,9 @@
     "numberOfInstallments": "কিস্তির সংখ্যা",
     "firstInstallmentDate": "প্রথম কিস্তির তারিখ",
     "remarks": "মন্তব্য",
-    "remarksPlaceholder": "যেকোনো অতিরিক্ত মন্তব্য",
+    "remarksPlaceholder": "মন্তব্য লিখুন...",
     "guarantors": "গ্যারান্টর",
-    "guarantorsDesc": "ঋণের গ্যারান্টর সম্পর্কে তথ্য",
+    "guarantorsDesc": "কর্জে হাসানাের গ্যারান্টর সম্পর্কে তথ্য",
     "guarantorName": "গ্যারান্টরের নাম",
     "guarantorPhone": "গ্যারান্টরের ফোন",
     "guarantorAddress": "গ্যারান্টরের ঠিকানা",
@@ -112,12 +112,12 @@
     "summaryDesc": "জমা দেওয়ার আগে অনুগ্রহ করে তথ্য পর্যালোচনা করুন",
     "disbursementDate": "প্রদানের তারিখ",
     "cancel": "বাতিল",
-    "save": "ঋণ জমা দিন",
+    "save": "কর্জে হাসানা সংরক্ষণ করুন",
     "saving": "জমা দেওয়া হচ্ছে...",
-    "success": "ঋণ সফলভাবে তৈরি হয়েছে",
-    "error": "ঋণ সংরক্ষণ করতে ব্যর্থ হয়েছে",
-    "updateSuccess": "ঋণ সফলভাবে আপডেট করা হয়েছে",
-    "loanType": "ঋণের ধরন",
+    "success": "কর্জে হাসানা সফলভাবে সংরক্ষণ করা হয়েছে",
+    "error": "কর্জে হাসানা সংরক্ষণ করতে ব্যর্থ হয়েছে",
+    "updateSuccess": "কর্জে হাসানা সফলভাবে আপডেট করা হয়েছে",
+    "loanType": "কর্জে হাসানাের ধরন",
     "businessType": "ব্যবসার ধরন",
     "businessTypePlaceholder": "যেমন: মুদি দোকান",
     "confirmDelete": "আপনি কি নিশ্চিত?",
@@ -125,13 +125,13 @@
     "docUploadFailed": " টি ডকুমেন্ট আপলোড করতে সমস্যা হয়েছে।",
     "processing": "প্রসেসিং...",
     "updateBtn": "সংরক্ষণ করুন",
-    "submitBtn": "ঋণ আবেদন করুন",
+    "submitBtn": "কর্জে হাসানা আবেদন করুন",
     "existingDocs": "বিদ্যমান নথিপত্র",
     "newDocs": "নতুন নথিপত্র",
     "fileTypes": "PDF, JPG, PNG, WEBP (সর্বোচ্চ 5MB)"
   },
   "repaymentForm": {
-    "loanSelector": "ঋণ নির্বাচন করুন",
+    "loanSelector": "কর্জে হাসানা নির্বাচন করুন",
     "beneficiarySelector": "সুবিধাভোগী নির্বাচন করুন",
     "amount": "পরিশোধের পরিমাণ",
     "date": "পরিশোধের তারিখ",
@@ -145,7 +145,7 @@
     "error": "কিস্তি রেকর্ড করতে ব্যর্থ হয়েছে",
     "confirmTitle": "কিস্তি নিশ্চিত করুন",
     "confirmDesc": "আপনি কি নিশ্চিত যে এই কিস্তি রেকর্ড করতে চান?",
-    "searchPlaceholder": "ঋণ নম্বর বা সুবিধাভোগী দ্বারা খুঁজুন",
+    "searchPlaceholder": "কর্জে হাসানা নম্বর বা সুবিধাভোগী দ্বারা খুঁজুন",
     "enterDetails": "পরিশোধের বিবরণ দিন",
     "regular": "নিয়মিত",
     "partial": "আংশিক",
@@ -164,10 +164,10 @@
     "completed": "সম্পন্ন"
   },
   "table": {
-    "search": "ঋণ খুঁজুন...",
+    "search": "কর্জে হাসানা খুঁজুন...",
     "columns": {
       "beneficiary": "সুবিধাভোগী",
-      "loanNo": "ঋণ নং",
+      "loanNo": "কর্জে হাসানা নং",
       "amount": "পরিমাণ",
       "balance": "অবশিষ্ট ব্যালেন্স",
       "status": "স্ট্যাটাস",
@@ -199,10 +199,10 @@
     "actions": {
       "menu": "অ্যাকশন",
       "view": "বিস্তারিত দেখুন",
-      "edit": "ঋণ সম্পাদনা",
+      "edit": "কর্জে হাসানা সম্পাদনা",
       "repay": "কিস্তি গ্রহণ",
       "ledger": "লেজার দেখুন",
-      "delete": "ঋণ মুছুন",
+      "delete": "কর্জে হাসানা মুছুন",
       "print": "প্রিন্ট"
     },
     "pagination": {
@@ -212,7 +212,7 @@
       "previous": "পূর্ববর্তী",
       "next": "পরবর্তী"
     },
-    "empty": "কোনো ঋণ পাওয়া যায়নি।",
+    "empty": "কোনো কর্জে হাসানা পাওয়া যায়নি।",
     "filters": {
       "min": "সর্বনিম্ন",
       "max": "সর্বোচ্চ"
@@ -220,11 +220,19 @@
   },
   "sidebar": {},
   "summary": {
-    "title": "ঋণের সারাংশ",
+    "title": "কর্জে হাসানাের সারাংশ",
     "mobile": "মোবাইল",
     "active": "সক্রিয়",
     "daysOverdue": "দিন মেয়াদোত্তীর্ণ",
     "installmentPlan": "কিস্তি পরিকল্পনা",
     "totalPaid": "মোট পরিশোধ"
+  },
+  "validation": {
+    "required": "প্রয়োজন",
+    "invalidAmount": "অবৈধ পরিমাণ",
+    "minAmount": "সর্বনিম্ন পরিমাণ",
+    "maxAmount": "সর্বোচ্চ পরিমাণ",
+    "invalidInstallment": "অবৈধ কিস্তি",
+    "fundMismatch": "ফান্ড বরাদ্দের মোট পরিমাণ কর্জে হাসানাের পরিমাণের সমান হতে হবে"
   }
 }
