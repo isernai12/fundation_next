@@ -50,7 +50,7 @@ export default async function TodayCollectionPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.today_s_collection" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            <Trans tKey="loans.todayCollection.title" fallback="Today's Collection" /></p>
+            <Trans tKey="loans.todayCollection.title" /></p>
         </div>
       </div>
 

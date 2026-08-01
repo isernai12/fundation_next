@@ -108,7 +108,7 @@ export default async function DueDetailsPage({ params }: { params: Promise<{ id:
           <Link href="/members/manage" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-xl font-bold"><Trans tKey="members.dues.title" fallback="Member Dues" /></h1>
+          <h1 className="text-xl font-bold"><Trans tKey="members.dues.title" /></h1>
         </div>
         <Button asChild>
           <Link href={`/contributions/new?memberId=${member.id}`}>

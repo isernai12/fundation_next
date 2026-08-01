@@ -76,8 +76,8 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="members.edit.title" fallback="Edit Member" /></h1>
-          <p className="text-muted-foreground">{member.fullName || ''} <Trans tKey="members.edit.title" fallback="Edit Member" /></p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="members.edit.title" /></h1>
+          <p className="text-muted-foreground">{member.fullName || ''} <Trans tKey="members.edit.title" /></p>
         </div>
       </div>
       

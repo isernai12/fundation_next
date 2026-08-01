@@ -15,7 +15,7 @@ export default async function ProfilePage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.my_profile" /></h1>
-        <p className="text-muted-foreground"><Trans tKey="profile.title" fallback="My Profile" /></p>
+        <p className="text-muted-foreground"><Trans tKey="profile.title" /></p>
       </div>
       <ProfileForm initialData={profile} />
     </div>

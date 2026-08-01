@@ -15,7 +15,7 @@ export default async function DevicesPage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.device_management" /></h1>
-        <p className="text-muted-foreground"><Trans tKey="profile.devices" fallback="Active Devices" /></p>
+        <p className="text-muted-foreground"><Trans tKey="profile.devices" /></p>
       </div>
       <DevicesTable sessions={sessions} currentJti={currentJti} />
     </div>

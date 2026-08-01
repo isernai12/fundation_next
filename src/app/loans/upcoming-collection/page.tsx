@@ -58,7 +58,7 @@ export default async function UpcomingCollectionPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.upcoming_collection" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            <Trans tKey="loans.upcomingCollection.title" fallback="Upcoming Collection" /></p>
+            <Trans tKey="loans.upcomingCollection.title" /></p>
         </div>
       </div>
 

@@ -22,9 +22,9 @@ function UnauthorizedContent() {
         <ShieldAlert className="w-16 h-16" />
       </div>
       
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3"><Trans tKey="unauthorized.title" fallback="Access Denied" /></h1>
-      <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 text-center max-w-md">
-        <Trans tKey="unauthorized.desc" fallback="You do not have permission to access this page." /></p>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3"><Trans tKey="unauthorized.title" /></h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+        <Trans tKey="unauthorized.desc" /></p>
 
       {(module || action) && (
         <div className="bg-white dark:bg-card rounded-xl p-6 mb-10 w-full max-w-md text-center border shadow-sm">
@@ -45,12 +45,12 @@ function UnauthorizedContent() {
           className="flex items-center w-full sm:w-auto"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          <Trans tKey="unauthorized.back" fallback="Go Back" /></Button>
+          <Trans tKey="unauthorized.back" /></Button>
         {hasDashboardAccess && (
           <Button asChild size="lg" className="w-full sm:w-auto">
             <Link href="/" className="flex items-center justify-center">
               <LayoutDashboard className="w-4 h-4 mr-2" />
-              <Trans tKey="unauthorized.dashboard" fallback="Go to Dashboard" /></Link>
+              <Trans tKey="unauthorized.dashboard" /></Link>
           </Button>
         )}
       </div>
