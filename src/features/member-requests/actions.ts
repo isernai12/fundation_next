@@ -6,16 +6,16 @@ import { getAuthSession } from "@/lib/auth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 import { getNow } from "@/lib/date";
-import { memberRequestSchema, type MemberRequestInput } from "./schema";
+import { baseMemberSchema, type BaseMemberFormValues } from "@/features/members/schema";
 
 async function uploadBase64(base64Str: string, folder: string) {
   const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
   return uploadToCloudinary(buffer, { folder });
 }
 
-export async function submitMemberRequest(data: MemberRequestInput) {
+export async function submitMemberRequest(data: BaseMemberFormValues) {
   try {
-    const parsed = memberRequestSchema.safeParse(data);
+    const parsed = baseMemberSchema.safeParse(data);
     if (!parsed.success) {
       return { success: false, error: "Validation failed" };
     }

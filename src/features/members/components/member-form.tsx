@@ -34,11 +34,12 @@ import {
 } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-import { memberSchema, type MemberFormValues } from "../schema";
+import { memberSchema, baseMemberSchema, type MemberFormValues, type BaseMemberFormValues } from "../schema";
 import { createMember, updateMember, deleteMemberDocument } from "../actions";
 import type { Member } from "@prisma/client";
 import { formatDate } from "@/lib/format";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import Link from "next/link";
 
 const SectionCard = ({
   title,
@@ -79,23 +80,27 @@ export function MemberForm({
   mode = "create", 
   memberId, 
   initialData,
-  member
+  member,
+  onSubmitAction
 }: { 
   groups: any[], 
-  mode?: "create" | "edit",
+  mode?: "create" | "edit" | "request",
   memberId?: string,
-  initialData?: Partial<MemberFormValues>,
-  member?: any
+  initialData?: Partial<any>,
+  member?: any,
+  onSubmitAction?: (data: any) => Promise<{success: boolean, error?: string, applicationNumber?: string, id?: string}>
 }) {
     const { t } = useLanguage();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successData, setSuccessData] = useState<{ id: string; applicationNumber: string } | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     section1: true,
     section2: true,
     section3: true,
     section4: true,
     section5: true,
+    section6: true,
   });
 
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -115,20 +120,28 @@ export function MemberForm({
     }
   } catch (e) {}
 
-  const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberSchema),
+  const schema = mode === "request" ? baseMemberSchema : memberSchema;
+
+  const form = useForm<any>({
+    resolver: zodResolver(schema),
     defaultValues: initialData || {
       groupId: member?.groupId || "",
+      memberId: "",
+      joinDate: "",
       fullName: member?.fullName || "",
       fatherName: member?.fatherName || "",
       motherName: member?.motherName || "",
+      gender: member?.gender || "",
       dob: member?.dob ? new Date(member.dob).toISOString().split('T')[0] : "",
       nationalId: member?.nationalId || "",
       occupation: member?.occupation || "",
       education: member?.education || "",
+      maritalStatus: member?.maritalStatus || "",
       presentAddress: member?.presentAddress || "",
       permanentAddress: member?.permanentAddress || "",
       mobile: member?.mobile || "",
+      altMobile: member?.altMobile || "",
+      phone: member?.phone || "",
       email: member?.email || "",
       bloodGroup: member?.bloodGroup || "",
       
@@ -140,6 +153,8 @@ export function MemberForm({
       referenceMobile: parsedReference.mobile || "",
       referenceRelation: parsedReference.relation || "",
       
+      reasonForJoining: member?.reasonForJoining || "",
+
       idDocumentType: member?.idDocumentType || "NID",
       photoBase64: "",
       signatureBase64: "",
@@ -157,15 +172,25 @@ export function MemberForm({
   const existingNidBack = getDoc("NID Back")?.secureUrl;
   const existingBC = getDoc("Birth Certificate")?.secureUrl;
 
-  async function onSubmit(data: MemberFormValues) {
+  async function onSubmit(data: any) {
     setIsSubmitting(true);
     try {
-      const res = mode === "edit" ? await updateMember(memberId!, data) : await createMember(data);
-      if (res.success) {
-        toast.success(mode === "edit" ? t("members.messages.update_success") : t("members.messages.add_success"));
-        router.push("/members/manage");
+      if (mode === "request" && onSubmitAction) {
+        const res = await onSubmitAction(data);
+        if (res.success && res.applicationNumber) {
+          toast.success(t("member-requests.public.form.successMessage") || "Submitted!");
+          setSuccessData({ id: res.id!, applicationNumber: res.applicationNumber });
+        } else {
+          toast.error(res.error || t("member-requests.public.form.errorMessage"));
+        }
       } else {
-        toast.error(res.error ? t(res.error) : t("members.messages.save_error"));
+        const res = mode === "edit" ? await updateMember(memberId!, data) : await createMember(data);
+        if (res.success) {
+          toast.success(mode === "edit" ? t("members.messages.update_success") : t("members.messages.add_success"));
+          router.push("/members/manage");
+        } else {
+          toast.error(res.error ? t(res.error) : t("members.messages.save_error"));
+        }
       }
     } catch (error) {
       toast.error(t("members.messages.unexpected_error"));
@@ -176,7 +201,7 @@ export function MemberForm({
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: keyof MemberFormValues
+    field: string
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -188,7 +213,7 @@ export function MemberForm({
     }
   };
 
-  const handleDeleteDocument = async (title: string, fieldName: keyof MemberFormValues) => {
+  const handleDeleteDocument = async (title: string, fieldName: string) => {
     if (!window.confirm(t("members.messages.delete_confirm"))) return;
     
     // Clear local form state
@@ -221,7 +246,7 @@ export function MemberForm({
     title: string; 
     subtext: string; 
     inputRef: React.RefObject<HTMLInputElement | null>;
-    field: keyof MemberFormValues;
+    field: string;
     existingUrl?: string | null;
     dbTitle: string;
   }) => {
@@ -289,64 +314,127 @@ export function MemberForm({
 
   return (
     <Form {...form}>
+        {successData && mode === "request" ? (
+          <Card className="w-full max-w-2xl mx-auto mt-8 mb-16 shadow-lg border-green-200">
+            <CardHeader className="bg-green-50/50 border-b border-green-100">
+              <CardTitle className="text-2xl text-center text-green-700">
+                {t("member-requests.public.form.applicationSubmitted") || "Application Submitted Successfully!"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-6 pt-8 pb-10">
+              <div className="text-center space-y-3">
+                <p className="text-muted-foreground text-lg">{t("member-requests.public.form.applicationNumberIs") || "Your application number is:"}</p>
+                <div className="bg-muted px-8 py-4 rounded-xl border">
+                  <p className="text-5xl font-mono font-bold tracking-wider text-primary">{successData.applicationNumber}</p>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4 max-w-sm mx-auto">
+                  {t("member-requests.public.form.saveApplicationNumberInfo") || "Please save this number to check your application status later."}
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mt-6">
+                <Button asChild variant="default" size="lg">
+                  <Link href="/member-request/status">
+                    {t("member-requests.public.form.checkStatus") || "Check Status"}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" onClick={() => {
+                  form.reset();
+                  setSuccessData(null);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}>
+                  {t("member-requests.public.form.submitAnother") || "Submit Another Request"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
       <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto space-y-6">
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <FormField
-            control={form.control}
-            name="memberId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-lg">{t("members.edit_header.member_id") || "Member ID"}</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. MBR-2026-0001" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {mode !== "request" ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <FormField
+              control={form.control}
+              name="memberId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg">{t("members.edit_header.member_id") || "Member ID"}</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. MBR-2026-0001" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="joinDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-lg">{t("members.edit_header.join_date") || "Joining Date"}</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="joinDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg">{t("members.edit_header.join_date") || "Joining Date"}</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="groupId"
-            render={({ field }) => {
-              return ((
-                          <FormItem>
-                            <FormLabel className="text-lg">{t("members.group_selector.label")}</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder={t("members.group_selector.placeholder")} />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {groups.map((g) => (
-                                  <SelectItem key={g.id} value={g.id}>
-                                    {g.name} ({g.code})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        ));
-            }}
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="groupId"
+              render={({ field }) => {
+                return ((
+                            <FormItem>
+                              <FormLabel className="text-lg">{t("members.group_selector.label")}</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder={t("members.group_selector.placeholder")} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {groups.map((g) => (
+                                    <SelectItem key={g.id} value={g.id}>
+                                      {g.name} ({g.code})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          ));
+              }}
+            />
+          </div>
+        ) : (
+          <SectionCard title={t("member-requests.public.form.groupSelection") || "Group Selection"} isOpen={true} onToggle={() => {}}>
+            <FormField
+              control={form.control}
+              name="groupId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("member-requests.public.form.group") || "Group"} *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("member-requests.public.form.selectGroup") || "Select Group"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {groups.map((group) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.name} ({group.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </SectionCard>
+        )}
 
         {/* SECTION 1: ব্যক্তিগত তথ্য */}
         <SectionCard title={t("members.personal_info.section_title")} isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
@@ -410,6 +498,23 @@ export function MemberForm({
                               </FormItem>
                             ));
               }}
+            />
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("member-requests.public.form.gender") || "Gender"}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                    <FormControl><SelectTrigger><SelectValue placeholder={t("member-requests.public.form.selectGender") || "Select Gender"} /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="Male">{t("member-requests.public.form.genderMale") || "Male"}</SelectItem>
+                      <SelectItem value="Female">{t("member-requests.public.form.genderFemale") || "Female"}</SelectItem>
+                      <SelectItem value="Other">{t("member-requests.public.form.genderOther") || "Other"}</SelectItem>
+                    </SelectContent>
+                  </Select><FormMessage />
+                </FormItem>
+              )}
             />
             <FormField
               control={form.control}
@@ -487,6 +592,24 @@ export function MemberForm({
             />
             <FormField
               control={form.control}
+              name="maritalStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("member-requests.public.form.maritalStatus") || "Marital Status"}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                    <FormControl><SelectTrigger><SelectValue placeholder={t("member-requests.public.form.selectMaritalStatus") || "Select Status"} /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="Single">{t("member-requests.public.form.statusSingle") || "Single"}</SelectItem>
+                      <SelectItem value="Married">{t("member-requests.public.form.statusMarried") || "Married"}</SelectItem>
+                      <SelectItem value="Divorced">{t("member-requests.public.form.statusDivorced") || "Divorced"}</SelectItem>
+                      <SelectItem value="Widowed">{t("member-requests.public.form.statusWidowed") || "Widowed"}</SelectItem>
+                    </SelectContent>
+                  </Select><FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="mobile"
               render={({ field }) => {
                 return ((
@@ -500,6 +623,12 @@ export function MemberForm({
                             ));
               }}
             />
+            <FormField control={form.control} name="altMobile" render={({ field }) => (
+              <FormItem><FormLabel>{t("member-requests.public.form.altMobile") || "Alternative Mobile"}</FormLabel><FormControl><Input {...field} value={field.value || ""} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="phone" render={({ field }) => (
+              <FormItem><FormLabel>{t("member-requests.public.form.phone") || "Phone"}</FormLabel><FormControl><Input {...field} value={field.value || ""} /></FormControl><FormMessage /></FormItem>
+            )} />
             <FormField
               control={form.control}
               name="email"
@@ -750,6 +879,13 @@ export function MemberForm({
           </div>
         </SectionCard>
 
+        {/* SECTION 6: Additional Information */}
+        <SectionCard title={t("member-requests.public.form.additional") || "Additional Information"} isOpen={openSections.section6} onToggle={() => toggleSection("section6")}>
+          <FormField control={form.control} name="reasonForJoining" render={({ field }) => (
+            <FormItem><FormLabel>{t("member-requests.public.form.reasonForJoining") || "Reason for Joining"}</FormLabel><FormControl><Textarea {...field} value={field.value || ""} /></FormControl><FormMessage /></FormItem>
+          )} />
+        </SectionCard>
+
         {/* ACTIONS */}
         <div className="flex justify-end space-x-4 pt-6 border-t">
           <Button variant="outline" type="button" onClick={() => router.push("/members/manage")}>
@@ -759,6 +895,7 @@ export function MemberForm({
           </Button>
         </div>
       </form>
+      )}
     </Form>
   );
 }
