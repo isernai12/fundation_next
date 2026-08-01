@@ -75,7 +75,7 @@ export function RequestActions({ requestId, status }: { requestId: string, statu
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mt-6">
+    <div className="flex flex-wrap gap-2">
       <Button 
         onClick={() => setActionType("APPROVE")}
         className="bg-emerald-600 hover:bg-emerald-700 text-white"

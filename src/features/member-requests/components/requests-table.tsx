@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Search, Eye } from "lucide-react"
+import { RequestActions } from "@/features/member-requests/components/request-actions"
 
 interface MemberRequest {
   id: string
@@ -86,12 +87,15 @@ export function RequestsTable({ data }: { data: MemberRequest[] }) {
                   <TableCell>{format(new Date(req.submittedAt), 'dd MMM yyyy')}</TableCell>
                   <TableCell>{getStatusBadge(req.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/members/requests/${req.id}`}>
-                        <Eye className="h-4 w-4 mr-1" />
-                        {t("common.view")}
-                      </Link>
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/members/requests/${req.id}`}>
+                          <Eye className="h-4 w-4 mr-1" />
+                          {t("common.view")}
+                        </Link>
+                      </Button>
+                      <RequestActions requestId={req.id} status={req.status} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

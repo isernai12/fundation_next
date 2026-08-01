@@ -83,7 +83,9 @@ export default async function MemberRequestDetailPage({ params }: { params: Prom
         </Card>
       )}
       
-      <RequestActions requestId={request.id} status={request.status} />
+      <div className="mt-6">
+        <RequestActions requestId={request.id} status={request.status} />
+      </div>
     </div>
   )
 
