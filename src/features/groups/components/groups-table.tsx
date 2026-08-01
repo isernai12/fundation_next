@@ -59,7 +59,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            {t("groups.code_ca0dba")}<ArrowUpDown className="ml-2 h-4 w-4" />
+            {t("groups.table.columns.code")}<ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
@@ -69,7 +69,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            {t("groups.name_49ee30")}<ArrowUpDown className="ml-2 h-4 w-4" />
+            {t("groups.table.columns.name")}<ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
@@ -79,22 +79,22 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            {t("groups.members_ef5353")}<ArrowUpDown className="ml-2 h-4 w-4" />
+            {t("groups.table.columns.members")}<ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
     },
     {
       id: "currentFund",
-      header: "Current Fund",
+      header: t("groups.table.columns.currentFund"),
       cell: ({ row }) => `৳${formatCurrency(row.original.currentFund || 0)}`,
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: t("groups.table.columns.status"),
       cell: ({ row }) => (
         <Badge variant={row.getValue("status") === "ACTIVE" ? "default" : "secondary"}>
-          {row.getValue("status")}
+          {row.getValue("status") === "ACTIVE" ? t("groups.table.status.active") : t("groups.table.status.inactive")}
         </Badge>
       ),
     },
@@ -103,7 +103,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="-ml-4">
-            {t("groups.created_0eceeb")}<ArrowUpDown className="ml-2 h-4 w-4" />
+            {t("groups.table.columns.created")}<ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
@@ -117,16 +117,16 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">{t("groups.open_menu_64d2cc")}</span>
+                <span className="sr-only">{t("groups.table.actions.menu")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{t("groups.actions_06df33")}</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("groups.table.actions.menu")}</DropdownMenuLabel>
               {canView && (
                 <DropdownMenuItem asChild>
                   <Link href={`/groups/${group.id}`}>
-                    <Eye className="mr-2 h-4 w-4" /> {t("groups.view_details_5d5cd2")}</Link>
+                    <Eye className="mr-2 h-4 w-4" /> {t("groups.table.actions.view")}</Link>
                 </DropdownMenuItem>
               )}
               {manageMode && (
@@ -139,7 +139,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                           <DropdownMenuItem onSelect={(e) => {
                               return (e.preventDefault());
                             }}>
-                            <Edit className="mr-2 h-4 w-4" /> {t("groups.edit_group_379d5e")}</DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" /> {t("groups.table.actions.edit")}</DropdownMenuItem>
                         }
                       />
                       {group.status === "INACTIVE" ? (
@@ -155,11 +155,11 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                               remarks: group.remarks || "",
                             }
                             const res = await updateGroup(group.id, payload)
-                            if (res.success) toast.success(t("groups.group_activated_5e8bd2"))
+                            if (res.success) toast.success(t("groups.table.activateSuccess"))
                             else toast.error(res.error)
                           }}
                         >
-                          <Eye className="mr-2 h-4 w-4" /> {t("groups.activate_a13367")}</DropdownMenuItem>
+                          <Eye className="mr-2 h-4 w-4" /> {t("groups.table.actions.activate")}</DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem
                           onClick={async () => {
@@ -173,11 +173,11 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                               remarks: group.remarks || "",
                             }
                             const res = await updateGroup(group.id, payload)
-                            if (res.success) toast.success(t("groups.group_deactivated_cacd8e"))
+                            if (res.success) toast.success(t("groups.table.deactivateSuccess"))
                             else toast.error(res.error)
                           }}
                         >
-                          <Eye className="mr-2 h-4 w-4" /> {t("groups.deactivate_109fec")}</DropdownMenuItem>
+                          <Eye className="mr-2 h-4 w-4" /> {t("groups.table.actions.deactivate")}</DropdownMenuItem>
                       )}
                     </>
                   )}
@@ -185,25 +185,25 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                     <>
                       <DropdownMenuItem
                         onClick={async () => {
-                          if (confirm("Are you sure you want to archive this group?")) {
+                          if (confirm(t("groups.table.archiveConfirm"))) {
                             const res = await archiveGroup(group.id)
-                            if (res.success) toast.success(t("groups.group_archived_43d642"))
+                            if (res.success) toast.success(t("groups.table.archiveSuccess"))
                             else toast.error(res.error)
                           }
                         }}
                       >
-                        <Trash className="mr-2 h-4 w-4" /> {t("groups.archive_e727b0")}</DropdownMenuItem>
+                        <Trash className="mr-2 h-4 w-4" /> {t("groups.table.actions.archive")}</DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive"
                         onClick={async () => {
-                          if (confirm("Are you sure you want to fully delete this group? This cannot be undone.")) {
+                          if (confirm(t("groups.table.deleteConfirm"))) {
                             const res = await deleteGroup(group.id)
-                            if (res.success) toast.success(t("groups.group_deleted_694267"))
+                            if (res.success) toast.success(t("groups.table.deleteSuccess"))
                             else toast.error(res.error)
                           }
                         }}
                       >
-                        <Trash className="mr-2 h-4 w-4" /> {t("groups.delete_f2a6c4")}</DropdownMenuItem>
+                        <Trash className="mr-2 h-4 w-4" /> {t("groups.table.actions.delete")}</DropdownMenuItem>
                     </>
                   )}
                 </>
@@ -234,7 +234,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
     <div>
       <div className="flex items-center py-2">
         <Input
-          placeholder={t("groups.search_groups_70c637")}
+          placeholder={t("groups.table.search")}
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
@@ -283,7 +283,7 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {t("groups.no_results_3b8769")}</TableCell>
+                  {t("groups.table.emptyTitle")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -296,14 +296,14 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          {t("groups.previous_dd1f77")}</Button>
+          {t("groups.table.pagination.previous")}</Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          {t("groups.next_10ac3d")}</Button>
+          {t("groups.table.pagination.next")}</Button>
       </div>
     </div>
   )

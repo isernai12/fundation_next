@@ -1,0 +1,178 @@
+{
+  "new": {
+    "pageTitle": "New Grant",
+    "subtitle": "Create a new grant for a beneficiary",
+    "breadcrumb": {
+      "home": "Grants",
+      "new": "New Grant"
+    }
+  },
+  "manage": {
+    "pageTitle": "Manage Grants",
+    "subtitle": "View and manage all organization grants",
+    "breadcrumb": {
+      "home": "Grants",
+      "manage": "Manage Grants",
+      "finance": "Financial Activities"
+    },
+    "newBtn": "New Grant",
+    "totalGrants": "Total Grants",
+    "approvedGrants": "Approved",
+    "pendingGrants": "Pending",
+    "rejectedGrants": "Rejected",
+    "totalAmount": "Total Amount",
+    "filterGrants": "Filter Grants"
+  },
+  "ledger": {
+    "pageTitle": "Grant Ledger",
+    "subtitle": "View all grant disbursement ledger transactions.",
+    "breadcrumb": {
+      "home": "Grants",
+      "ledger": "Grant Ledger"
+    },
+    "comingSoonTitle": "Ledger Coming Soon",
+    "comingSoonDesc": "The detailed grant ledger view is under development.",
+    "summary": {
+      "totalGrants": "Total Grants",
+      "totalAmount": "Total Amount",
+      "currentBalance": "Current Balance",
+      "thisMonth": "This Month"
+    },
+    "table": {
+      "reference": "Reference",
+      "date": "Date",
+      "beneficiary": "Beneficiary",
+      "fundingSource": "Funding Source",
+      "debit": "Debit",
+      "credit": "Credit",
+      "balance": "Balance",
+      "remarks": "Remarks",
+      "search": "Search ledger...",
+      "print": "Print Ledger",
+      "empty": "No transactions found.",
+      "actions": {
+        "menu": "Actions",
+        "view": "View Breakdown"
+      }
+    }
+  },
+  "form": {
+    "sections": {
+      "beneficiary": "Beneficiary Selection",
+      "grantInfo": "Grant Information",
+      "documents": "Supporting Document (Optional)"
+    },
+    "beneficiary": "Beneficiary",
+    "selectBeneficiary": "Select Beneficiary",
+    "grantDate": "Grant Date",
+    "amount": "Grant Amount",
+    "reason": "Reason for Grant",
+    "reasonPlaceholder": "Please specify the reason",
+    "remarks": "Remarks",
+    "remarksPlaceholder": "Any additional notes",
+    "fundingSources": "Funding Sources",
+    "fundingGroup": "Funding Group",
+    "selectGroup": "Select Group",
+    "allocatedAmount": "Allocated Amount",
+    "addFundingSource": "Add Funding Source",
+    "totalAllocation": "Total Allocation",
+    "availableBalance": "Available Balance",
+    "remainingAfterGrant": "Remaining after grant",
+    "documentsDesc": "Upload supporting documents",
+    "uploadTitle": "Upload Document",
+    "uploadHelp": "PDF, JPG, PNG, WEBP (Max 5MB)",
+    "cancel": "Cancel",
+    "save": "Submit Grant",
+    "saving": "Saving...",
+    "success": "Grant created successfully",
+    "error": "Failed to create grant",
+    "removeDocument": "Remove Document",
+    "viewDocument": "View Document",
+    "existingDocs": "Existing Documents",
+    "newDocs": "New Documents",
+    "toggle": "Toggle",
+    "docDeleted": "Document deleted successfully",
+    "docDeleteFailed": "Failed to delete document: ",
+    "uploadingDocs": "Uploading documents...",
+    "docUploadFailed": " document(s) failed to upload.",
+    "updateSuccess": "Grant updated successfully",
+    "createSuccess": "Grant created successfully",
+    "processFailed": "Failed to process grant",
+    "updateBtn": "Update",
+    "saveBtn": "Save",
+    "confirmDeleteDoc": "Are you sure you want to delete this document?",
+    "totalOutOf": " / ৳"
+  },
+  "table": {
+    "search": "Search grants...",
+    "empty": "No grants found.",
+    "columns": {
+      "beneficiary": "Beneficiary",
+      "grantNo": "Grant No",
+      "amount": "Amount",
+      "status": "Status",
+      "date": "Date",
+      "purpose": "Purpose",
+      "actions": "Actions",
+      "fundingSource": "Funding Source"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "all": "All Statuses"
+    },
+    "actions": {
+      "menu": "Actions",
+      "view": "View Details",
+      "edit": "Edit Grant",
+      "delete": "Delete Grant",
+      "ledger": "View Ledger",
+      "print": "Print"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "nameNotFound": "Name not found",
+    "deleteConfirm": "Are you sure you want to delete this grant?",
+    "deleteSuccess": "Grant deleted successfully",
+    "deleteFailed": "Failed to delete grant",
+    "emptyTitle": "No grants found.",
+    "emptySubtitle": "Create your first grant.",
+    "filters": {
+      "min": "Min Amount",
+      "max": "Max Amount"
+    }
+  },
+  "details": {
+    "pageTitle": "Grant Details",
+    "editBtn": "Edit",
+    "summary": "Grant Summary",
+    "grantNo": "Grant No",
+    "beneficiary": "Beneficiary",
+    "mobile": "Mobile",
+    "date": "Date",
+    "amount": "Amount",
+    "status": "Status",
+    "information": "Grant Information",
+    "purpose": "Purpose",
+    "remarks": "Remarks",
+    "allocations": "Allocations",
+    "noAllocations": "No allocations",
+    "systemInfo": "System Information",
+    "createdBy": "Created By",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "documents": "Documents"
+  },
+  "edit": {
+    "pageTitle": "Edit Grant",
+    "subtitle": "Modify existing grant details",
+    "breadcrumb": {
+      "home": "Grants",
+      "edit": "Edit Grant"
+    }
+  }
+}

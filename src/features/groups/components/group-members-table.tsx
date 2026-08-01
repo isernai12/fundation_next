@@ -46,32 +46,32 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
   const columns: ColumnDef<Member>[] = [
     {
       accessorKey: "memberId",
-      header: "Member ID",
+      header: t("groups.table.columns.memberId"),
     },
     {
       id: "name",
-      header: "Name",
-      cell: ({ row }) => `${row.original.fullName || 'নাম পাওয়া যায়নি'}`,
+      header: t("groups.table.columns.name"),
+      cell: ({ row }) => `${row.original.fullName || t("groups.table.nameNotFound")}`,
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: t("groups.table.columns.status"),
       cell: ({ row }) => (
         <Badge variant={row.getValue("status") === "ACTIVE" ? "default" : "secondary"}>
-          {row.getValue("status")}
+          {row.getValue("status") === "ACTIVE" ? t("groups.table.status.active") : t("groups.table.status.inactive")}
         </Badge>
       ),
     },
     {
       id: "contributionStatus",
-      header: "Contribution",
+      header: t("groups.table.columns.contribution"),
       cell: () => {
-        return (<Badge variant="outline">{t("groups.up_to_date_e519a1")}</Badge>);
+        return (<Badge variant="outline">{t("groups.table.status.upToDate")}</Badge>);
       }, // Placeholder
     },
     {
       accessorKey: "joinDate",
-      header: "Join Date",
+      header: t("groups.table.columns.joinDate"),
       cell: ({ row }) => row.original.joinDate ? formatDate(row.original.joinDate) : "N/A",
     },
     {
@@ -82,27 +82,27 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">{t("groups.open_menu_64d2cc")}</span>
+                <span className="sr-only">{t("groups.table.actions.menu")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{t("groups.actions_06df33")}</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("groups.table.actions.menu")}</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link href={`/members/${member.id}`}>
-                  <Eye className="mr-2 h-4 w-4" /> {t("groups.view_member_3099ad")}</Link>
+                  <Eye className="mr-2 h-4 w-4" /> {t("groups.table.actions.viewMember")}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={async () => {
-                  if (confirm("Are you sure you want to remove this member from the group?")) {
+                  if (confirm(t("groups.table.actions.removeConfirm"))) {
                     const res = await removeMemberFromGroup(member.id)
-                    if (res.success) toast.success(t("groups.member_removed_from__f18d28"))
+                    if (res.success) toast.success(t("groups.table.actions.removeSuccess"))
                     else toast.error(res.error)
                   }
                 }}
               >
-                <Trash className="mr-2 h-4 w-4" /> {t("groups.remove_from_group_ed1787")}</DropdownMenuItem>
+                <Trash className="mr-2 h-4 w-4" /> {t("groups.table.actions.removeMember")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -129,7 +129,7 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
     <div>
       <div className="flex items-center py-2">
         <Input
-          placeholder={t("groups.search_members_1956ff")}
+          placeholder={t("groups.table.searchMembers")}
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
@@ -178,7 +178,7 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {t("groups.no_members_found_in__05f1d3")}</TableCell>
+                  {t("groups.table.noMembersFound")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -191,14 +191,14 @@ export function GroupMembersTable({ data }: { data: Member[] }) {
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          {t("groups.previous_dd1f77")}</Button>
+          {t("groups.table.pagination.previous")}</Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          {t("groups.next_10ac3d")}</Button>
+          {t("groups.table.pagination.next")}</Button>
       </div>
     </div>
   )

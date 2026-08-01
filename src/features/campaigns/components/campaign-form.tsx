@@ -54,7 +54,7 @@ export function CampaignForm() {
     setLoading(false)
 
     if (result.success) {
-      toast.success(t("campaigns.k_18d302"))
+      toast.success(t("campaigns.new.form.successMessage"))
       router.push("/campaigns/manage")
     } else {
       toast.error(result.error)
@@ -62,10 +62,10 @@ export function CampaignForm() {
   }
 
   return (
-    <Card className="max-w-3xl mx-auto shadow-sm border mt-4">
-      <CardHeader className="border-b mb-6 pb-4">
-        <CardTitle className="text-xl font-bold">{t("campaigns.k_7446b5")}</CardTitle>
-        <CardDescription>{t("campaigns.k_1e0185")}</CardDescription>
+    <Card className="mb-6 shadow-sm border-muted">
+      <CardHeader className="py-4 border-b bg-muted/10">
+        <CardTitle className="text-lg font-semibold">{t("campaigns.new.form.title")}</CardTitle>
+        <CardDescription>{t("campaigns.new.form.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -77,9 +77,9 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem className="md:col-span-2">
-                                    <FormLabel>{t("campaigns.k_f78574")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.activityName")}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder={t("campaigns.k_896249")} {...field} />
+                                      <Input placeholder={t("campaigns.new.form.activityNamePlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -93,9 +93,9 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem className="md:col-span-2">
-                                    <FormLabel>{t("campaigns.k_93721f")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.purpose")}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder={t("campaigns.k_94d815")} {...field} />
+                                      <Input placeholder={t("campaigns.new.form.purposePlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -109,9 +109,9 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem className="md:col-span-2">
-                                    <FormLabel>{t("campaigns.k_ead56b")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.detailedDescription")}</FormLabel>
                                     <FormControl>
-                                      <Textarea placeholder={t("campaigns.k_6781f2")} {...field} />
+                                      <Textarea placeholder={t("campaigns.new.form.detailedDescriptionPlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -125,7 +125,7 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_f6bd64")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.targetAmount")}</FormLabel>
                                     <FormControl>
                                       <Input type="number" {...field} value={field.value || ""} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
                                     </FormControl>
@@ -141,17 +141,17 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_5f429a")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.status")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("campaigns.k_943add")} />
+                                          <SelectValue placeholder={t("campaigns.new.form.statusSelect")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="ACTIVE">{t("campaigns.active_fe0b1d")}</SelectItem>
-                                        <SelectItem value="COMPLETED">{t("campaigns.completed_c17809")}</SelectItem>
-                                        <SelectItem value="CANCELLED">{t("campaigns.cancelled_4890e5")}</SelectItem>
+                                        <SelectItem value="ACTIVE">{t("campaigns.new.form.statusActive")}</SelectItem>
+                                        <SelectItem value="COMPLETED">{t("campaigns.new.form.statusCompleted")}</SelectItem>
+                                        <SelectItem value="CANCELLED">{t("campaigns.new.form.statusCancelled")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -166,7 +166,7 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_b4bc76")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.startDate")}</FormLabel>
                                     <FormControl>
                                       <Input type="date" {...field} />
                                     </FormControl>
@@ -182,7 +182,7 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_aa85e4")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.endDate")}</FormLabel>
                                     <FormControl>
                                       <Input type="date" {...field} value={field.value || ""} />
                                     </FormControl>
@@ -198,9 +198,9 @@ export function CampaignForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem className="md:col-span-2">
-                                    <FormLabel>{t("campaigns.k_550c03")}</FormLabel>
+                                    <FormLabel>{t("campaigns.new.form.comment")}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder={t("campaigns.k_865b82")} {...field} />
+                                      <Input placeholder={t("campaigns.new.form.commentPlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -211,10 +211,10 @@ export function CampaignForm() {
 
             <div className="flex justify-end space-x-4 pt-6 border-t">
               <Button type="button" variant="outline" onClick={() => router.push("/campaigns/manage")}>
-                {t("campaigns.k_c94621")}</Button>
+                {t("campaigns.new.form.cancel")}</Button>
               <Button type="submit" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {t("campaigns.k_f0d438")}</Button>
+                {t("campaigns.new.form.save")}</Button>
             </div>
           </form>
         </Form>

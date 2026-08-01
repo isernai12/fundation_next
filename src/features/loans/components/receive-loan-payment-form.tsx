@@ -108,7 +108,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!selectedLoan) {
-      toast.error(t("loans.please_select_a_loan_3156a8"))
+      toast.error(t("loans.repaymentForm.loanSelector"))
       return
     }
 
@@ -136,13 +136,13 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
       )
 
       if (result.success) {
-        toast.success(t("loans.payment_recorded_suc_ccd2ee"))
+        toast.success(t("loans.repaymentForm.success"))
         router.refresh()
         
         // Reset form for next payment or stay to show updated balance
         const newBalance = selectedLoan.remainingBalance - values.amount
         if (newBalance <= 0) {
-          toast.info(t("loans.loan_has_been_marked_5a37ad"))
+          toast.info(t("loans.repaymentForm.success") + " (" + t("loans.repaymentForm.completed") + ")")
           setSelectedLoanId("") // clear to select another
         } else {
           // just update the form amount for the next one
@@ -178,8 +178,8 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
       {/* Searchable Loan Selector */}
       <Card className="border-primary/20 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">{t("loans.select_active_loan_79c81a")}</CardTitle>
-          <CardDescription>{t("loans.search_by_loan_numbe_63862e")}</CardDescription>
+          <CardTitle className="text-lg">{t("loans.repaymentForm.loanSelector")}</CardTitle>
+          <CardDescription>{t("loans.repaymentForm.searchPlaceholder")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
@@ -198,9 +198,9 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
             </PopoverTrigger>
             <PopoverContent className="w-[400px] md:w-[600px] p-0" align="start">
               <Command>
-                <CommandInput placeholder={t("loans.search_loan_number_n_b40bff")} />
+                <CommandInput placeholder={t("loans.table.search")} />
                 <CommandList>
-                  <CommandEmpty>{t("loans.no_active_loans_foun_c99fe7")}</CommandEmpty>
+                  <CommandEmpty>{t("loans.table.empty")}</CommandEmpty>
                   <CommandGroup>
                     {loans.map((loan) => {
                       return ((
@@ -220,7 +220,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                                             />
                                             <div className="flex flex-col">
                                               <span className="font-medium">{loan.loanNumber} - {loan.beneficiary?.fullName}</span>
-                                              <span className="text-xs text-muted-foreground">{t("loans.mobile_ffcb08")}{loan.beneficiary?.phone} {t("loans.bal_843249")}{loan.remainingBalance}</span>
+                                              <span className="text-xs text-muted-foreground">{t("loans.summary.mobile") + ": "}{loan.beneficiary?.phone} {"Bal: ৳"}{loan.remainingBalance}</span>
                                             </div>
                                           </CommandItem>
                                         ));
@@ -241,57 +241,57 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
             <Card className="bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800">
               <CardHeader className="pb-3 border-b">
                 <CardTitle className="text-lg flex justify-between items-center">
-                  {t("loans.loan_summary_e6bfc9")}<Badge variant={daysOverdue > 0 ? "destructive" : "default"}>
-                    {daysOverdue > 0 ? `${daysOverdue} Days Overdue` : "Active"}
+                  {t("loans.summary.title")}<Badge variant={daysOverdue > 0 ? "destructive" : "default"}>
+                    {daysOverdue > 0 ? `${daysOverdue} Days Overdue` : t("loans.summary.active")}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-4 text-sm">
                 <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                  <div className="text-muted-foreground">{t("loans.beneficiary_c7040c")}</div>
+                  <div className="text-muted-foreground">{t("loans.table.columns.beneficiary")}</div>
                   <div className="font-medium">{selectedLoan.beneficiary?.fullName}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.mobile_ffcb08")}</div>
+                  <div className="text-muted-foreground">{t("loans.summary.mobile") + ": "}</div>
                   <div className="font-medium">{selectedLoan.beneficiary?.phone || "-"}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.group_1aa4c6")}</div>
+                  <div className="text-muted-foreground">{t("loans.form.group")}</div>
                   <div className="font-medium">{selectedLoan.beneficiary?.member?.group?.name || "-"}</div>
                   
                   <div className="col-span-2 my-2 border-b"></div>
                   
-                  <div className="text-muted-foreground">{t("loans.loan_number_37b14d")}</div>
+                  <div className="text-muted-foreground">{t("loans.table.columns.loanNo")}</div>
                   <div className="font-medium">{selectedLoan.loanNumber}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.loan_type_831b51")}</div>
+                  <div className="text-muted-foreground">{t("loans.table.columns.type")}</div>
                   <div className="font-medium">{selectedLoan.loanType}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.disbursed_on_1f7595")}</div>
+                  <div className="text-muted-foreground">{t("loans.form.disbursementDate")}</div>
                   <div className="font-medium">{selectedLoan.disbursedDate ? formatDate(selectedLoan.disbursedDate) : "-"}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.installment_plan_a4b991")}</div>
-                  <div className="font-medium">{selectedLoan.installmentType || "CUSTOM"} {t("loans.k_2bfbb4")}{selectedLoan.installmentAmount || 0})</div>
+                  <div className="text-muted-foreground">{t("loans.summary.installmentPlan")}</div>
+                  <div className="font-medium">{selectedLoan.installmentType || "CUSTOM"} {"(৳"}{selectedLoan.installmentAmount || 0})</div>
                   
                   <div className="col-span-2 my-2 border-b"></div>
                   
-                  <div className="text-muted-foreground">{t("loans.loan_amount_6bb56a")}</div>
+                  <div className="text-muted-foreground">{t("loans.table.columns.amount")}</div>
                   <div className="font-medium text-base">৳{formatCurrency(selectedLoan.amount)}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.total_paid_752d14")}</div>
+                  <div className="text-muted-foreground">{t("loans.summary.totalPaid")}</div>
                   <div className="font-medium text-green-600">৳{formatCurrency(selectedLoan.totalPaidAmount)}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.remaining_balance_d92896")}</div>
+                  <div className="text-muted-foreground">{t("loans.table.columns.balance")}</div>
                   <div className="font-bold text-lg text-red-600">৳{formatCurrency(selectedLoan.remainingBalance)}</div>
                   
-                  <div className="text-muted-foreground">{t("loans.next_due_date_c83f65")}</div>
+                  <div className="text-muted-foreground">{t("loans.form.firstInstallmentDate")}</div>
                   <div className="font-medium">{selectedLoan.nextDueDate ? formatDate(selectedLoan.nextDueDate) : "-"}</div>
                 </div>
               </CardContent>
               <CardFooter className="bg-muted/50 p-4 border-t flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" asChild className="flex-1">
-                  <Link href={`/loans/${selectedLoan.id}`}><BookOpen className="w-4 h-4 mr-2" /> {t("loans.view_loan_ee0c35")}</Link>
+                  <Link href={`/loans/${selectedLoan.id}`}><BookOpen className="w-4 h-4 mr-2" /> {t("loans.table.actions.view")}</Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild className="flex-1">
-                  <Link href={`/loans/ledger?loanId=${selectedLoan.id}`}><FileText className="w-4 h-4 mr-2" /> {t("loans.ledger_4dcb57")}</Link>
+                  <Link href={`/loans/ledger?loanId=${selectedLoan.id}`}><FileText className="w-4 h-4 mr-2" /> {t("loans.table.actions.ledger")}</Link>
                 </Button>
                 <PrintButton className="w-full" />
               </CardFooter>
@@ -304,8 +304,8 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
               <CardHeader>
                 <CardTitle className="text-xl text-primary flex items-center gap-2">
                   <CreditCard className="w-5 h-5" />
-                  {t("loans.receive_payment_01d35d")}</CardTitle>
-                <CardDescription>{t("loans.enter_the_details_fo_06345c")}</CardDescription>
+                  {t("loans.table.actions.repay")}</CardTitle>
+                <CardDescription>{t("loans.repaymentForm.enterDetails")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...form}>
@@ -313,13 +313,13 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                     
                     <div className="bg-muted/40 p-4 rounded-lg mb-6 flex flex-wrap gap-2 justify-center">
                       <Button type="button" variant="secondary" size="sm" onClick={() => handleQuickOption("REGULAR")}>
-                        {t("loans.regular_installment_60c50f")}</Button>
+                        {t("loans.repaymentForm.regular")}</Button>
                       <Button type="button" variant="secondary" size="sm" onClick={() => handleQuickOption("PARTIAL")}>
-                        {t("loans.partial_payment_921409")}</Button>
+                        {t("loans.repaymentForm.partial")}</Button>
                       <Button type="button" variant="secondary" size="sm" onClick={() => handleQuickOption("ADVANCE")}>
-                        {t("loans.advance_payment_36f1f8")}</Button>
+                        {t("loans.repaymentForm.advance")}</Button>
                       <Button type="button" variant="secondary" size="sm" onClick={() => handleQuickOption("FINAL")}>
-                        {t("loans.final_payment_f058f4")}</Button>
+                        {t("loans.repaymentForm.final")}</Button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -329,7 +329,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                         render={({ field }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel className="text-base">{t("loans.payment_amount_45a304")}</FormLabel>
+                                                    <FormLabel className="text-base">{t("loans.repaymentForm.amount")}</FormLabel>
                                                     <FormControl>
                                                       <Input 
                                                         type="number" 
@@ -350,7 +350,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                         render={({ field }) => {
                           return ((
                                                   <FormItem className="flex flex-col justify-end">
-                                                    <FormLabel className="text-base mb-1.5">{t("loans.payment_date_31738c")}</FormLabel>
+                                                    <FormLabel className="text-base mb-1.5">{t("loans.repaymentForm.date")}</FormLabel>
                                                     <Popover>
                                                       <PopoverTrigger asChild>
                                                         <FormControl>
@@ -364,7 +364,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                                                             {field.value ? (
                                                               format(field.value, "PPP")
                                                             ) : (
-                                                              <span>{t("loans.pick_a_date_2badfa")}</span>
+                                                              <span>{t("loans.repaymentForm.pickDate")}</span>
                                                             )}
                                                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                           </Button>
@@ -390,17 +390,17 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                         render={({ field }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel>{t("loans.payment_method_707436")}</FormLabel>
+                                                    <FormLabel>{t("loans.repaymentForm.paymentMethod")}</FormLabel>
                                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                       <FormControl>
                                                         <SelectTrigger className="h-11">
-                                                          <SelectValue placeholder={t("loans.select_a_payment_met_1f9bde")} />
+                                                          <SelectValue placeholder={t("loans.repaymentForm.selectMethod")} />
                                                         </SelectTrigger>
                                                       </FormControl>
                                                       <SelectContent>
-                                                        <SelectItem value="CASH">{t("loans.cash_069b30")}</SelectItem>
-                                                        <SelectItem value="BANK">{t("loans.bank_transfer_3726d2")}</SelectItem>
-                                                        <SelectItem value="MOBILE">{t("loans.mobile_banking_bkash_dd7d00")}</SelectItem>
+                                                        <SelectItem value="CASH">{t("loans.repaymentForm.cash")}</SelectItem>
+                                                        <SelectItem value="BANK">{t("loans.repaymentForm.bank")}</SelectItem>
+                                                        <SelectItem value="MOBILE">{t("loans.repaymentForm.mobileBanking")}</SelectItem>
                                                       </SelectContent>
                                                     </Select>
                                                     <FormMessage />
@@ -415,9 +415,9 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                         render={({ field }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel>{t("loans.reference_number_opt_5157c0")}</FormLabel>
+                                                    <FormLabel>{t("loans.repaymentForm.receipt")}</FormLabel>
                                                     <FormControl>
-                                                      <Input placeholder={t("loans.e_g_trxid_or_cheque__321e92")} className="h-11" {...field} />
+                                                      <Input placeholder={t("loans.repaymentForm.receiptPlaceholder")} className="h-11" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                   </FormItem>
@@ -431,9 +431,9 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                         render={({ field }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel>{t("loans.collector_name_optio_314fbe")}</FormLabel>
+                                                    <FormLabel>{t("loans.repaymentForm.collectorName")}</FormLabel>
                                                     <FormControl>
-                                                      <Input placeholder={t("loans.who_collected_this_p_c9959b")} className="h-11" {...field} />
+                                                      <Input placeholder={t("loans.repaymentForm.enterName")} className="h-11" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                   </FormItem>
@@ -447,7 +447,7 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                         render={({ field }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel>{t("loans.receipt_upload_url_o_c66f4e")}</FormLabel>
+                                                    <FormLabel>{t("loans.repaymentForm.receiptUpload")}</FormLabel>
                                                     <FormControl>
                                                       <Input placeholder="https://..." className="h-11" {...field} />
                                                     </FormControl>
@@ -464,9 +464,9 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                       render={({ field }) => {
                         return ((
                                               <FormItem>
-                                                <FormLabel>{t("loans.optional_note_f66730")}</FormLabel>
+                                                <FormLabel>{t("loans.repaymentForm.remarks")}</FormLabel>
                                                 <FormControl>
-                                                  <Textarea placeholder={t("loans.any_additional_notes_a0197c")} className="resize-none" {...field} />
+                                                  <Textarea placeholder={t("loans.form.remarksPlaceholder")} className="resize-none" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                               </FormItem>
@@ -478,20 +478,20 @@ export function ReceiveLoanPaymentForm({ loans, initialLoanId }: { loans: Loan[]
                     {form.watch("amount") > 0 && (
                       <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 mt-4">
                         <div className="flex justify-between items-center text-sm font-medium">
-                          <span>{t("loans.projected_remaining__ba3084")}</span>
+                          <span>{t("loans.repaymentForm.projectedBalance")}</span>
                           <span className={cn(
                             "text-lg",
                             selectedLoan.remainingBalance - form.watch("amount") <= 0 ? "text-green-600" : "text-primary"
                           )}>
                             ৳{formatCurrency(Math.max(0, selectedLoan.remainingBalance - form.watch("amount")))}
-                            {selectedLoan.remainingBalance - form.watch("amount") <= 0 && " (Completed)"}
+                            {selectedLoan.remainingBalance - form.watch("amount") <= 0 && " (" + t("loans.repaymentForm.completed") + ")"}
                           </span>
                         </div>
                       </div>
                     )}
 
                     <Button type="submit" className="w-full h-12 text-lg" disabled={isSubmitting}>
-                      {isSubmitting ? "Processing..." : "Receive Payment & Save"}
+                      {isSubmitting ? t("loans.repaymentForm.saving") : t("loans.repaymentForm.save")}
                     </Button>
                   </form>
                 </Form>

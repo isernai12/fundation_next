@@ -45,14 +45,14 @@ export default async function LoansPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.manage_loans" /></h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="loans.manage.pageTitle" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            <Trans tKey="app.text" /></p>
+            <Trans tKey="loans.manage.newBtn" /></p>
         </div>
         <Button asChild>
           <Link href="/loans/new">
             <Plus className="mr-2 h-4 w-4" />
-            <Trans tKey="app.text" /></Link>
+            <Trans tKey="loans.manage.newBtn" /></Link>
         </Button>
       </div>
 

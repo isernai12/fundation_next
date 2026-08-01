@@ -57,19 +57,19 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
     setLoading(true)
     const res = await createContribution(data)
     if (res.success) {
-      toast.success(t("contributions.k_469c39"))
+      toast.success(t("contributions.form.successMessage"))
       router.push("/contributions")
     } else {
-      toast.error(res.error || "সংরক্ষণ করতে ব্যর্থ হয়েছে")
+      toast.error(res.error || t("contributions.form.errorMessage"))
     }
     setLoading(false)
   }
 
   return (
-    <Card className="max-w-5xl mx-auto shadow-sm border mt-4">
-      <CardHeader className="border-b mb-6 pb-4">
-        <CardTitle className="text-xl font-bold">{t("contributions.k_f0d1bb")}</CardTitle>
-        <CardDescription>{t("contributions.k_f54ce0")}</CardDescription>
+    <Card className="mb-6 shadow-sm border-muted max-w-5xl mx-auto">
+      <CardHeader className="py-4 border-b bg-muted/10">
+        <CardTitle className="text-lg font-semibold">{t("contributions.form.title")}</CardTitle>
+        <CardDescription>{t("contributions.form.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -82,7 +82,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem className="md:col-span-2">
-                                    <FormLabel>{t("contributions.k_868b90")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.member")}</FormLabel>
                                     <FormControl>
                                       <MemberCombobox
                                         members={members}
@@ -102,20 +102,20 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_568d0e")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.month")}</FormLabel>
                                     <Select 
                                       onValueChange={v => field.onChange(parseInt(v) || 0)} 
                                       defaultValue={field.value?.toString()}
                                     >
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("contributions.k_1e1467")} />
+                                          <SelectValue placeholder={t("contributions.form.monthPlaceholder")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
                                         {Array.from({length: 12}, (_, i) => i + 1).map(m => (
                                           <SelectItem key={m} value={m.toString()}>
-                                            {bengaliMonths[m - 1]}
+                                            {(() => { const arr = t("contributions.months"); return Array.isArray(arr) ? arr[m - 1] : t(`contributions.months.${m - 1}`); })()}
                                           </SelectItem>
                                         ))}
                                       </SelectContent>
@@ -131,7 +131,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_4083b2")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.year")}</FormLabel>
                                     <FormControl>
                                       <Input type="number" {...field} value={field.value ?? ""} onChange={e => {
                                         const val = parseInt(e.target.value);
@@ -150,7 +150,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_63998c")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.amount")}</FormLabel>
                                     <FormControl>
                                       <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => {
                                         const val = parseFloat(e.target.value);
@@ -169,7 +169,7 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_d6954c")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.paymentDate")}</FormLabel>
                                     <FormControl>
                                       <Input type="date" {...field} />
                                     </FormControl>
@@ -185,17 +185,17 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_ab3ed0")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.paymentMethod")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("contributions.k_353488")} />
+                                          <SelectValue placeholder={t("contributions.form.paymentMethodPlaceholder")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="CASH">{t("contributions.k_b43e1f")}</SelectItem>
-                                        <SelectItem value="BANK">{t("contributions.k_c6edc5")}</SelectItem>
-                                        <SelectItem value="MOBILE_MONEY">{t("contributions.k_09e92d")}</SelectItem>
+                                        <SelectItem value="CASH">{t("contributions.form.methods.cash")}</SelectItem>
+                                        <SelectItem value="BANK">{t("contributions.form.methods.bank")}</SelectItem>
+                                        <SelectItem value="MOBILE_MONEY">{t("contributions.form.methods.mobile")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -210,9 +210,9 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_c2d029")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.reference")}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder={t("contributions.k_ff596f")} {...field} />
+                                      <Input placeholder={t("contributions.form.referencePlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -226,16 +226,16 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.k_8dd4e8")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.status")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("contributions.k_ab7f1a")} />
+                                          <SelectValue placeholder={t("contributions.form.statusPlaceholder")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="PAID">{t("contributions.k_2c893a")}</SelectItem>
-                                        <SelectItem value="PENDING">{t("contributions.k_277e03")}</SelectItem>
+                                        <SelectItem value="PAID">{t("contributions.form.statuses.paid")}</SelectItem>
+                                        <SelectItem value="PENDING">{t("contributions.form.statuses.pending")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -251,9 +251,9 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("contributions.k_550c03")}</FormLabel>
+                                <FormLabel>{t("contributions.form.notes")}</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder={t("contributions.k_b5321c")} className="resize-none" {...field} />
+                                  <Textarea placeholder={t("contributions.form.notesPlaceholder")} className="resize-none" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -275,9 +275,9 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                   <FormLabel>
-                                    {t("contributions.k_f3a483")}</FormLabel>
+                                    {t("contributions.form.isAdditional")}</FormLabel>
                                   <CardDescription>
-                                    {t("contributions.k_35750c")}</CardDescription>
+                                    {t("contributions.form.isAdditionalDescription")}</CardDescription>
                                 </div>
                               </FormItem>
                             ));
@@ -286,9 +286,9 @@ export function ContributionForm({ members }: { members: { id: string; memberId:
 
             <div className="flex justify-end space-x-4 pt-6 border-t">
               <Button type="button" variant="outline" onClick={() => router.push("/contributions")}>
-                {t("contributions.k_de9b04")}</Button>
+                {t("contributions.form.cancel")}</Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "সংরক্ষণ করা হচ্ছে..." : "সংরক্ষণ করুন"}
+                {loading ? t("contributions.form.saving") : t("contributions.form.save")}
               </Button>
             </div>
           </form>

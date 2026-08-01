@@ -57,7 +57,7 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
       : await createGroup(data)
 
     if (res.success) {
-      toast.success(isEditing ? "Group updated" : "Group created")
+      toast.success(isEditing ? t("groups.form.updateSuccess") : t("groups.form.success"))
       setOpen(false)
       form.reset()
     } else {
@@ -68,11 +68,11 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button>{t("groups.create_group_e3be07")}</Button>}
+        {trigger || <Button>{t("groups.manage.newBtn")}</Button>}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Group" : "Create Group"}</DialogTitle>
+          <DialogTitle>{isEditing ? t("groups.table.actions.edit") : t("groups.manage.newBtn")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -82,9 +82,9 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("groups.name_49ee30")}</FormLabel>
+                                <FormLabel>{t("groups.form.groupName")}</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t("groups.alpha_group_fb1484")} {...field} />
+                                  <Input placeholder={t("groups.form.placeholders.groupName")} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -97,9 +97,9 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("groups.code_ca0dba")}</FormLabel>
+                                <FormLabel>{t("groups.form.groupCode")}</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t("groups.g_alpha_3caa0a")} {...field} />
+                                  <Input placeholder={"G-001"} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -112,9 +112,9 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("groups.description_b5a7ad")}</FormLabel>
+                                <FormLabel>{t("groups.form.description")}</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t("groups.optional_description_d196d2")} {...field} />
+                                  <Input placeholder={t("groups.form.placeholders.description")} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -128,16 +128,16 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("groups.status_ec53a8")}</FormLabel>
+                                    <FormLabel>{t("groups.form.status")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("groups.select_a_status_5ed7d8")} />
+                                          <SelectValue placeholder={"Select Status"} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="ACTIVE">{t("groups.active_4d3d76")}</SelectItem>
-                                        <SelectItem value="INACTIVE">{t("groups.inactive_3cab03")}</SelectItem>
+                                        <SelectItem value="ACTIVE">{t("groups.table.status.active")}</SelectItem>
+                                        <SelectItem value="INACTIVE">{t("groups.table.status.inactive")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -148,8 +148,8 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
             )}
             <div className="flex justify-end space-x-2 pt-4">
               <Button variant="outline" type="button" onClick={() => setOpen(false)}>
-                {t("groups.cancel_ea4788")}</Button>
-              <Button type="submit">{t("groups.save_c9cc8c")}</Button>
+                {t("groups.form.cancel")}</Button>
+              <Button type="submit">{t("groups.form.save")}</Button>
             </div>
           </form>
         </Form>

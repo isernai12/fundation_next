@@ -1,3 +1,4 @@
+import { Trans } from "@/components/shared/trans";
 import { prisma } from "@/lib/prisma"
 import { LoanLedgerTable } from "@/features/loans/components/loan-ledger-table"
 
@@ -71,11 +72,9 @@ export default async function LoanLedgerPage({ searchParams }: { searchParams: {
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Loan Ledger {specificLoan ? `- ${specificLoan.loanNumber}` : ""}</h1>
+              <h1 className="text-2xl font-bold tracking-tight"><Trans tKey="loans.ledger.pageTitle" />{specificLoan ? ` - ${specificLoan.loanNumber}` : ""}</h1>
               <p className="text-muted-foreground">
-                {specificLoan 
-                  ? `Ledger for ${specificLoan.beneficiary?.fullName}. Total Loan: ৳${specificLoan.amount}, Remaining: ৳${specificLoan.remainingBalance}`
-                  : "View all loan disbursement and repayment ledger transactions."}
+                {specificLoan ? `Ledger for ${specificLoan.beneficiary?.fullName}. Total Loan: ৳${specificLoan.amount}, Remaining: ৳${specificLoan.remainingBalance}` : <Trans tKey="loans.ledger.subtitle" />}
               </p>
             </div>
           </div>

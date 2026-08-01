@@ -51,41 +51,41 @@ export function DueListTable({ data, initialDueStatusFilter = "ALL" }: { data: a
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "loanNumber",
-      header: "Loan #",
+      header: t("loans.table.columns.loanNo") || "Loan #",
     },
     {
       id: "beneficiary",
       accessorFn: row => row.beneficiary ? row.beneficiary.fullName : "Unknown",
-      header: "Beneficiary",
+      header: t("loans.table.columns.beneficiary") || "Beneficiary",
     },
     {
       id: "phone",
-      header: "Mobile",
+      header: t("common.phone") || "Mobile",
       cell: ({ row }) => row.original.beneficiary?.phone || row.original.beneficiary?.mobile || "-"
     },
     {
       id: "group",
-      header: "Group",
+      header: t("loans.form.group") || "Group",
       cell: ({ row }) => row.original.beneficiary?.member?.group?.name || "-"
     },
     {
       accessorKey: "installmentType",
-      header: "Inst. Type",
+      header: t("loans.form.installmentType") || "Inst. Type",
       cell: ({ row }) => row.getValue("installmentType") || "-"
     },
     {
       id: "nextDueDate",
-      header: "Next Due Date",
+      header: t("loans.form.firstInstallmentDate") || "Next Due Date",
       cell: ({ row }) => row.original.nextDueDate ? formatDate(row.original.nextDueDate) : "-",
     },
     {
       id: "remainingBalance",
-      header: "Remaining Balance",
+      header: t("loans.table.columns.balance") || "Remaining Balance",
       cell: ({ row }) => <span className="font-medium text-red-600">৳{row.original.remainingBalance}</span>,
     },
     {
       accessorKey: "dueStatus",
-      header: "Status",
+      header: t("loans.table.columns.status") || "Status",
       cell: ({ row }) => {
         const status = row.getValue("dueStatus") as string
         let variant: "default" | "secondary" | "destructive" | "outline" = "outline"
@@ -127,18 +127,18 @@ export function DueListTable({ data, initialDueStatusFilter = "ALL" }: { data: a
         <div className="flex items-center justify-between font-medium">
           <div className="flex items-center gap-2">
             <FilterX className="h-5 w-5" />
-            {t("loans.filter_dues_8ca8a1")}</div>
+            {"Filter Dues"}</div>
           <Button variant="outline" onClick={() => {
                     return (window.print());
                   }}>
             <Printer className="mr-2 h-4 w-4" />
-            {t("loans.print_list_f85417")}</Button>
+            {t("common.print") || "Print"}</Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t("loans.search_id_name_mobil_04a67c")}
+              placeholder={t("loans.table.search")}
               value={globalFilter ?? ""}
               onChange={(e) => setGlobalFilter(e.target.value)}
               className="pl-8"
@@ -150,13 +150,13 @@ export function DueListTable({ data, initialDueStatusFilter = "ALL" }: { data: a
             onValueChange={(v) => table.getColumn("dueStatus")?.setFilterValue(v === "ALL" ? "" : v)}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t("loans.due_status_340b09")} />
+              <SelectValue placeholder={t("loans.table.columns.due")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">{t("loans.all_dues_aabcf2")}</SelectItem>
-              <SelectItem value="Due Today">{t("loans.due_today_b523c0")}</SelectItem>
-              <SelectItem value="Upcoming Due">{t("loans.upcoming_due_b62269")}</SelectItem>
-              <SelectItem value="Overdue">{t("loans.overdue_3f165a")}</SelectItem>
+              <SelectItem value="ALL">{"All Dues"}</SelectItem>
+              <SelectItem value="Due Today">{t("loans.table.dueStatus.dueToday")}</SelectItem>
+              <SelectItem value="Upcoming Due">{t("loans.table.dueStatus.upcomingDue")}</SelectItem>
+              <SelectItem value="Overdue">{t("loans.table.dueStatus.overdue")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -193,7 +193,7 @@ export function DueListTable({ data, initialDueStatusFilter = "ALL" }: { data: a
              ) : (
                <TableRow>
                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                   {t("loans.no_due_loans_found_e2ffda")}</TableCell>
+                   {t("loans.table.empty")}</TableCell>
                </TableRow>
              )}
           </TableBody>
@@ -201,9 +201,9 @@ export function DueListTable({ data, initialDueStatusFilter = "ALL" }: { data: a
       </div>
       <div className="flex items-center justify-end space-x-2 no-print">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          {t("loans.previous_dd1f77")}</Button>
+          {t("loans.table.pagination.previous")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          {t("loans.next_10ac3d")}</Button>
+          {t("loans.table.pagination.next")}</Button>
       </div>
 
       <style jsx global>{`

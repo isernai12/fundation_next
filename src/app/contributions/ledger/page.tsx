@@ -9,23 +9,23 @@ export default function ContributionLedgerPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
-          <Trans tKey="app.text" /></Link>
+          <Trans tKey="contributions.ledger.breadcrumb.home" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
+        <span className="font-medium text-foreground"><Trans tKey="contributions.ledger.breadcrumb.ledger" /></span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
-          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="contributions.ledger.pageTitle" /></h1>
+          <p className="text-muted-foreground"><Trans tKey="contributions.ledger.subtitle" /></p>
         </div>
       </div>
 
       <Card>
         <CardContent className="flex flex-col items-center justify-center h-64 space-y-4 pt-6">
           <BookOpen className="h-12 w-12 text-muted-foreground" />
-          <div className="text-xl font-semibold"><Trans tKey="app.text" /></div>
-          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
+          <div className="text-xl font-semibold"><Trans tKey="contributions.ledger.comingSoon" /></div>
+          <p className="text-muted-foreground"><Trans tKey="contributions.ledger.comingSoonDesc" /></p>
         </CardContent>
       </Card>
     </div>

@@ -45,12 +45,12 @@ export default async function LoanDueListPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.loan_due_list" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            <Trans tKey="app.text" /></p>
+            </p>
         </div>
         <Button asChild>
           <Link href="/loans/new">
             <Plus className="mr-2 h-4 w-4" />
-            <Trans tKey="app.text" /></Link>
+            </Link>
         </Button>
       </div>
 

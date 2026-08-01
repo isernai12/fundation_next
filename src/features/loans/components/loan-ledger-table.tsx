@@ -37,20 +37,20 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "date",
-      header: "Date",
+      header: t("loans.table.columns.date") ,
       cell: ({ row }) => formatDate(row.getValue("date")),
     },
     {
       accessorKey: "referenceId",
-      header: "Loan #",
+      header: t("loans.table.columns.loanNo") ,
     },
     {
       accessorKey: "beneficiaryName",
-      header: "Beneficiary",
+      header: t("loans.table.columns.beneficiary") ,
     },
     {
       accessorKey: "type",
-      header: "Type",
+      header: t("loans.table.columns.type") ,
       cell: ({ row }) => {
         const type = row.getValue("type") as string
         return <Badge variant={type === "LOAN" ? "destructive" : "default"}>{type}</Badge>
@@ -59,7 +59,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     {
       accessorKey: "debit",
       header: () => {
-        return (<div className="text-right">{t("loans.debit_disbursed_832e0a")}</div>);
+        return (<div className="text-right">{t("loans.table.columns.debit")}</div>);
       },
       cell: ({ row }) => {
         const amount = row.getValue("debit") as number
@@ -69,7 +69,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     {
       accessorKey: "credit",
       header: () => {
-        return (<div className="text-right">{t("loans.credit_repaid_160c6f")}</div>);
+        return (<div className="text-right">{t("loans.table.columns.credit")}</div>);
       },
       cell: ({ row }) => {
         const amount = row.getValue("credit") as number
@@ -79,7 +79,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     {
       accessorKey: "balance",
       header: () => {
-        return (<div className="text-right">{t("loans.balance_99a808")}</div>);
+        return (<div className="text-right">{t("loans.table.columns.balance")}</div>);
       },
       cell: ({ row }) => {
         const amount = row.getValue("balance") as number
@@ -88,24 +88,24 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
     },
     {
       accessorKey: "notes",
-      header: "Notes",
+      header: t("loans.form.remarks") ,
     },
     {
       id: "actions",
-      header: "Entries",
+      header: t("loans.table.actions.menu") ,
       cell: ({ row }) => {
         return (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm">
-                {t("loans.view_entries_e70b98")}<ChevronDown className="ml-2 h-4 w-4" />
+                {t("loans.table.actions.view")}<ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 space-y-2 text-sm bg-muted/50 p-2 rounded-md">
               <div className="grid grid-cols-3 font-semibold mb-1">
-                <div>{t("loans.fund_c1098d")}</div>
-                <div className="text-right">{t("loans.debit_009534")}</div>
-                <div className="text-right">{t("loans.credit_0a90b1")}</div>
+                <div>{t("loans.form.fundingSource")}</div>
+                <div className="text-right">{t("loans.table.columns.debit")}</div>
+                <div className="text-right">{t("loans.table.columns.credit")}</div>
               </div>
               {row.original.entries.map((e: any) => (
                 <div key={e.id} className="grid grid-cols-3">
@@ -141,7 +141,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={t("loans.search_loan_benefici_debf43")}
+            placeholder={t("loans.table.search")}
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-8"
@@ -151,7 +151,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
                 return (window.print());
               }}>
           <Printer className="mr-2 h-4 w-4" />
-          {t("loans.print_ledger_f63e33")}</Button>
+          {t("loans.table.actions.print") }</Button>
       </div>
       
       <div className="rounded-md border bg-card">
@@ -185,7 +185,7 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {t("loans.no_transactions_foun_808425")}</TableCell>
+                  {t("loans.table.empty")}</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -193,9 +193,9 @@ export function LoanLedgerTable({ transactions }: { transactions: any[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 no-print">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          {t("loans.previous_dd1f77")}</Button>
+          {t("loans.table.pagination.previous")}</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          {t("loans.next_10ac3d")}</Button>
+          {t("loans.table.pagination.next")}</Button>
       </div>
       <style jsx global>{`
         @media print {

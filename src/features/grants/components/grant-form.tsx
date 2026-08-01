@@ -44,7 +44,7 @@ const SectionCard = ({
               <CollapsibleTrigger asChild>
                 <Button type="button" variant="ghost" size="sm" className="w-9 p-0 hover:bg-transparent">
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  <span className="sr-only">{t("grants.k_7b5f74")}</span>
+                  <span className="sr-only">{t("grants.form.toggle")}</span>
                 </Button>
               </CollapsibleTrigger>
             </div>
@@ -129,13 +129,13 @@ export function GrantForm({
   }
 
   const handleDeleteExistingDoc = async (docId: string) => {
-    if (confirm("আপনি কি নিশ্চিত যে এই ডকুমেন্টটি মুছে ফেলতে চান?")) {
+    if (confirm(t("grants.form.confirmDeleteDoc"))) {
       const res = await deleteDocumentById(docId)
       if (res.success) {
-        toast.success(t("grants.k_f96d37"))
+        toast.success(t("grants.form.docDeleted"))
         setExistingDocs(prev => prev.filter(d => d.id !== docId))
       } else {
-        toast.error("ডকুমেন্ট মুছতে ব্যর্থ হয়েছে: " + res.error)
+        toast.error(t("grants.form.docDeleteFailed") + res.error)
       }
     }
   }
@@ -159,7 +159,7 @@ export function GrantForm({
       
       // Upload pending files if any
       if (currentGrantId && pendingFiles.length > 0) {
-        toast.info(t("grants.k_c49823"))
+        toast.info(t("grants.form.uploadingDocs"))
         let uploadErrors = 0
         for (const file of pendingFiles) {
           const formData = new FormData()
@@ -173,14 +173,14 @@ export function GrantForm({
         }
         
         if (uploadErrors > 0) {
-          toast.error(`${uploadErrors} টি ডকুমেন্ট আপলোড করতে সমস্যা হয়েছে।`)
+          toast.error(`${uploadErrors}` + t("grants.form.docUploadFailed"))
         }
       }
 
-      toast.success(isEditing ? "অনুদান সফলভাবে আপডেট করা হয়েছে" : "অনুদান সফলভাবে তৈরি করা হয়েছে")
+      toast.success(isEditing ? t("grants.form.updateSuccess") : t("grants.form.createSuccess"))
       router.push(`/grants/${currentGrantId || ""}`)
     } else {
-      toast.error(res.error || "অনুদান প্রক্রিয়াকরণে ব্যর্থ হয়েছে")
+      toast.error(res.error || t("grants.form.processFailed"))
     }
     setLoading(false)
   }
@@ -190,7 +190,7 @@ export function GrantForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto space-y-6">
         
         {/* SECTION 1: Beneficiary */}
-        <SectionCard title={t("grants.k_a183b1")} isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
+        <SectionCard title={t("grants.form.sections.beneficiary")} isOpen={openSections.section1} onToggle={() => toggleSection("section1")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -198,7 +198,7 @@ export function GrantForm({
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("grants.k_316bb4")}</FormLabel>
+                                <FormLabel>{t("grants.form.beneficiary")}</FormLabel>
                                 <FormControl>
                                   <MemberCombobox
                                     members={beneficiaries}
@@ -215,7 +215,7 @@ export function GrantForm({
         </SectionCard>
 
         {/* SECTION 2: Grant Information */}
-        <SectionCard title={t("grants.k_57ca99")} isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
+        <SectionCard title={t("grants.form.sections.grantInfo")} isOpen={openSections.section2} onToggle={() => toggleSection("section2")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -223,7 +223,7 @@ export function GrantForm({
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("grants.k_3e10c2")}</FormLabel>
+                                <FormLabel>{t("grants.form.grantDate")}</FormLabel>
                                 <FormControl>
                                   <Input type="date" {...field} />
                                 </FormControl>
@@ -238,7 +238,7 @@ export function GrantForm({
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("grants.k_30fc04")}</FormLabel>
+                                <FormLabel>{t("grants.form.amount")}</FormLabel>
                                 <FormControl>
                                   <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
                                 </FormControl>
@@ -253,9 +253,9 @@ export function GrantForm({
               render={({ field }) => {
                 return ((
                               <FormItem className="md:col-span-2">
-                                <FormLabel>{t("grants.k_5660ba")}</FormLabel>
+                                <FormLabel>{t("grants.form.reason")}</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder={t("grants.k_0a5c6b")} {...field} />
+                                  <Textarea placeholder={t("grants.form.reasonPlaceholder")} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -268,9 +268,9 @@ export function GrantForm({
               render={({ field }) => {
                 return ((
                               <FormItem className="md:col-span-2">
-                                <FormLabel>{t("grants.k_d44d54")}</FormLabel>
+                                <FormLabel>{t("grants.form.remarks")}</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder={t("grants.k_8f9d58")} {...field} />
+                                  <Textarea placeholder={t("grants.form.remarksPlaceholder")} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -279,7 +279,7 @@ export function GrantForm({
             />
 
             <div className="md:col-span-2 mt-4">
-              <h4 className="text-sm font-medium mb-3">{t("grants.funding_sources_8c4d29")}</h4>
+              <h4 className="text-sm font-medium mb-3">{t("grants.form.fundingSources")}</h4>
               <div className="space-y-4">
                 {fields.map((field, index) => {
                   return ((
@@ -289,7 +289,7 @@ export function GrantForm({
                                       name={`allocations.${index}.groupId`}
                                       render={({ field }) => (
                                         <FormItem className="flex-1 w-full">
-                                          <FormLabel>{t("grants.k_04c895")}</FormLabel>
+                                          <FormLabel>{t("grants.form.fundingGroup")}</FormLabel>
                                           <FormControl>
                                             <GroupCombobox
                                               groups={groups}
@@ -306,7 +306,7 @@ export function GrantForm({
                                       name={`allocations.${index}.amount`}
                                       render={({ field }) => (
                                         <FormItem className="flex-1 w-full">
-                                          <FormLabel>{t("grants.k_173a9f")}</FormLabel>
+                                          <FormLabel>{t("grants.form.allocatedAmount")}</FormLabel>
                                           <FormControl>
                                             <Input type="number" step="0.01" {...field} value={field.value ?? ""} onChange={e => { const v = parseFloat(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
                                           </FormControl>
@@ -330,12 +330,12 @@ export function GrantForm({
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <Button type="button" variant="outline" size="sm" onClick={() => append({ groupId: "", amount: 0 })}>
-                    <Plus className="mr-2 h-4 w-4" /> {t("grants.k_0fc994")}</Button>
+                    <Plus className="mr-2 h-4 w-4" /> {t("grants.form.addFundingSource")}</Button>
                   
                   <div className="text-sm">
-                    <span className="text-muted-foreground mr-2">{t("grants.k_545972")}</span>
+                    <span className="text-muted-foreground mr-2">{t("grants.form.totalAllocation")}</span>
                     <span className={`font-bold ${totalAllocated !== currentAmount ? 'text-destructive' : 'text-primary'}`}>
-                      ৳{totalAllocated.toFixed(2)} {t("grants.k_b2e71d")}{currentAmount.toFixed(2)}
+                      ৳{totalAllocated.toFixed(2)} {t("grants.form.totalOutOf")}{currentAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -351,13 +351,13 @@ export function GrantForm({
         </SectionCard>
 
         {/* SECTION 3: Documents */}
-        <SectionCard title={t("grants.k_e17831")} isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
+        <SectionCard title={t("grants.form.sections.documents")} isOpen={openSections.section3} onToggle={() => toggleSection("section3")}>
           <div className="space-y-4">
             
             {/* Existing Documents List */}
             {existingDocs.length > 0 && (
               <div className="space-y-2 mb-4">
-                <h4 className="text-sm font-medium">{t("grants.k_63988f")}</h4>
+                <h4 className="text-sm font-medium">{t("grants.form.existingDocs")}</h4>
                 <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   {existingDocs.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between p-2 border rounded bg-muted/20">
@@ -379,7 +379,7 @@ export function GrantForm({
             {/* Pending Files List */}
             {pendingFiles.length > 0 && (
               <div className="space-y-2 mb-4">
-                <h4 className="text-sm font-medium">{t("grants.k_6099da")}</h4>
+                <h4 className="text-sm font-medium">{t("grants.form.newDocs")}</h4>
                 <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                   {pendingFiles.map((file, idx) => (
                     <div key={idx} className="flex items-center justify-between p-2 border rounded bg-primary/5 border-primary/20">
@@ -399,8 +399,8 @@ export function GrantForm({
             <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/30 transition-colors"
                  onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-10 w-10 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">{t("grants.k_97d873")}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t("grants.pdf_jpg_png_webp_mb_e8adfb")}</p>
+              <p className="text-sm font-medium">{t("grants.form.uploadTitle")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("grants.form.uploadHelp")}</p>
               <input 
                 type="file" 
                 multiple 
@@ -416,9 +416,9 @@ export function GrantForm({
 
         <div className="flex justify-end space-x-4 pt-6 border-t">
           <Button variant="outline" type="button" onClick={() => router.push("/grants/manage")}>
-            {t("grants.k_de9b04")}</Button>
+            {t("grants.form.cancel")}</Button>
           <Button type="submit" disabled={loading || totalAllocated !== currentAmount}>
-            {loading ? "সংরক্ষণ করা হচ্ছে..." : (isEditing ? "আপডেট করুন" : "সংরক্ষণ")}
+            {loading ? t("grants.form.saving") : (isEditing ? t("grants.form.updateBtn") : t("grants.form.saveBtn"))}
           </Button>
         </div>
       </form>

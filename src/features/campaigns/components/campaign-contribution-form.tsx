@@ -61,7 +61,7 @@ export function CampaignContributionForm({
     setLoading(false)
 
     if (result.success) {
-      toast.success(t("campaigns.k_496477"))
+      toast.success(t("campaigns.contribute.form.successMessage"))
       router.push(`/campaigns/${data.campaignId}`)
     } else {
       toast.error(result.error)
@@ -69,10 +69,10 @@ export function CampaignContributionForm({
   }
 
   return (
-    <Card className="max-w-2xl mx-auto shadow-sm border mt-4">
-      <CardHeader className="border-b mb-6 pb-4">
-        <CardTitle className="text-xl font-bold">{t("campaigns.k_743724")}</CardTitle>
-        <CardDescription>{t("campaigns.k_aca7f0")}</CardDescription>
+    <Card className="mb-6 shadow-sm border-muted">
+      <CardHeader className="py-4 border-b bg-muted/10">
+        <CardTitle className="text-lg font-semibold">{t("campaigns.contribute.form.title")}</CardTitle>
+        <CardDescription>{t("campaigns.contribute.form.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -84,11 +84,11 @@ export function CampaignContributionForm({
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_7993be")}</FormLabel>
+                                    <FormLabel>{t("campaigns.contribute.form.activity")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("campaigns.k_f1c840")} />
+                                          <SelectValue placeholder={t("campaigns.contribute.form.activityPlaceholder")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
@@ -109,16 +109,16 @@ export function CampaignContributionForm({
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_c7024f")}</FormLabel>
+                                    <FormLabel>{t("campaigns.contribute.form.contributorType")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("campaigns.k_1e7dac")} />
+                                          <SelectValue placeholder={t("campaigns.contribute.form.contributorTypePlaceholder")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="MEMBER">{t("campaigns.member_c6399c")}</SelectItem>
-                                        <SelectItem value="DONOR">{t("campaigns.non_member_donor_96a797")}</SelectItem>
+                                        <SelectItem value="MEMBER">{t("campaigns.contribute.form.typeMember")}</SelectItem>
+                                        <SelectItem value="DONOR">{t("campaigns.contribute.form.typeDonor")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -134,11 +134,11 @@ export function CampaignContributionForm({
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("campaigns.k_868b90")}</FormLabel>
+                                        <FormLabel>{t("campaigns.contribute.form.member")}</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value || ""}>
                                           <FormControl>
                                             <SelectTrigger>
-                                              <SelectValue placeholder={t("campaigns.k_ac0a3e")} />
+                                              <SelectValue placeholder={t("campaigns.contribute.form.memberPlaceholder")} />
                                             </SelectTrigger>
                                           </FormControl>
                                           <SelectContent>
@@ -154,16 +154,16 @@ export function CampaignContributionForm({
                 />
               ) : (
                 <div className="space-y-4 border p-4 rounded-md bg-muted/20">
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">{t("campaigns.non_member_23ba4d")}</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-2">{t("campaigns.contribute.form.nonMemberDetails")}</h4>
                   <FormField
                     control={form.control}
                     name="donorName"
                     render={({ field }) => {
                       return ((
                                           <FormItem>
-                                            <FormLabel>{t("campaigns.k_3e0517")}</FormLabel>
+                                            <FormLabel>{t("campaigns.contribute.form.donorName")}</FormLabel>
                                             <FormControl>
-                                              <Input placeholder={t("campaigns.k_2b0d66")} {...field} value={field.value || ""} />
+                                              <Input placeholder={t("campaigns.contribute.form.donorNamePlaceholder")} {...field} value={field.value || ""} />
                                             </FormControl>
                                             <FormMessage />
                                           </FormItem>
@@ -176,9 +176,9 @@ export function CampaignContributionForm({
                     render={({ field }) => {
                       return ((
                                           <FormItem>
-                                            <FormLabel>{t("campaigns.k_651920")}</FormLabel>
+                                            <FormLabel>{t("campaigns.contribute.form.donorMobile")}</FormLabel>
                                             <FormControl>
-                                              <Input placeholder={t("campaigns.xxxxxxxx_0bf2d6")} {...field} value={field.value || ""} />
+                                              <Input placeholder={t("campaigns.contribute.form.donorMobilePlaceholder")} {...field} value={field.value || ""} />
                                             </FormControl>
                                             <FormMessage />
                                           </FormItem>
@@ -191,9 +191,9 @@ export function CampaignContributionForm({
                     render={({ field }) => {
                       return ((
                                           <FormItem>
-                                            <FormLabel>{t("campaigns.k_a013d4")}</FormLabel>
+                                            <FormLabel>{t("campaigns.contribute.form.donorAddress")}</FormLabel>
                                             <FormControl>
-                                              <Input placeholder={t("campaigns.k_8bf609")} {...field} value={field.value || ""} />
+                                              <Input placeholder={t("campaigns.contribute.form.donorAddressPlaceholder")} {...field} value={field.value || ""} />
                                             </FormControl>
                                             <FormMessage />
                                           </FormItem>
@@ -209,7 +209,7 @@ export function CampaignContributionForm({
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_2ecc6c")}</FormLabel>
+                                    <FormLabel>{t("campaigns.contribute.form.amount")}</FormLabel>
                                     <FormControl>
                                       <Input type="number" {...field} value={field.value || ""} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
                                     </FormControl>
@@ -225,7 +225,7 @@ export function CampaignContributionForm({
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_388121")}</FormLabel>
+                                    <FormLabel>{t("campaigns.contribute.form.date")}</FormLabel>
                                     <FormControl>
                                       <Input type="date" {...field} />
                                     </FormControl>
@@ -241,9 +241,9 @@ export function CampaignContributionForm({
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("campaigns.k_550c03")}</FormLabel>
+                                    <FormLabel>{t("campaigns.contribute.form.remarks")}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder={t("campaigns.k_d44d54")} {...field} value={field.value || ""} />
+                                      <Input placeholder={t("campaigns.contribute.form.remarksPlaceholder")} {...field} value={field.value || ""} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -254,10 +254,10 @@ export function CampaignContributionForm({
 
             <div className="flex justify-end space-x-4 pt-6 border-t">
               <Button type="button" variant="outline" onClick={() => router.back()}>
-                {t("campaigns.k_c94621")}</Button>
+                {t("campaigns.contribute.form.cancel")}</Button>
               <Button type="submit" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {t("campaigns.k_f0d438")}</Button>
+                {t("campaigns.contribute.form.save")}</Button>
             </div>
           </form>
         </Form>

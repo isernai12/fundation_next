@@ -46,9 +46,9 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+            <h1 className="text-2xl font-bold tracking-tight"><Trans tKey="loans.table.actions.edit" /></h1>
             <p className="text-muted-foreground">
-              <Trans tKey="app.text" /></p>
+              <Trans tKey="loans.table.actions.edit" /></p>
           </div>
           <LoanForm beneficiaries={beneficiaries} groups={groups} initialData={initialData} initialDocuments={loan.documents} />
         </div>

@@ -32,10 +32,10 @@ export function GroupSelector() {
 
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium">{t("groups.select_group_d56696")}</span>
+      <span className="text-sm font-medium">{t("groups.selector.label")}</span>
       <Select value={currentGroupId} onValueChange={handleValueChange}>
         <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder={t("groups.select_a_group_993cfb")} />
+          <SelectValue placeholder={t("groups.selector.placeholder")} />
         </SelectTrigger>
         <SelectContent>
           {groups.map((g) => (

@@ -11,21 +11,24 @@ export default async function ManageGrantsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <Link href="/grants" className="hover:text-primary transition-colors">
-          <Trans tKey="app.text" /></Link>
+        <Link href="/dashboard" className="hover:text-primary transition-colors">
+          <Trans tKey="grants.manage.breadcrumb.finance" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
+        <Link href="/grants" className="hover:text-primary transition-colors">
+          <Trans tKey="grants.manage.breadcrumb.home" /></Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-foreground"><Trans tKey="grants.manage.breadcrumb.manage" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="grants.manage.pageTitle" /></h1>
           <p className="text-muted-foreground mt-1">
-            <Trans tKey="app.text" /></p>
+            <Trans tKey="grants.manage.subtitle" /></p>
         </div>
         <Button asChild>
           <Link href="/grants/new">
-            <Plus className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
+            <Plus className="mr-2 h-4 w-4" /> <Trans tKey="grants.manage.newBtn" /></Link>
         </Button>
       </div>
 

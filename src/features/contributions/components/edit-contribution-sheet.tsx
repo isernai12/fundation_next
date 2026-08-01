@@ -74,10 +74,10 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
     setIsSubmitting(false)
 
     if (result.success) {
-      toast.success(t("contributions.success_505a83"), { description: "Contribution updated successfully" })
+      toast.success(t("contributions.edit.success"))
       onClose()
     } else {
-      toast.error(t("contributions.error_902b0d"), { description: result.error })
+      toast.error(result.error || t("contributions.form.errorMessage"))
     }
   }
 
@@ -85,9 +85,9 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{t("contributions.edit_contribution_bfb6c5")}</SheetTitle>
+          <SheetTitle>{t("contributions.edit.title")}</SheetTitle>
           <SheetDescription>
-            {t("contributions.update_the_contribut_157ded")}</SheetDescription>
+            {t("contributions.edit.description")}</SheetDescription>
         </SheetHeader>
 
         <Form {...form}>
@@ -98,17 +98,17 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("contributions.status_ec53a8")}</FormLabel>
+                                <FormLabel>{t("contributions.form.status")}</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t("contributions.select_status_9aadb0")} />
+                                      <SelectValue placeholder={t("contributions.form.statusPlaceholder")} />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
                                     {["PENDING", "PAID", "CANCELLED"].map((status) => (
-                                      <SelectItem key={status} value={status}>
-                                        {status}
+                                      <SelectItem key={status === "PAID" ? t("contributions.form.statuses.paid") : status === "PENDING" ? t("contributions.form.statuses.pending") : t("contributions.form.statuses.cancelled")} value={status === "PAID" ? t("contributions.form.statuses.paid") : status === "PENDING" ? t("contributions.form.statuses.pending") : t("contributions.form.statuses.cancelled")}>
+                                        {status === "PAID" ? t("contributions.form.statuses.paid") : status === "PENDING" ? t("contributions.form.statuses.pending") : t("contributions.form.statuses.cancelled")}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -126,7 +126,7 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.amount_31ee20")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.amount")}</FormLabel>
                                     <FormControl>
                                       <Input type="number" {...field} value={field.value ?? ""} onChange={(e) => { const v = parseInt(e.target.value); field.onChange(isNaN(v) ? "" : v); }} />
                                     </FormControl>
@@ -141,7 +141,7 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("contributions.payment_date_31738c")}</FormLabel>
+                                    <FormLabel>{t("contributions.form.paymentDate")}</FormLabel>
                                     <FormControl>
                                       <Input type="date" {...field} />
                                     </FormControl>
@@ -158,18 +158,18 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("contributions.payment_method_707436")}</FormLabel>
+                                <FormLabel>{t("contributions.form.paymentMethod")}</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t("contributions.select_payment_metho_7768d9")} />
+                                      <SelectValue placeholder={t("contributions.form.paymentMethodPlaceholder")} />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="CASH">{t("contributions.cash_069b30")}</SelectItem>
-                                    <SelectItem value="BKASH">{t("contributions.bkash_bb9796")}</SelectItem>
-                                    <SelectItem value="NAGAD">{t("contributions.nagad_fea32f")}</SelectItem>
-                                    <SelectItem value="BANK">{t("contributions.bank_transfer_3726d2")}</SelectItem>
+                                    <SelectItem value="CASH">{t("contributions.form.methods.cash")}</SelectItem>
+                                    <SelectItem value="BKASH">{t("contributions.form.methods.bkash")}</SelectItem>
+                                    <SelectItem value="NAGAD">{t("contributions.form.methods.nagad")}</SelectItem>
+                                    <SelectItem value="BANK">{t("contributions.form.methods.bank")}</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -184,9 +184,9 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("contributions.reference_number_opt_5157c0")}</FormLabel>
+                                <FormLabel>{t("contributions.form.reference")}</FormLabel>
                                 <FormControl>
-                                  <Input {...field} placeholder={t("contributions.trxid_or_receipt_num_aafb14")} />
+                                  <Input {...field} placeholder={t("contributions.form.referencePlaceholder")} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -200,9 +200,9 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("contributions.remarks_notes_58e223")}</FormLabel>
+                                <FormLabel>{t("contributions.form.notes")}</FormLabel>
                                 <FormControl>
-                                  <Textarea {...field} placeholder={t("contributions.any_additional_notes_65a3f7")} />
+                                  <Textarea {...field} placeholder={t("contributions.form.notesPlaceholder")} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -212,9 +212,9 @@ export function EditContributionSheet({ isOpen, onClose, contribution }: EditCon
 
             <div className="pt-4 flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={onClose}>
-                {t("contributions.cancel_ea4788")}</Button>
+                {t("contributions.form.cancel")}</Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Changes"}
+                {isSubmitting ? t("contributions.form.saving") : t("contributions.form.save")}
               </Button>
             </div>
           </form>

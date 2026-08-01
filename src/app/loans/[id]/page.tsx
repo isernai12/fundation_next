@@ -49,7 +49,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight"><Trans tKey="app.loan_details" /></h1>
+          <h1 className="text-2xl font-bold tracking-tight"><Trans tKey="loans.table.actions.view" /></h1>
         </div>
         <div className="flex items-center gap-2">
           <LoanProfileActions loan={loan} outstanding={loan.remainingBalance} />
@@ -59,25 +59,25 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle><Trans tKey="app.general_info" /></CardTitle>
+            <CardTitle><Trans tKey="loans.form.steps.loanInfo" /></CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <table className="w-full text-sm">
                 <tbody>
-                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 font-medium">{loan.loanNumber}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 font-bold text-lg">৳{loan.amount}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.status" /></td>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.loanNo" /></td><td className="py-2 font-medium">{loan.loanNumber}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.amount" /></td><td className="py-2 font-bold text-lg">৳{loan.amount}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.status" /></td>
                     <td className="py-2">
                       <Badge variant={loan.status === "ACTIVE" ? "default" : loan.status === "COMPLETED" ? "secondary" : "destructive"}>
                         {loan.status}
                       </Badge>
                     </td>
                   </tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{formatDate(loan.requestedDate)}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.disbursedDate ? formatDate(loan.disbursedDate) : 'N/A'}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.loanType === "BUSINESS" ? `ব্যবসা (${loan.businessType})` : "অন্যান্য"}</td></tr>
-                  <tr><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.purpose}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.form.applicationDate" /></td><td className="py-2">{formatDate(loan.requestedDate)}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.form.disbursementDate" /></td><td className="py-2">{loan.disbursedDate ? formatDate(loan.disbursedDate) : "N/A"}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td><td className="py-2">{loan.loanType === "BUSINESS" ? `ব্যবসা (${loan.businessType})` : "অন্যান্য"}</td></tr>
+                  <tr><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.form.purpose" /></td><td className="py-2">{loan.purpose}</td></tr>
                 </tbody>
               </table>
             </div>
@@ -86,15 +86,15 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
 
         <Card>
           <CardHeader>
-            <CardTitle><Trans tKey="app.due_info" /></CardTitle>
+            <CardTitle><Trans tKey="loans.table.columns.due" /></CardTitle>
           </CardHeader>
           <CardContent>
              <table className="w-full text-sm">
                 <tbody>
-                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2 text-green-600 font-bold">৳{loan.totalPaidAmount}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.remaining" /></td><td className="py-2 text-red-600 font-bold">৳{loan.remainingBalance}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.next_due" /></td><td className="py-2">{loan.nextDueDate ? formatDate(loan.nextDueDate) : '-'}</td></tr>
-                  <tr><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="loans.manage.totalRecovered" /></td><td className="py-2 text-green-600 font-bold">৳{loan.totalPaidAmount}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.balance" /></td><td className="py-2 text-red-600 font-bold">৳{loan.remainingBalance}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.form.firstInstallmentDate" /></td><td className="py-2">{loan.nextDueDate ? formatDate(loan.nextDueDate) : '-'}</td></tr>
+                  <tr><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td>
                     <td className="py-2">
                       <Badge variant={dueStatus === "Due Today" ? "default" : dueStatus === "Overdue" ? "destructive" : dueStatus === "Completed" ? "secondary" : "outline"}>
                         {dueStatus}
@@ -108,18 +108,18 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
 
         <Card>
           <CardHeader>
-            <CardTitle><Trans tKey="app.beneficiary" /></CardTitle>
+            <CardTitle><Trans tKey="loans.table.columns.beneficiary" /></CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <table className="w-full text-sm">
                 <tbody>
-                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.beneficiary?.beneficiaryId || '-'}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.beneficiary?.phone || '-'}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.beneficiary?.nationalId || '-'}</td></tr>
-                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.beneficiary?.address || '-'}</td></tr>
-                  <tr><td className="py-2 text-muted-foreground font-medium"><Trans tKey="app.text" /></td><td className="py-2">{loan.beneficiary?.occupation || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium">Text</td><td className="py-2">{loan.beneficiary?.fullName || 'নাম পাওয়া যায়নি'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td><td className="py-2">{loan.beneficiary?.beneficiaryId || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td><td className="py-2">{loan.beneficiary?.phone || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td><td className="py-2">{loan.beneficiary?.nationalId || '-'}</td></tr>
+                  <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td><td className="py-2">{loan.beneficiary?.address || '-'}</td></tr>
+                  <tr><td className="py-2 text-muted-foreground font-medium"><Trans tKey="loans.table.columns.due" /></td><td className="py-2">{loan.beneficiary?.occupation || '-'}</td></tr>
                 </tbody>
               </table>
             </div>
@@ -129,7 +129,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
         {loan.allocations && loan.allocations.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle><Trans tKey="app.funding_source" /></CardTitle>
+              <CardTitle><Trans tKey="loans.form.fundingSource" /></CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
@@ -147,23 +147,23 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
 
       <Card id="history">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle><Trans tKey="app.payment_history" /></CardTitle>
+          <CardTitle><Trans tKey="loans.manage.totalRecovered" /></CardTitle>
           <Button variant="outline" size="sm" asChild>
             <Link href={`/loans/ledger?loanId=${loan.id}`}>
-              <FileText className="mr-2 h-4 w-4" /> <Trans tKey="app.ledger" /></Link>
+              <FileText className="mr-2 h-4 w-4" /> <Trans tKey="loans.table.actions.ledger" /></Link>
           </Button>
         </CardHeader>
         <CardContent>
           {loan.repayments.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground text-sm">
-              <Trans tKey="app.text" /></div>
+              Text</div>
           ) : (
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className="border-b text-muted-foreground">
-                  <th className="pb-2 font-medium"><Trans tKey="app.text" /></th>
-                  <th className="pb-2 font-medium"><Trans tKey="app.text" /></th>
-                  <th className="pb-2 font-medium text-right"><Trans tKey="app.text" /></th>
+                  <th className="pb-2 font-medium">Text</th>
+                  <th className="pb-2 font-medium">Text</th>
+                  <th className="pb-2 font-medium text-right">Text</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,7 +171,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
                   <tr key={r.id} className="border-b last:border-0">
                     <td className="py-3">{formatDate(r.date)}</td>
                     <td className="py-3 text-muted-foreground text-xs">{r.ledgerTransactionId}</td>
-                    <td className="py-3 text-right font-medium text-green-600"><Trans tKey="app.text" />{r.amount}</td>
+                    <td className="py-3 text-right font-medium text-green-600">Text{r.amount}</td>
                   </tr>
                 ))}
               </tbody>

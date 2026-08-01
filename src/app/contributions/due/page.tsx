@@ -35,16 +35,16 @@ export default async function DueContributionsPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/contributions" className="hover:text-primary transition-colors">
-          <Trans tKey="app.text" /></Link>
+          <Trans tKey="contributions.due.breadcrumb.home" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
+        <span className="font-medium text-foreground"><Trans tKey="contributions.due.breadcrumb.due" /></span>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="contributions.due.pageTitle" /></h1>
           <p className="text-muted-foreground text-sm mt-1">
-            <Trans tKey="app.text" />{formatMonth(getNow().getMonth())} {currentYear} <Trans tKey="app.text" /></p>
+            <Trans tKey="contributions.due.subtitle" /> {formatMonth(getNow().getMonth())} {currentYear}</p>
         </div>
       </div>
 
@@ -52,11 +52,11 @@ export default async function DueContributionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="contributions.due.columns.member" /></TableHead>
+              <TableHead><Trans tKey="contributions.due.columns.group" /></TableHead>
+              <TableHead><Trans tKey="contributions.due.columns.status" /></TableHead>
+              <TableHead><Trans tKey="contributions.due.columns.period" /></TableHead>
+              <TableHead><Trans tKey="contributions.due.columns.actions" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -67,19 +67,19 @@ export default async function DueContributionsPage() {
                   <TableCell>{member.group?.name || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="destructive" className="flex w-fit items-center gap-1">
-                      <AlertCircle className="h-3 w-3" /> <Trans tKey="app.text" /></Badge>
+                      <AlertCircle className="h-3 w-3" /> <Trans tKey="contributions.due.unpaid" /></Badge>
                   </TableCell>
-                  <TableCell><Trans tKey="app.text" /></TableCell>
+                  <TableCell>{formatMonth(currentMonth - 1)} {currentYear}</TableCell>
                   <TableCell>
                     <Link href={`/contributions/new?memberId=${member.id}`} className="text-primary hover:underline text-sm font-medium">
-                      <Trans tKey="app.text" /></Link>
+                      <Trans tKey="contributions.due.receiveAction" /></Link>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  <Trans tKey="app.text" /></TableCell>
+                  <Trans tKey="contributions.due.empty" /></TableCell>
               </TableRow>
             )}
           </TableBody>

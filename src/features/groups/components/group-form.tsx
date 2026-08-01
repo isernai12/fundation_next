@@ -52,7 +52,7 @@ export function GroupForm() {
     setIsSubmitting(false)
 
     if (res.success) {
-      toast.success(t("groups.k_3e63a1"))
+      toast.success(t("groups.form.success"))
       router.push("/groups/manage")
     } else {
       toast.error(res.error)
@@ -62,15 +62,15 @@ export function GroupForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("groups.k_2479a4")}</CardTitle>
-        <CardDescription>{t("groups.k_b6747d")}</CardDescription>
+        <CardTitle>{t("groups.form.sections.groupInfo")}</CardTitle>
+        <CardDescription>{t("groups.new.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">{t("groups.k_580a9a")}</h3>
+              <h3 className="text-lg font-medium">{t("groups.form.sections.basicInfo")}</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -78,9 +78,9 @@ export function GroupForm() {
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("groups.k_a29d6e")}<span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>{t("groups.form.groupName")}<span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
-                                          <Input placeholder={t("groups.k_2a9c32")} {...field} />
+                                          <Input placeholder={t("groups.form.placeholders.groupName")} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -93,9 +93,9 @@ export function GroupForm() {
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("groups.k_d4410d")}<span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>{t("groups.form.groupCode")}<span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
-                                          <Input placeholder={t("groups.g_001_1f0e19")} {...field} />
+                                          <Input placeholder={"G-001"} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -108,9 +108,9 @@ export function GroupForm() {
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("groups.k_76f621")}</FormLabel>
+                                        <FormLabel>{t("groups.form.shortName")}</FormLabel>
                                         <FormControl>
-                                          <Input placeholder={t("groups.k_bd91e4")} {...field} />
+                                          <Input placeholder={""} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -123,16 +123,16 @@ export function GroupForm() {
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("groups.k_8dd4e8")}</FormLabel>
+                                        <FormLabel>{t("groups.form.status")}</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                           <FormControl>
                                             <SelectTrigger>
-                                              <SelectValue placeholder={t("groups.k_7b7e50")} />
+                                              <SelectValue placeholder={"Select Status"} />
                                             </SelectTrigger>
                                           </FormControl>
                                           <SelectContent>
-                                            <SelectItem value="ACTIVE">{t("groups.k_7effec")}</SelectItem>
-                                            <SelectItem value="INACTIVE">{t("groups.k_85b224")}</SelectItem>
+                                            <SelectItem value="ACTIVE">{t("groups.table.status.active")}</SelectItem>
+                                            <SelectItem value="INACTIVE">{t("groups.table.status.inactive")}</SelectItem>
                                           </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -147,9 +147,9 @@ export function GroupForm() {
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("groups.k_87daaf")}</FormLabel>
+                                    <FormLabel>{t("groups.form.description")}</FormLabel>
                                     <FormControl>
-                                      <Textarea placeholder={t("groups.k_6bd2b3")} {...field} />
+                                      <Textarea placeholder={t("groups.form.placeholders.description")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -159,7 +159,7 @@ export function GroupForm() {
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">{t("groups.k_b7841d")}</h3>
+              <h3 className="text-lg font-medium">{t("groups.form.sections.financialInfo")}</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -167,7 +167,7 @@ export function GroupForm() {
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("groups.k_fa7733")}</FormLabel>
+                                        <FormLabel>{t("groups.form.currentFund")}</FormLabel>
                                         <FormControl>
                                           <Input type="number" min="0" placeholder="0" {...field} />
                                         </FormControl>
@@ -180,16 +180,16 @@ export function GroupForm() {
             </div>
 
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">{t("groups.k_8f019f")}</h3>
+              <h3 className="text-lg font-medium">{t("groups.form.sections.additionalInfo")}</h3>
               <FormField
                 control={form.control}
                 name="remarks"
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("groups.k_550c03")}</FormLabel>
+                                    <FormLabel>{t("groups.form.remarks")}</FormLabel>
                                     <FormControl>
-                                      <Textarea placeholder={t("groups.k_817fc2")} {...field} />
+                                      <Textarea placeholder={t("groups.form.placeholders.remarks")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -200,9 +200,9 @@ export function GroupForm() {
 
             <div className="flex justify-end space-x-4 pt-6">
               <Button variant="outline" type="button" onClick={() => router.push("/groups/manage")}>
-                {t("groups.k_de9b04")}</Button>
+                {t("groups.form.cancel")}</Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "সংরক্ষণ করা হচ্ছে..." : "গ্রুপ সংরক্ষণ করুন"}
+                {isSubmitting ? t("groups.form.saving") : t("groups.form.save")}
               </Button>
             </div>
           </form>

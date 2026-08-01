@@ -8,15 +8,15 @@ export default function NewCampaignPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/campaigns/manage" className="hover:text-primary transition-colors">
-          <Trans tKey="app.text" /></Link>
+          <Trans tKey="campaigns.new.breadcrumb.manage" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
+        <span className="font-medium text-foreground"><Trans tKey="campaigns.new.breadcrumb.new" /></span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
-          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="campaigns.new.pageTitle" /></h1>
+          <p className="text-muted-foreground"><Trans tKey="campaigns.new.subtitle" /></p>
         </div>
       </div>
 

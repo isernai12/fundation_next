@@ -28,19 +28,19 @@ export default async function ManageCampaignsPage() {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <Link href="/campaigns/manage" className="hover:text-primary transition-colors">
-          <Trans tKey="app.text" /></Link>
+          <Trans tKey="campaigns.manage.breadcrumb.home" /></Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground"><Trans tKey="app.text" /></span>
+        <span className="font-medium text-foreground"><Trans tKey="campaigns.manage.breadcrumb.manage" /></span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="app.text" /></h1>
-          <p className="text-muted-foreground"><Trans tKey="app.text" /></p>
+          <h1 className="text-3xl font-bold tracking-tight"><Trans tKey="campaigns.manage.pageTitle" /></h1>
+          <p className="text-muted-foreground"><Trans tKey="campaigns.manage.subtitle" /></p>
         </div>
         <Link href="/campaigns/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Button>
+            <Plus className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.newActivity" /></Button>
         </Link>
       </div>
 
@@ -48,12 +48,12 @@ export default async function ManageCampaignsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead><Trans tKey="app.text" /></TableHead>
-              <TableHead className="text-right"><Trans tKey="app.text" /></TableHead>
+              <TableHead><Trans tKey="campaigns.manage.table.name" /></TableHead>
+              <TableHead><Trans tKey="campaigns.manage.table.purpose" /></TableHead>
+              <TableHead><Trans tKey="campaigns.manage.table.targetAmount" /></TableHead>
+              <TableHead><Trans tKey="campaigns.manage.table.collectedAmount" /></TableHead>
+              <TableHead><Trans tKey="campaigns.manage.table.status" /></TableHead>
+              <TableHead className="text-right"><Trans tKey="campaigns.manage.table.actions" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -65,11 +65,11 @@ export default async function ManageCampaignsPage() {
                   <TableRow key={campaign.id}>
                     <TableCell className="font-medium">{campaign.name}</TableCell>
                     <TableCell>{campaign.purpose}</TableCell>
-                    <TableCell>{campaign.targetAmount ? `৳${campaign.targetAmount}` : 'অনির্ধারিত'}</TableCell>
+                    <TableCell>{campaign.targetAmount ? `৳${campaign.targetAmount}` : <Trans tKey="campaigns.manage.table.notSet" />}</TableCell>
                     <TableCell>৳{totalCollected}</TableCell>
                     <TableCell>
                       <Badge variant={campaign.status === "ACTIVE" ? "default" : "secondary"}>
-                        {campaign.status === "ACTIVE" ? "চলমান" : campaign.status === "COMPLETED" ? "সম্পন্ন" : "বাতিল"}
+                        {campaign.status === "ACTIVE" ? <Trans tKey="campaigns.manage.status.active" /> : campaign.status === "COMPLETED" ? <Trans tKey="campaigns.manage.status.completed" /> : <Trans tKey="campaigns.manage.status.cancelled" />}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -81,31 +81,31 @@ export default async function ManageCampaignsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel><Trans tKey="app.text" /></DropdownMenuLabel>
+                          <DropdownMenuLabel><Trans tKey="campaigns.manage.actions.menu" /></DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/${campaign.id}`}>
-                              <Eye className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
+                              <Eye className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.view" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/${campaign.id}/edit`}>
-                              <Edit className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
+                              <Edit className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.edit" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/ledger?campaignId=${campaign.id}`}>
-                              <FileText className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
+                              <FileText className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.ledger" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={`/campaigns/${campaign.id}/transactions`}>
-                              <History className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></Link>
+                              <History className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.transactions" /></Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem className="cursor-pointer">
-                            <Printer className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></DropdownMenuItem>
+                            <Printer className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.print" /></DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="cursor-pointer">
-                            <CheckCircle className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></DropdownMenuItem>
+                            <CheckCircle className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.complete" /></DropdownMenuItem>
                           <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                            <Trash className="mr-2 h-4 w-4" /> <Trans tKey="app.text" /></DropdownMenuItem>
+                            <Trash className="mr-2 h-4 w-4" /> <Trans tKey="campaigns.manage.actions.delete" /></DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -115,7 +115,7 @@ export default async function ManageCampaignsPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  <Trans tKey="app.text" /></TableCell>
+                  <Trans tKey="campaigns.manage.table.empty" /></TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -96,13 +96,13 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
   }
 
   const handleDeleteExistingDoc = async (docId: string) => {
-    if (confirm("আপনি কি নিশ্চিত যে এই ডকুমেন্টটি মুছে ফেলতে চান?")) {
+    if (confirm(t("loans.form.confirmDelete"))) {
       const res = await deleteDocumentById(docId)
       if (res.success) {
-        toast.success(t("loans.k_f96d37"))
+        toast.success(t("loans.form.guarantorAddress"))
         setExistingDocs(prev => prev.filter(d => d.id !== docId))
       } else {
-        toast.error("ডকুমেন্ট মুছতে ব্যর্থ হয়েছে: " + res.error)
+        toast.error(t("loans.form.docDeleteFailed") + res.error)
       }
     }
   }
@@ -124,7 +124,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
       const currentLoanId = isEditMode ? initialData?.id : (result.success && 'data' in result && result.data && typeof result.data === 'object' && 'id' in result.data ? String(result.data.id) : undefined)
 
       if (currentLoanId && pendingFiles.length > 0) {
-        toast.info(t("loans.k_c49823"))
+        toast.info(t("loans.form.summary"))
         let uploadErrors = 0
         for (const file of pendingFiles) {
           const formData = new FormData()
@@ -142,7 +142,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         }
       }
 
-      toast.success(isEditMode ? "ঋণ সফলভাবে সংশোধন করা হয়েছে!" : "নতুন ঋণ সফলভাবে তৈরি করা হয়েছে!")
+      toast.success(isEditMode ? t("loans.form.updateSuccess") : t("loans.form.success"))
       if (currentLoanId) {
         router.push(`/loans/${currentLoanId}`)
       } else {
@@ -161,8 +161,8 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ১. সুবিধাভোগী নির্বাচন */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("loans.k_a183b1")}</CardTitle>
-            <CardDescription>{t("loans.k_7e46f0")}</CardDescription>
+            <CardTitle>{t("loans.form.steps.beneficiarySelection")}</CardTitle>
+            <CardDescription>{t("loans.form.summaryDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -171,7 +171,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("loans.k_1a8a5d")}</FormLabel>
+                                <FormLabel>{t("loans.form.selectPurpose")}</FormLabel>
                                 <FormControl>
                                   <MemberCombobox
                                     members={beneficiaries}
@@ -186,9 +186,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
             />
             {selectedBeneficiary && (
               <div className="bg-muted p-4 rounded-md space-y-2">
-                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.k_9d4717")}</span> <span>{selectedBeneficiary.fullName}</span></div>
-                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.k_9c72ba")}</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
-                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.k_1a1f1e")}</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">""</span> <span>{selectedBeneficiary.fullName}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.form.saving")}</span> <span>{selectedBeneficiary.beneficiaryId || "-"}</span></div>
+                <div className="flex gap-2"><span className="font-semibold w-32">{t("loans.form.beneficiary")}</span> <span>{selectedBeneficiary.phone || "-"}</span></div>
               </div>
             )}
           </CardContent>
@@ -197,8 +197,8 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ২. ঋণের তথ্য */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("loans.k_7f3e49")}</CardTitle>
-            <CardDescription>{t("loans.k_df8f89")}</CardDescription>
+            <CardTitle>{t("loans.form.steps.loanInfo")}</CardTitle>
+            <CardDescription>{t("loans.form.summaryDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <FormField
@@ -207,7 +207,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               render={({ field }) => {
                 return ((
                               <FormItem className="space-y-3">
-                                <FormLabel>{t("loans.k_5d5310")}</FormLabel>
+                                <FormLabel>""</FormLabel>
                                 <FormControl>
                                   <RadioGroup
                                     onValueChange={field.onChange}
@@ -218,13 +218,13 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                                       <FormControl>
                                         <RadioGroupItem value="BUSINESS" />
                                       </FormControl>
-                                      <FormLabel className="font-normal">{t("loans.k_dc2a97")}</FormLabel>
+                                      <FormLabel className="font-normal">""</FormLabel>
                                     </FormItem>
                                     <FormItem className="flex items-center space-x-3 space-y-0">
                                       <FormControl>
                                         <RadioGroupItem value="OTHER" />
                                       </FormControl>
-                                      <FormLabel className="font-normal">{t("loans.k_8f019f")}</FormLabel>
+                                      <FormLabel className="font-normal">""</FormLabel>
                                     </FormItem>
                                   </RadioGroup>
                                 </FormControl>
@@ -243,9 +243,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                     render={({ field }) => {
                       return ((
                                           <FormItem>
-                                            <FormLabel>{t("loans.k_6eeab3")}</FormLabel>
+                                            <FormLabel>{t("loans.form.guarantorName")}</FormLabel>
                                             <FormControl>
-                                              <Input {...field} placeholder={t("loans.k_8e9437")} />
+                                              <Input {...field} placeholder={t("loans.form.save")} />
                                             </FormControl>
                                             <FormMessage />
                                           </FormItem>
@@ -258,9 +258,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                     render={({ field }) => {
                       return ((
                                           <FormItem>
-                                            <FormLabel>{t("loans.k_ee6e42")}</FormLabel>
+                                            <FormLabel>{t("loans.form.guarantorPhone")}</FormLabel>
                                             <FormControl>
-                                              <Input {...field} placeholder={t("loans.k_1f9448")} />
+                                              <Input {...field} placeholder={"01XXXXXXXXX"} />
                                             </FormControl>
                                             <FormMessage />
                                           </FormItem>
@@ -277,9 +277,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                   render={({ field }) => {
                     return ((
                                       <FormItem>
-                                        <FormLabel>{t("loans.reason_c172f0")}</FormLabel>
+                                        <FormLabel>{t("loans.form.reason")}</FormLabel>
                                         <FormControl>
-                                          <Input {...field} placeholder={t("loans.k_0c115b")} />
+                                          <Input {...field} placeholder={t("loans.form.reasonPlaceholder")} />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -294,7 +294,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("loans.k_791764")}</FormLabel>
+                                    <FormLabel>{t("loans.form.purpose")}</FormLabel>
                                     <FormControl>
                                       <Input
                                         type="number"
@@ -318,18 +318,18 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("loans.k_917edc")}</FormLabel>
+                                    <FormLabel>{t("loans.form.installmentType")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder={t("loans.k_426577")} />
+                                          <SelectValue placeholder={t("loans.form.installmentType")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
-                                        <SelectItem value="DAILY">{t("loans.k_0e4836")}</SelectItem>
-                                        <SelectItem value="WEEKLY">{t("loans.k_d4f34e")}</SelectItem>
-                                        <SelectItem value="MONTHLY">{t("loans.k_1788bf")}</SelectItem>
-                                        <SelectItem value="CUSTOM">{t("loans.k_db09fd")}</SelectItem>
+                                        <SelectItem value="DAILY">{t("loans.form.types.daily")}</SelectItem>
+                                        <SelectItem value="WEEKLY">{t("loans.form.types.weekly")}</SelectItem>
+                                        <SelectItem value="MONTHLY">{t("loans.form.types.monthly")}</SelectItem>
+                                        <SelectItem value="CUSTOM">{t("loans.form.types.custom")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -344,7 +344,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("loans.k_91c500")}</FormLabel>
+                                    <FormLabel>{t("loans.form.installmentAmount")}</FormLabel>
                                     <FormControl>
                                       <Input
                                         type="number"
@@ -365,7 +365,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("loans.k_8befe3")}</FormLabel>
+                                    <FormLabel>{t("loans.form.amount")}</FormLabel>
                                     <FormControl>
                                       <Input
                                         type="number"
@@ -386,7 +386,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                 render={({ field }) => {
                   return ((
                                   <FormItem>
-                                    <FormLabel>{t("loans.k_7b319f")}</FormLabel>
+                                    <FormLabel>{t("loans.form.numberOfInstallments")}</FormLabel>
                                     <FormControl>
                                       <Input
                                         type="date"
@@ -408,9 +408,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               render={({ field }) => {
                 return ((
                               <FormItem>
-                                <FormLabel>{t("loans.k_d44d54")}</FormLabel>
+                                <FormLabel>{t("loans.form.remarks")}</FormLabel>
                                 <FormControl>
-                                  <Textarea {...field} placeholder={t("loans.k_5e1208")} />
+                                  <Textarea {...field} placeholder={t("loans.form.remarksPlaceholder")} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -423,8 +423,8 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ৪. ঋণের অর্থের উৎস */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("loans.funding_source_a41336")}</CardTitle>
-            <CardDescription>{t("loans.k_d6e037")}</CardDescription>
+            <CardTitle>{t("loans.form.fundingSource")}</CardTitle>
+            <CardDescription>{t("loans.form.selectFundingSource")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <FormField
@@ -448,9 +448,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                                   />
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
-                                  <FormLabel>{t("loans.k_d662de")}</FormLabel>
+                                  <FormLabel>{t("loans.form.guarantors")}</FormLabel>
                                   <p className="text-sm text-muted-foreground">
-                                    {t("loans.k_684437")}</p>
+                                    {t("loans.form.guarantorsDesc")}</p>
                                 </div>
                               </FormItem>
                             ));
@@ -474,11 +474,11 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                         render={({ field: selectField }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel>{t("loans.group_d4d811")}</FormLabel>
+                                                    <FormLabel>{t("loans.form.group")}</FormLabel>
                                                     <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
                                                       <FormControl>
                                                         <SelectTrigger>
-                                                          <SelectValue placeholder={t("loans.k_0a2922")} />
+                                                          <SelectValue placeholder={t("loans.form.selectFundingSource")} />
                                                         </SelectTrigger>
                                                       </FormControl>
                                                       <SelectContent>
@@ -494,8 +494,8 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                       />
                       {group && (
                         <div className="flex justify-between text-sm bg-muted p-2 rounded">
-                          <div><span className="text-muted-foreground">{t("loans.available_balance_01cdd5")}</span> ৳{currentBalance}</div>
-                          <div><span className="text-muted-foreground">{t("loans.remaining_after_loan_fcbbfd")}</span> <span className={remaining < 0 ? "text-red-500 font-bold" : "text-green-600 font-bold"}>৳{remaining}</span></div>
+                          <div><span className="text-muted-foreground">{t("loans.form.availableBalance")}</span> ৳{currentBalance}</div>
+                          <div><span className="text-muted-foreground">{t("loans.form.remainingAfterLoan")}</span> <span className={remaining < 0 ? "text-red-500 font-bold" : "text-green-600 font-bold"}>৳{remaining}</span></div>
                         </div>
                       )}
                     </div>
@@ -506,7 +506,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                         render={({ field: inputField }) => {
                           return ((
                                                   <FormItem>
-                                                    <FormLabel>{t("loans.k_173a9f")}</FormLabel>
+                                                    <FormLabel>{t("loans.form.guarantorRelation")}</FormLabel>
                                                     <FormControl>
                                                       <Input
                                                         type="number"
@@ -537,7 +537,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
               })}
               {form.watch("isMultiGroup") && (
                 <Button type="button" variant="outline" onClick={() => append({ groupId: "", amount: 0 })}>
-                  {t("loans.k_224764")}</Button>
+                  {t("loans.form.addGuarantor")}</Button>
               )}
               {form.formState.errors.fundAllocations?.root?.message && (
                 <p className="text-sm font-medium text-destructive">{form.formState.errors.fundAllocations.root.message}</p>
@@ -549,13 +549,13 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
         {/* ৫. ডকুমেন্ট (ঐচ্ছিক) */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("loans.k_550a27")}</CardTitle>
-            <CardDescription>{t("loans.pdf_jpg_png_7d9e99")}</CardDescription>
+            <CardTitle>{t("loans.form.documents")}</CardTitle>
+            <CardDescription>{t("loans.form.documentsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {existingDocs.length > 0 && (
               <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium">{t("loans.k_63988f")}</h4>
+                <h4 className="text-sm font-medium">{t("loans.form.existingDocs")}</h4>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {existingDocs.map((doc) => {
                     return ((
@@ -582,10 +582,10 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                                           <div className="flex space-x-2 pt-2 border-t">
                                             <Button type="button" variant="outline" size="sm" className="w-full" asChild>
                                               <a href={doc.secureUrl} target="_blank" rel="noreferrer">
-                                                <Eye className="mr-2 h-4 w-4" /> {t("loans.k_cb4158")}</a>
+                                                <Eye className="mr-2 h-4 w-4" /> {"View"}</a>
                                             </Button>
                                             <Button type="button" variant="destructive" size="sm" className="w-full" onClick={() => handleDeleteExistingDoc(doc.id)}>
-                                              <Trash2 className="mr-2 h-4 w-4" /> {t("loans.k_047838")}</Button>
+                                              <Trash2 className="mr-2 h-4 w-4" /> {t("loans.form.removeDocument")}</Button>
                                           </div>
                                         </CardContent>
                                       </Card>
@@ -597,7 +597,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
 
             {pendingFiles.length > 0 && (
               <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-medium">{t("loans.k_4474d3")}</h4>
+                <h4 className="text-sm font-medium">{t("loans.form.newDocs")}</h4>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {pendingFiles.map((file, idx) => {
                     const isImage = file.type.startsWith("image/")
@@ -627,10 +627,10 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                           <div className="flex space-x-2 pt-2 border-t">
                             {previewUrl && (
                               <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => window.open(previewUrl, "_blank")}>
-                                <Eye className="mr-2 h-4 w-4" /> {t("loans.k_cb4158")}</Button>
+                                <Eye className="mr-2 h-4 w-4" /> {"View"}</Button>
                             )}
                             <Button type="button" variant="destructive" size="sm" className={previewUrl ? "w-full" : "w-full"} onClick={() => removePendingFile(idx)}>
-                              <Trash2 className="mr-2 h-4 w-4" /> {t("loans.k_047838")}</Button>
+                              <Trash2 className="mr-2 h-4 w-4" /> {t("loans.form.removeDocument")}</Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -643,8 +643,8 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
             <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/30 transition-colors"
                  onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-10 w-10 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">{t("loans.k_97d873")}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t("loans.pdf_jpg_png_webp_mb_e8adfb")}</p>
+              <p className="text-sm font-medium">{t("loans.form.uploadDocument")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("loans.form.fileTypes")}</p>
               <input 
                 type="file" 
                 multiple 
@@ -659,9 +659,9 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
-            {t("loans.k_c94621")}</Button>
+            {t("loans.form.cancel")}</Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "প্রসেসিং..." : (isEditMode ? "সংরক্ষণ করুন" : "ঋণ আবেদন করুন")}
+            {isLoading ? t("loans.form.processing") : (isEditMode ? t("loans.form.updateBtn") : t("loans.form.submitBtn"))}
           </Button>
         </div>
       </form>
