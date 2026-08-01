@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { format } from "date-fns"
+import { PublicHeader } from "@/components/public-header"
 
 export default function MemberRequestStatusPage() {
   const { t } = useLanguage()
@@ -74,7 +75,8 @@ export default function MemberRequestStatusPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 pt-20">
+      <PublicHeader />
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl text-center">{t("member-requests.status.title")}</CardTitle>
@@ -102,7 +104,7 @@ export default function MemberRequestStatusPage() {
           )}
 
           {statusData && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+            <div className="space-y-6">
               <div className="flex flex-col items-center justify-center space-y-2 p-6 bg-muted/50 rounded-lg border">
                 <div className="text-sm text-muted-foreground">{t("member-requests.status.application_number")}</div>
                 <div className="font-mono text-xl font-bold">{statusData.applicationNumber}</div>

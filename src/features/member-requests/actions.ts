@@ -181,6 +181,7 @@ export async function approveMemberRequest(id: string) {
           reference: referenceData,
           joinDate: getNow(),
           status: "ACTIVE",
+          position: "GENERAL_MEMBER",
           reasonForJoining: request.reasonForJoining,
           declarationAccepted: true,
         },

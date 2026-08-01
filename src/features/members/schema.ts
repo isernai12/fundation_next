@@ -38,6 +38,7 @@ export const baseMemberSchema = z.object({
 
   // Additional
   reasonForJoining: z.string().optional().or(z.literal("")),
+  position: z.string().optional().or(z.literal("")),
 
   // Documents
   photoBase64: z.string().optional().or(z.literal("")),

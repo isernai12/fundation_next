@@ -140,6 +140,7 @@ export async function createMember(data: MemberFormValues) {
         mobile: pd.mobile?.trim() || null,
         email: pd.email?.trim() || null,
         bloodGroup: pd.bloodGroup?.trim() || null,
+        position: pd.position || "GENERAL_MEMBER",
         idDocumentType: pd.idDocumentType || "NID",
         
         emergencyContactName: pd.emergencyContactName?.trim() || null,
@@ -242,6 +243,7 @@ export async function updateMember(id: string, data: MemberFormValues) {
         mobile: pd.mobile?.trim() || null,
         email: pd.email?.trim() || null,
         bloodGroup: pd.bloodGroup?.trim() || null,
+        position: pd.position || "GENERAL_MEMBER",
         idDocumentType: pd.idDocumentType || "NID",
         
         emergencyContactName: pd.emergencyContactName?.trim() || null,

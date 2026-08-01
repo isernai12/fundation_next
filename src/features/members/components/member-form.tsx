@@ -144,6 +144,7 @@ export function MemberForm({
       phone: member?.phone || "",
       email: member?.email || "",
       bloodGroup: member?.bloodGroup || "",
+      position: member?.position || "GENERAL_MEMBER",
       
       emergencyContactName: member?.emergencyContactName || "",
       emergencyContactMobile: member?.emergencyContactMobile || "",
@@ -351,7 +352,7 @@ export function MemberForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 max-w-5xl mx-auto space-y-6">
         
         {mode !== "request" ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <FormField
               control={form.control}
               name="memberId"
@@ -406,6 +407,33 @@ export function MemberForm({
                           ));
               }}
             />
+
+            {mode === "edit" && (
+              <FormField
+                control={form.control}
+                name="position"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg">{t("members.position") || "Member Position"}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || "GENERAL_MEMBER"}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select Position" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {["PRESIDENT", "VICE_PRESIDENT", "GENERAL_SECRETARY", "JOINT_SECRETARY", "ORGANIZING_SECRETARY", "TREASURER", "ADVISOR", "EXECUTIVE_MEMBER", "GENERAL_MEMBER"].map((pos) => (
+                          <SelectItem key={pos} value={pos}>
+                            {t(`members.positions.${pos}`) || pos.replace("_", " ")}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         ) : (
           <SectionCard title={t("member-requests.public.form.groupSelection") || "Group Selection"} isOpen={true} onToggle={() => {}}>

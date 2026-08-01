@@ -82,6 +82,7 @@ model Member {
   // Organization Information
   joinDate DateTime?
   status   String    @default("ACTIVE")
+  position String?   @default("GENERAL_MEMBER")
   remarks  String?
 
   // Extended Information

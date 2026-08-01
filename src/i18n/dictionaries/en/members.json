@@ -157,6 +157,9 @@
     "due_status": "Due Status",
     "join_month": "Join Month",
     "all_months": "All Months",
+    "remarks": "Remarks",
+    "position": "Member Position",
+    "member_type": "Member Type",
     "member_name": "Member Name",
     "monthly_contribution": "Monthly Contribution",
     "expected": "Expected",
@@ -257,5 +260,16 @@
     "member_id": "Member ID",
     "group_code": "Group Code",
     "join_date": "Join Date"
+  },
+  "positions": {
+    "PRESIDENT": "President",
+    "VICE_PRESIDENT": "Vice President",
+    "GENERAL_SECRETARY": "General Secretary",
+    "JOINT_SECRETARY": "Joint Secretary",
+    "ORGANIZING_SECRETARY": "Organizing Secretary",
+    "TREASURER": "Treasurer",
+    "ADVISOR": "Advisor",
+    "EXECUTIVE_MEMBER": "Executive Member",
+    "GENERAL_MEMBER": "General Member"
   }
 }

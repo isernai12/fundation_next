@@ -60,6 +60,7 @@ export interface MemberProfileData {
   statusHistory?: any[]
   
   documents?: any[]
+  position?: string | null
 }
 
 export function MemberProfileLayout({
@@ -159,6 +160,7 @@ export function MemberProfileLayout({
                 <tr className="border-b"><td className="py-2 w-1/3 text-muted-foreground font-medium"><Trans tKey="members.form.group" /></td><td className="py-2">{data.groupName || '-'}</td></tr>
                 <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="members.view.group_code" /></td><td className="py-2">{data.groupCode || '-'}</td></tr>
                 <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="members.view.join_date" /></td><td className="py-2">{data.joinDate ? formatDate(data.joinDate) : '-'}</td></tr>
+                <tr className="border-b"><td className="py-2 text-muted-foreground font-medium"><Trans tKey="members.position" /></td><td className="py-2">{data.position ? <Trans tKey={`members.positions.${data.position}`} /> : '-'}</td></tr>
               </tbody>
             </table>
           </section>

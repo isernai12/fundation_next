@@ -37,7 +37,8 @@ import {
   PowerOff,
   BookOpen,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Download
 } from "lucide-react"
 import { useRbac } from "@/components/providers/rbac-provider"
 import {
@@ -255,12 +256,20 @@ export function MembersTable({ data, groups, isManage = false }: { data: MemberW
 
                 {/* 1. View Details */}
                 {showView && (
-                  <DropdownMenuItem asChild>
-                    <Link href={`/members/${member.id}`} className="cursor-pointer flex items-center">
-                      <Eye className="mr-2 h-4 w-4 text-blue-500" />
-                      <span>{t("members.actions.view_profile")}</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/members/${member.id}`} className="cursor-pointer flex items-center">
+                        <Eye className="mr-2 h-4 w-4 text-blue-500" />
+                        <span>{t("members.actions.view_profile")}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/api/members/${member.id}/registration-form`} target="_blank" className="cursor-pointer flex items-center">
+                        <Download className="mr-2 h-4 w-4 text-purple-500" />
+                        <span>{t("members.actions.download_registration_form")}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
 
                 {/* 2. Edit Member */}

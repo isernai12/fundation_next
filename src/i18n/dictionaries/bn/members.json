@@ -156,6 +156,9 @@
     "all_statuses": "সকল অবস্থা",
     "due_status": "বকেয়ার অবস্থা",
     "join_month": "যোগদানের মাস",
+    "remarks": "মন্তব্য",
+    "position": "সদস্যের পদ",
+    "member_type": "সদস্যের ধরন",
     "all_months": "সকল মাস",
     "member_name": "সদস্যের নাম",
     "monthly_contribution": "মাসিক চাঁদা",
@@ -176,6 +179,8 @@
     "status_confirm_mid2": ") এর স্ট্যাটাস ",
     "active_strong": "সক্রিয়",
     "activate_warning": "তারা প্ল্যাটফর্মে পুনরায় অ্যাক্সেস পাবে।",
+    "select_year": "বছর নির্বাচন করুন",
+    "save_document": "নথি সংরক্ষণ করুন",
     "select_reason": "কারণ নির্বাচন করুন",
     "reason_label": "নিষ্ক্রিয় করার কারণ",
     "custom_note_label": "কাস্টম নোট (ঐচ্ছিক)",
@@ -257,5 +262,16 @@
     "member_id": "সদস্য আইডি",
     "group_code": "গ্রুপ কোড",
     "join_date": "যোগদানের তারিখ"
+  },
+  "positions": {
+    "PRESIDENT": "সভাপতি",
+    "VICE_PRESIDENT": "সহ-সভাপতি",
+    "GENERAL_SECRETARY": "সাধারণ সম্পাদক",
+    "JOINT_SECRETARY": "যুগ্ম সম্পাদক",
+    "ORGANIZING_SECRETARY": "সাংগঠনিক সম্পাদক",
+    "TREASURER": "কোষাধ্যক্ষ",
+    "ADVISOR": "উপদেষ্টা",
+    "EXECUTIVE_MEMBER": "নির্বাহী সদস্য",
+    "GENERAL_MEMBER": "সাধারণ সদস্য"
   }
 }
