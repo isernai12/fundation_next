@@ -2,6 +2,17 @@
 
 import { useState } from "react"
 import { useLanguage } from "@/i18n/LanguageProvider"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -75,29 +86,47 @@ export function RequestActions({ requestId, status }: { requestId: string, statu
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button 
-        onClick={() => setActionType("APPROVE")}
-        className="bg-emerald-600 hover:bg-emerald-700 text-white"
-      >
-        <Check className="mr-2 h-4 w-4" />
-        {t("common.approve")}
-      </Button>
-      <Button 
-        onClick={() => setActionType("CHANGES")}
-        variant="outline"
-        className="text-amber-600 border-amber-200 hover:bg-amber-50"
-      >
-        <AlertCircle className="mr-2 h-4 w-4" />
-        {t("member-requests.actions.request_changes")}
-      </Button>
-      <Button 
-        onClick={() => setActionType("REJECT")}
-        variant="destructive"
-      >
-        <X className="mr-2 h-4 w-4" />
-        {t("common.reject")}
-      </Button>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
+            <span className="sr-only">{t("common.actions")}</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
+            {t("common.actions")}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem 
+            className="cursor-pointer text-emerald-600 focus:text-emerald-600"
+            onClick={() => setActionType("APPROVE")}
+          >
+            <Check className="mr-2 h-4 w-4" />
+            <span>{t("common.approve")}</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem 
+            className="cursor-pointer text-amber-600 focus:text-amber-600"
+            onClick={() => setActionType("CHANGES")}
+          >
+            <AlertCircle className="mr-2 h-4 w-4" />
+            <span>{t("member-requests.actions.request_changes")}</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem 
+            className="cursor-pointer text-destructive focus:text-destructive"
+            onClick={() => setActionType("REJECT")}
+          >
+            <X className="mr-2 h-4 w-4" />
+            <span>{t("common.reject")}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Dialog open={!!actionType} onOpenChange={(open) => {
         if (!open) {
@@ -148,6 +177,6 @@ export function RequestActions({ requestId, status }: { requestId: string, statu
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
