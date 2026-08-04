@@ -92,7 +92,7 @@ export default async function RootLayout({
       <head>
         <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.6/index.min.css" rel="stylesheet" />
       </head>
-      <body className={`${notoSansBengali.className} h-screen overflow-hidden flex`} suppressHydrationWarning>
+      <body className={`${notoSansBengali.className} h-dvh w-full overflow-hidden flex`} suppressHydrationWarning>
         <Script
           id="app-settings"
           dangerouslySetInnerHTML={{

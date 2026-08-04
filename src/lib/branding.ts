@@ -5,7 +5,12 @@ export const getBrandingSettings = unstable_cache(
   async () => {
     try {
       const settings = await prisma.systemSettings.findMany({
-        where: { key: { startsWith: "BRANDING_" } }
+        where: {
+          OR: [
+            { key: { startsWith: "BRANDING_" } },
+            { key: { in: ["APP_TIMEZONE", "APP_DATE_FORMAT"] } }
+          ]
+        }
       });
       
       const defaultBranding = {

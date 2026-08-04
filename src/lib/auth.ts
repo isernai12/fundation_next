@@ -197,24 +197,50 @@ export const authOptions: NextAuthOptions = {
         return {} as any
       }
 
-      // Check if session still active in database
-      if (sessionId) {
-        const session = await prisma.userSession.findUnique({
-          where: { jti: sessionId },
-        })
-        if (!session) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[AUTH DEBUG] Session ${sessionId} revoked or not found in DB`);
-          }
-          return {} as any // Session revoked via Device Management or password change
-        }
+      // Simple in-memory cache for session validation to avoid DB hits on every request
+      const now = Date.now()
+      // @ts-ignore - store cache globally to survive HMR in dev
+      if (!global.sessionCache) global.sessionCache = new Map<string, { valid: boolean, lastActive: number, checkedAt: number }>()
+      // @ts-ignore
+      const cacheMap = global.sessionCache as Map<string, { valid: boolean, lastActive: number, checkedAt: number }>
 
-        // Periodically update lastActive (if > 5 minutes old)
-        if (Date.now() - session.lastActive.getTime() > 300000) {
-          await prisma.userSession.update({
+      if (sessionId) {
+        const cached = cacheMap.get(sessionId)
+        
+        if (cached && (now - cached.checkedAt) < 60000) { // 1 minute cache TTL
+          if (!cached.valid) {
+            return {} as any // Revoked
+          }
+          if (now - cached.lastActive > 300000) { // 5 minutes lastActive update
+            cached.lastActive = now
+            prisma.userSession.update({
+              where: { jti: sessionId },
+              data: { lastActive: new Date() },
+            }).catch(() => {})
+          }
+        } else {
+          const session = await prisma.userSession.findUnique({
             where: { jti: sessionId },
-            data: { lastActive: new Date() },
-          }).catch(() => {})
+            select: { lastActive: true } // Only fetch what we need
+          })
+
+          if (!session) {
+            cacheMap.set(sessionId, { valid: false, lastActive: 0, checkedAt: now })
+            return {} as any // Session revoked via Device Management or password change
+          }
+
+          cacheMap.set(sessionId, { valid: true, lastActive: session.lastActive.getTime(), checkedAt: now })
+
+          // Periodically update lastActive (if > 5 minutes old)
+          if (now - session.lastActive.getTime() > 300000) {
+            const cacheRef = cacheMap.get(sessionId)
+            if (cacheRef) cacheRef.lastActive = now
+            
+            prisma.userSession.update({
+              where: { jti: sessionId },
+              data: { lastActive: new Date() },
+            }).catch(() => {})
+          }
         }
       }
 
