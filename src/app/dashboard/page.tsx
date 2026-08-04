@@ -7,16 +7,16 @@ import { KpiCard } from "@/components/ui/kpi-card"
 import { Wallet, TrendingUp, Coins, Minus, LineChart, RefreshCcw, TrendingDown, Users, Building2, Landmark, Gift } from "lucide-react"
 import { Trans } from "@/components/shared/trans";
 
+import { Suspense } from "react"
+
 export default async function DashboardPage() {
   const session = await getAuthSession()
   const user = session?.user as any
   if (!user?.id) redirect("/login")
   
-  const stats = await getDashboardStats()
-
   return (
     <div className="space-y-4">
-        {/* Page Header */}
+        {/* Page Header (Loads Instantly) */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 animate-fade-up delay-1">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -29,6 +29,56 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardStats />
+        </Suspense>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-4 sm:space-y-6 animate-pulse">
+      {/* Row 1 Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={`r1-${i}`} className="h-32 bg-surface-100/50 dark:bg-surface-800/30 rounded-xl border border-surface-200/50 dark:border-surface-800/50 p-5 flex flex-col justify-between shadow-sm">
+            <div className="flex justify-between items-start">
+              <div className="h-4 w-24 bg-surface-200 dark:bg-surface-800 rounded"></div>
+              <div className="h-8 w-8 bg-surface-200 dark:bg-surface-800 rounded-full"></div>
+            </div>
+            <div className="space-y-2 mt-4">
+              <div className="h-7 w-32 bg-surface-200 dark:bg-surface-800 rounded"></div>
+              <div className="h-3 w-16 bg-surface-200 dark:bg-surface-800 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Row 2 Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={`r2-${i}`} className="h-32 bg-surface-100/50 dark:bg-surface-800/30 rounded-xl border border-surface-200/50 dark:border-surface-800/50 p-5 flex flex-col justify-between shadow-sm">
+            <div className="flex justify-between items-start">
+              <div className="h-4 w-28 bg-surface-200 dark:bg-surface-800 rounded"></div>
+              <div className="h-8 w-8 bg-surface-200 dark:bg-surface-800 rounded-full"></div>
+            </div>
+            <div className="space-y-2 mt-4">
+              <div className="h-7 w-20 bg-surface-200 dark:bg-surface-800 rounded"></div>
+              <div className="h-3 w-24 bg-surface-200 dark:bg-surface-800 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+async function DashboardStats() {
+  const stats = await getDashboardStats()
+  
+  return (
+    <>
         {/* KPI Cards Row 1 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           
@@ -152,6 +202,7 @@ export default async function DashboardPage() {
             dotColor="#a855f7"
           />
         </div>
-    </div>
+    </>
   )
 }
+
