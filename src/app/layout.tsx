@@ -113,7 +113,7 @@ export default async function RootLayout({
                 {isLoggedIn && <Sidebar />}
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                   {isLoggedIn && <Header />}
-                  <main className="flex-1 overflow-auto p-6 bg-muted/20">
+                  <main className={`flex-1 overflow-auto ${isLoggedIn ? "p-4 sm:p-6 bg-muted/20" : ""}`}>
                     {children}
                   </main>
                 </div>

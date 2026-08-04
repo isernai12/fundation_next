@@ -75,7 +75,7 @@ export default function MemberRequestStatusPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 pt-20">
+    <div className="min-h-dvh w-full relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 pt-20">
       <PublicHeader />
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>

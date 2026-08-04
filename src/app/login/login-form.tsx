@@ -71,7 +71,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-gray-50 dark:bg-zinc-950">
+    <div className="flex min-h-dvh w-full items-center justify-center bg-gray-50 dark:bg-zinc-950 p-4 sm:p-6">
       <Card className="w-[400px]">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">

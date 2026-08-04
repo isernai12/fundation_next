@@ -12,7 +12,7 @@ export default async function PublicHomepage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
+    <div className="min-h-dvh w-full relative bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
       <PublicHeader />
       
       {/* Static Background Elements */}
@@ -22,9 +22,9 @@ export default async function PublicHomepage() {
         <div className="absolute -bottom-[20%] left-[10%] w-[60vw] h-[60vw] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[90px] opacity-60 mix-blend-multiply dark:mix-blend-screen" />
       </div>
 
-      <div className="relative z-10 w-full max-w-[28rem] mt-16">
+      <div className="relative z-10 w-full max-w-[28rem] mt-20 sm:mt-16">
         {/* Glassmorphism Card */}
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-slate-800/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] rounded-3xl p-8 sm:p-10 flex flex-col items-center text-center">
+        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-slate-800/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col items-center text-center">
           
           {/* Typography Header */}
           <div className="space-y-3 mb-10 w-full">
