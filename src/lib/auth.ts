@@ -185,7 +185,9 @@ export const authOptions: NextAuthOptions = {
 
       const sessionId = (token.sessionId || token.jti) as string
 
-      console.log(`[AUTH DEBUG] JWT Callback - User ID: ${token.id}, Role: ${token.role}, Session ID: ${sessionId}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[AUTH DEBUG] JWT Callback - User ID: ${token.id}, Role: ${token.role}, Session ID: ${sessionId}`);
+      }
 
       // Check dynamic expiration
       if (token.expiresAt && Date.now() > (token.expiresAt as number)) {
@@ -201,7 +203,9 @@ export const authOptions: NextAuthOptions = {
           where: { jti: sessionId },
         })
         if (!session) {
-          console.log(`[AUTH DEBUG] Session ${sessionId} revoked or not found in DB`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[AUTH DEBUG] Session ${sessionId} revoked or not found in DB`);
+          }
           return {} as any // Session revoked via Device Management or password change
         }
 
@@ -219,7 +223,9 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       const sessionId = (token.sessionId || token.jti) as string
       if (!token || !token.id || !sessionId) {
-        console.log(`[AUTH DEBUG] Session Callback - Invalid token or missing session ID`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[AUTH DEBUG] Session Callback - Invalid token or missing session ID`);
+        }
         return session
       }
       session.user = {
@@ -230,7 +236,9 @@ export const authOptions: NextAuthOptions = {
         image: token.picture as string | null | undefined,
       } as any
       ;(session as any).jti = sessionId
-      console.log(`[AUTH DEBUG] Session Callback - Valid Session for User ID: ${token.id}, Role: ${token.role}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[AUTH DEBUG] Session Callback - Valid Session for User ID: ${token.id}, Role: ${token.role}`);
+      }
       return session
     },
   },

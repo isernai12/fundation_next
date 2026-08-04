@@ -2,7 +2,6 @@ import { formatCurrency } from "@/lib/format"
 import { getDashboardStats } from "@/features/dashboard/actions"
 
 import { getAuthSession } from "@/lib/auth"
-import { getUserPermissions } from "@/lib/rbac"
 import { redirect } from "next/navigation"
 import { KpiCard } from "@/components/ui/kpi-card"
 import { Wallet, TrendingUp, Coins, Minus, LineChart, RefreshCcw, TrendingDown, Users, Building2, Landmark, Gift } from "lucide-react"
@@ -13,7 +12,6 @@ export default async function DashboardPage() {
   const user = session?.user as any
   if (!user?.id) redirect("/login")
   
-  const permissions = await getUserPermissions(user.id)
   const stats = await getDashboardStats()
 
   return (

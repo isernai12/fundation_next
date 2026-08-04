@@ -44,7 +44,9 @@ export async function updateRolePermissions(roleId: string, permissionIds: strin
       })
     }
     
-    console.log(`[RBAC DEBUG] updateRolePermissions - Updated Role ID: ${roleId} with ${permissionIds.length} permissions`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[RBAC DEBUG] updateRolePermissions - Updated Role ID: ${roleId} with ${permissionIds.length} permissions`);
+    }
     revalidatePath("/", "layout")
     revalidatePath("/(dashboard)", "layout")
     return { success: true }

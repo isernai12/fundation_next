@@ -30,35 +30,39 @@ export class FinancialService {
       }
     }
 
-    const ledgerEntries = await prisma.ledgerEntry.findMany({
-      where: { fundId: groupFund.id },
-      include: { transaction: true }
-    })
+    // Use database aggregation instead of loading all entries into memory
+    const [creditAgg, debitAgg, transactionCount] = await Promise.all([
+      prisma.ledgerEntry.findMany({
+        where: { fundId: groupFund.id, isCredit: true },
+        select: { amount: true, transaction: { select: { type: true } } }
+      }),
+      prisma.ledgerEntry.findMany({
+        where: { fundId: groupFund.id, isCredit: false },
+        select: { amount: true, transaction: { select: { type: true } } }
+      }),
+      prisma.ledgerEntry.findMany({
+        where: { fundId: groupFund.id },
+        select: { transactionId: true },
+        distinct: ['transactionId']
+      })
+    ])
 
     let totalContributions = 0
     let totalDonations = 0
-    let totalLoans = 0
     let totalLoanReturns = 0
+    for (const entry of creditAgg) {
+      if (entry.transaction.type === "CONTRIBUTION") totalContributions += entry.amount
+      if (entry.transaction.type === "REPAYMENT") totalLoanReturns += entry.amount
+      if (entry.transaction.type === "DONATION") totalDonations += entry.amount
+    }
+
+    let totalLoans = 0
     let totalGrants = 0
     let totalExpenses = 0
-    
-    let totalCredits = 0
-    let totalDebits = 0
-
-    for (const entry of ledgerEntries) {
-      const txType = entry.transaction.type
-      
-      if (entry.isCredit) {
-        totalCredits += entry.amount
-        if (txType === "CONTRIBUTION") totalContributions += entry.amount
-        if (txType === "REPAYMENT") totalLoanReturns += entry.amount
-        if (txType === "DONATION") totalDonations += entry.amount
-      } else {
-        totalDebits += entry.amount
-        if (txType === "LOAN") totalLoans += entry.amount
-        if (txType === "GRANT") totalGrants += entry.amount
-        if (txType === ("EXPENSE" as any)) totalExpenses += entry.amount
-      }
+    for (const entry of debitAgg) {
+      if (entry.transaction.type === "LOAN") totalLoans += entry.amount
+      if (entry.transaction.type === "GRANT") totalGrants += entry.amount
+      if (entry.transaction.type === ("EXPENSE" as any)) totalExpenses += entry.amount
     }
 
     // Total Fund = Total Contributions + Total Donations + Other Income
@@ -66,8 +70,6 @@ export class FinancialService {
 
     // Current Balance = Total Fund - Grants - Expenses - Other Outgoing Transactions
     const currentBalance = totalFund - totalGrants - totalExpenses - totalLoans + totalLoanReturns
-
-    const uniqueTransactions = new Set(ledgerEntries.map(e => e.transactionId)).size
 
     return {
       currentBalance,
@@ -79,12 +81,13 @@ export class FinancialService {
       totalGrants,
       totalExpenses,
       memberCount,
-      totalTransactions: uniqueTransactions,
+      totalTransactions: transactionCount.length,
     }
   }
 
   /**
    * Gets the general foundation fund (Cash) summary.
+   * Uses aggregation queries instead of loading all entries into memory.
    */
   static async getFoundationSummary() {
     const generalFund = await prisma.fund.findFirst({
@@ -93,26 +96,33 @@ export class FinancialService {
 
     if (!generalFund) return { cashBalance: 0 }
 
-    const ledgerEntries = await prisma.ledgerEntry.findMany({
-      where: { fundId: generalFund.id }
-    })
+    // Use two aggregate queries instead of loading all entries
+    const [debitSum, creditSum] = await Promise.all([
+      prisma.ledgerEntry.aggregate({
+        _sum: { amount: true },
+        where: { fundId: generalFund.id, isCredit: false }
+      }),
+      prisma.ledgerEntry.aggregate({
+        _sum: { amount: true },
+        where: { fundId: generalFund.id, isCredit: true }
+      })
+    ])
 
-    let cashBalance = 0
-    for (const entry of ledgerEntries) {
-      // General fund acts as Cash Asset: Debit increases, Credit decreases
-      if (!entry.isCredit) cashBalance += entry.amount
-      else cashBalance -= entry.amount
-    }
+    // General fund acts as Cash Asset: Debit increases, Credit decreases
+    const cashBalance = (debitSum._sum.amount || 0) - (creditSum._sum.amount || 0)
 
     return { cashBalance }
   }
 
   /**
    * Retrieves aggregated summaries for all groups to use in Dashboards.
+   * Selects only needed columns to minimize data transfer.
    */
   static async getAllGroupSummaries() {
     const groups = await prisma.group.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
         funds: { select: { id: true } }
       }
     })
@@ -125,9 +135,15 @@ export class FinancialService {
 
     const fundIds = groupFunds.map(g => g.fundId as string)
 
+    // Select only the columns we need instead of including full transaction objects
     const ledgerEntries = await prisma.ledgerEntry.findMany({
       where: { fundId: { in: fundIds } },
-      include: { transaction: { select: { type: true } } }
+      select: {
+        fundId: true,
+        amount: true,
+        isCredit: true,
+        transaction: { select: { type: true } }
+      }
     })
 
     const fundMap = new Map<string, any>()

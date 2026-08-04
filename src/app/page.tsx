@@ -1,8 +1,16 @@
 import Link from "next/link"
 import { Trans } from "@/components/shared/trans"
 import { PublicHeader } from "@/components/public-header"
+import { getAuthSession } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
-export default function PublicHomepage() {
+export default async function PublicHomepage() {
+  const session = await getAuthSession()
+  const user = session?.user as any
+  if (user?.id) {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
       <PublicHeader />
@@ -29,7 +37,7 @@ export default function PublicHomepage() {
             <div className="pt-2">
               <span className="inline-block px-4 py-1.5 rounded-full bg-amber-100/50 dark:bg-amber-900/30 border border-amber-200/50 dark:border-amber-800/50">
                 <p className="text-sm sm:text-base font-semibold text-amber-700 dark:text-amber-400 italic">
-                  "মানবতার সেবায় আলো সৃষ্টির জন্য"
+                  "মানবতার সেবায়, আল্লাহর সন্তুষ্টির জন্য"
                 </p>
               </span>
             </div>

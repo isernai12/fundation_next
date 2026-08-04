@@ -60,7 +60,7 @@ export function LoginForm() {
         toast.error(res.error)
       } else if (res?.ok) {
         toast.success(t("app.k_09292c"))
-        router.push("/")
+        router.push("/dashboard")
         router.refresh()
       }
     } catch (err) {

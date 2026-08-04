@@ -322,7 +322,7 @@ export async function GET(
             <h2><strong>Bhratritya Foundation</strong></h2>
             <p><strong>মঙ্গলেরগাঁও, সোনারগাঁও, নারায়ণগঞ্জ</strong></p>
             <p><strong>যোগাযোগ:</strong> ০১৯৬৩৯৫৩৬৮২, ০১৮৩৪০০৬০১৪</p>
-            <p class="slogan">"মানবতার সেবায় আলো সৃষ্টির জন্য"</p>
+            <p class="slogan">"মানবতার সেবায়, আল্লাহর সন্তুষ্টির জন্য"</p>
         </div>
         ${photoBoxContent}
     </div>

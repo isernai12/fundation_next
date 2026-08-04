@@ -40,13 +40,17 @@ export const getUserPermissions = cache(async (userId: string) => {
   })
 
   if (!user || !user.role) {
-    console.log(`[RBAC DEBUG] User or Role not found for User ID: ${userId}`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[RBAC DEBUG] User or Role not found for User ID: ${userId}`)
+    }
     return []
   }
 
   // 1. HARDCODED SUPER_ADMIN BYPASS: Always return wildcard "*"
   if (isSuperAdminRole(user.role.name)) {
-    console.log(`[RBAC DEBUG] Current User: ${user.name} (${user.username}) | Current Role: ${user.role.name} | Loaded Permissions: ["*"] (SUPER_ADMIN Wildcard)`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[RBAC DEBUG] Current User: ${user.name} (${user.username}) | Current Role: ${user.role.name} | Loaded Permissions: ["*"] (SUPER_ADMIN Wildcard)`)
+    }
     return ["*"]
   }
 
@@ -63,9 +67,31 @@ export const getUserPermissions = cache(async (userId: string) => {
   })
 
   const permissionsArray = Array.from(permissions)
-  console.log(`[RBAC DEBUG] Current User: ${user.name} (${user.username}) | Current Role: ${user.role.name} | Loaded Permissions Count: ${permissionsArray.length}`)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[RBAC DEBUG] Current User: ${user.name} (${user.username}) | Current Role: ${user.role.name} | Loaded Permissions Count: ${permissionsArray.length}`)
+  }
 
   return permissionsArray
+})
+
+/**
+ * Fetch user preferences (cached per request to avoid duplicate queries)
+ */
+export const getUserPreferences = cache(async (userId: string) => {
+  if (!userId) return null
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { preferences: true }
+  })
+
+  if (!user?.preferences) return null
+
+  try {
+    return JSON.parse(user.preferences) as { dateFormat?: string; timezone?: string }
+  } catch {
+    return null
+  }
 })
 
 export { hasPermission, isSuperAdminRole }
@@ -113,14 +139,18 @@ export async function requirePermission(module: string, action: string) {
 
   // 1. HARDCODED SUPER_ADMIN BYPASS
   if (isSuperAdminRole(userRole)) {
-    console.log(`[RBAC DEBUG] Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ["*"] | Requested Module: ${module} | Requested Action: ${action} | Result: ALLOWED (SUPER_ADMIN Bypass)`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[RBAC DEBUG] Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ["*"] | Requested Module: ${module} | Requested Action: ${action} | Result: ALLOWED (SUPER_ADMIN Bypass)`)
+    }
     return user
   }
 
   const permissions = await getUserPermissions(userId)
   const isAllowed = hasPermission(permissions, module, action, userRole)
 
-  console.log(`[RBAC DEBUG] Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ${permissions.length} items | Requested Module: ${module} | Requested Action: ${action} | Result: ${isAllowed ? "ALLOWED" : "DENIED"}`)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[RBAC DEBUG] Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ${permissions.length} items | Requested Module: ${module} | Requested Action: ${action} | Result: ${isAllowed ? "ALLOWED" : "DENIED"}`)
+  }
 
   if (!isAllowed) {
     await handleUnauthorized(userId, module, action)
@@ -144,14 +174,18 @@ export async function authorizePage(module: string, action: string) {
 
   // 1. HARDCODED SUPER_ADMIN BYPASS
   if (isSuperAdminRole(userRole)) {
-    console.log(`[RBAC DEBUG] Authorize Page - Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ["*"] | Requested Module: ${module} | Requested Action: ${action} | Result: ALLOWED (SUPER_ADMIN Bypass)`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[RBAC DEBUG] Authorize Page - Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ["*"] | Requested Module: ${module} | Requested Action: ${action} | Result: ALLOWED (SUPER_ADMIN Bypass)`)
+    }
     return { session, permissions: ["*"] }
   }
 
   const permissions = await getUserPermissions(userId)
   const isAllowed = hasPermission(permissions, module, action, userRole)
 
-  console.log(`[RBAC DEBUG] Authorize Page - Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ${permissions.length} items | Requested Module: ${module} | Requested Action: ${action} | Result: ${isAllowed ? "ALLOWED" : "DENIED"}`)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[RBAC DEBUG] Authorize Page - Current User: ${user.name || user.id} | Current Role: ${userRole} | Loaded Permissions: ${permissions.length} items | Requested Module: ${module} | Requested Action: ${action} | Result: ${isAllowed ? "ALLOWED" : "DENIED"}`)
+  }
 
   if (!isAllowed) {
     await handleUnauthorized(userId, module, action)

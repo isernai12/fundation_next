@@ -11,7 +11,7 @@ import { getAuthSession } from "@/lib/auth"
 
 import { AuthProvider } from "@/components/auth-provider"
 import { RbacProvider } from "@/components/providers/rbac-provider"
-import { getUserPermissions } from "@/lib/rbac"
+import { getUserPermissions, getUserPreferences } from "@/lib/rbac"
 import { Toaster } from "sonner"
 
 const notoSansBengali = Noto_Sans_Bengali({
@@ -60,7 +60,6 @@ export async function generateMetadata(): Promise<Metadata> {
 import { BrandingProvider } from "@/components/providers/branding-provider"
 import { LanguageProvider } from "@/i18n/LanguageProvider"
 
-import { prisma } from "@/lib/prisma"
 
 export default async function RootLayout({
   children,
@@ -77,14 +76,8 @@ export default async function RootLayout({
   let userTimezone = branding.timezone || 'Asia/Dhaka';
 
   if (isLoggedIn && user?.id) {
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-    if (dbUser?.preferences) {
-      try {
-        const prefs = JSON.parse(dbUser.preferences);
-        if (prefs.dateFormat) userDateFormat = prefs.dateFormat;
-        // if (prefs.timezone) userTimezone = prefs.timezone; // if user can override timezone
-      } catch (e) {}
-    }
+    const userPrefs = await getUserPreferences(user.id);
+    if (userPrefs?.dateFormat) userDateFormat = userPrefs.dateFormat;
   }
 
   if (typeof globalThis !== 'undefined') {

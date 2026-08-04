@@ -14,7 +14,7 @@ export default async function LoginPage() {
   const user = session?.user as any
 
   if (user?.id) {
-    redirect("/")
+    redirect("/dashboard")
   }
 
   return <LoginForm />

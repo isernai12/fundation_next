@@ -13,19 +13,29 @@ export async function getDashboardStats() {
 
   
 
-  // Batch 1: Core counts and active loans (5 concurrent queries)
+  // Batch 1: Core counts and aggregations (concurrent queries)
   const [
     memberCounts,
     totalGroups,
     totalBeneficiaries,
     totalGrants,
-    loans
+    totalActiveLoans,
+    loanAmountAgg,
+    repaymentAgg
   ] = await Promise.all([
     prisma.member.groupBy({ by: ['status'], _count: true }),
     prisma.group.count(),
     prisma.beneficiary.count(),
     prisma.grant.count(),
-    prisma.loan.findMany({ where: { status: { in: ["ACTIVE", "DEFAULTED"] } }, include: { repayments: true } })
+    prisma.loan.count({ where: { status: "ACTIVE" } }),
+    prisma.loan.aggregate({
+      _sum: { amount: true },
+      where: { status: { in: ["ACTIVE", "DEFAULTED"] } }
+    }),
+    prisma.loanRepayment.aggregate({
+      _sum: { amount: true },
+      where: { loan: { status: { in: ["ACTIVE", "DEFAULTED"] } } }
+    })
   ])
 
   // Batch 2: Financial aggregations (approx 5 concurrent queries)
@@ -69,8 +79,6 @@ export async function getDashboardStats() {
     if (statusCount.status === "ACTIVE") activeMembers += statusCount._count
   }
 
-  const totalActiveLoans = loans.filter((l: any) => l.status === "ACTIVE").length
-
   const currentCashBalance = foundationSummary.cashBalance
   const foundationTotalFund = currentCashBalance
 
@@ -81,11 +89,9 @@ export async function getDashboardStats() {
     value: s.currentBalance
   }))
 
-  let outstandingLoanAmount = 0
-  for (const loan of loans) {
-    const repaid = loan.repayments.reduce((s: any, r: any) => s + r.amount, 0)
-    outstandingLoanAmount += (loan.amount - repaid)
-  }
+  const totalLoanAmount = loanAmountAgg._sum.amount || 0
+  const totalRepaid = repaymentAgg._sum.amount || 0
+  const outstandingLoanAmount = totalLoanAmount - totalRepaid
   // Group by month
   const monthMap = new Map<string, { month: string, contributions: number, loans: number, grants: number }>()
   
