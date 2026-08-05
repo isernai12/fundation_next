@@ -35,10 +35,29 @@ export async function getMember(id: string) {
   })
 }
 
-export async function generateMemberId() {
-  const count = await prisma.member.count()
-  const year = getNow().getFullYear()
-  return `MBR-${year}-${(count + 1).toString().padStart(4, '0')}`
+export async function generateMemberId(tx?: any) {
+  const db = tx || prisma
+  const members = await db.member.findMany({
+    select: { memberId: true }
+  })
+  let maxNum = 0
+  for (const m of members) {
+    if (!m.memberId) continue
+    const match = m.memberId.match(/(\d+)$/)
+    if (match) {
+      const num = parseInt(match[1], 10)
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num
+      }
+    }
+  }
+  let nextNum = maxNum + 1
+  let candidate = `M-${nextNum.toString().padStart(4, '0')}`
+  while (await db.member.findUnique({ where: { memberId: candidate } })) {
+    nextNum++
+    candidate = `M-${nextNum.toString().padStart(4, '0')}`
+  }
+  return candidate
 }
 
 async function handleDocumentUpload(

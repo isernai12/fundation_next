@@ -7,6 +7,7 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 import { getNow } from "@/lib/date";
 import { baseMemberSchema, type BaseMemberFormValues } from "@/features/members/schema";
+import { generateMemberId } from "@/features/members/actions";
 
 async function uploadBase64(base64Str: string, folder: string) {
   const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
@@ -141,9 +142,7 @@ export async function approveMemberRequest(id: string) {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const memberCount = await tx.member.count();
-      const year = getNow().getFullYear();
-      const memberId = `MBR-${year}-${(memberCount + 1).toString().padStart(4, "0")}`;
+      const memberId = await generateMemberId(tx);
 
       const referenceData = (request.referenceName || request.referenceMobile || request.referenceRelation)
         ? JSON.stringify({

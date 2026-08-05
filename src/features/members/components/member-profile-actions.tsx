@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Printer, Download, Edit } from "lucide-react"
+import { Edit } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "@/i18n/LanguageProvider";
 
@@ -14,16 +14,7 @@ export function MemberProfileActions({ memberId }: { memberId: string }) {
           <Edit className="h-4 w-4 mr-2" />
           {t("members.actions.edit")}</Link>
       </Button>
-      <Button variant="outline" size="sm" onClick={() => {
-            return (window.print());
-          }}>
-        <Printer className="h-4 w-4 mr-2" />
-        {t("members.actions.print")}</Button>
-      <Button variant="outline" size="sm" onClick={() => {
-            return (window.print());
-          }}>
-        <Download className="h-4 w-4 mr-2" />
-        {t("members.actions.pdf")}</Button>
     </div>
   )
 }
+

@@ -360,7 +360,7 @@ export function MemberForm({
                 <FormItem>
                   <FormLabel className="text-lg">{t("members.edit_header.member_id") || "Member ID"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. MBR-2026-0001" {...field} />
+                    <Input placeholder="e.g. M-0001" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -916,10 +916,15 @@ export function MemberForm({
 
         {/* ACTIONS */}
         <div className="flex justify-end space-x-4 pt-6 border-t">
-          <Button variant="outline" type="button" onClick={() => router.push("/members/manage")}>
-            {t("members.actions.cancel")}</Button>
+          {mode !== "request" && (
+            <Button variant="outline" type="button" onClick={() => router.push("/members/manage")}>
+              {t("members.actions.cancel")}
+            </Button>
+          )}
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t("members.actions.saving") : t("members.actions.save")}
+            {isSubmitting
+              ? (mode === "request" ? t("member-requests.public.form.submitting") : t("members.actions.saving"))
+              : (mode === "request" ? t("member-requests.public.form.submit") : t("members.actions.save"))}
           </Button>
         </div>
       </form>
