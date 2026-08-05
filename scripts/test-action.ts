@@ -1,7 +1,5 @@
-import { updateMember } from "./src/features/members/actions";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { updateMember } from "../src/features/members/actions";
+import { prisma } from "../src/lib/prisma";
 
 async function test() {
   const member = await prisma.member.findFirst();

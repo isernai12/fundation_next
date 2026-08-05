@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 async function main() {
   console.log('Checking for admin role...');
