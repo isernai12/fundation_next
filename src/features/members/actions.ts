@@ -41,8 +41,10 @@ export async function generateMemberId(tx?: any) {
     select: { memberId: true }
   })
   let maxNum = 0
+  const existingSet = new Set<string>()
   for (const m of members) {
     if (!m.memberId) continue
+    existingSet.add(m.memberId)
     const match = m.memberId.match(/(\d+)$/)
     if (match) {
       const num = parseInt(match[1], 10)
@@ -53,7 +55,7 @@ export async function generateMemberId(tx?: any) {
   }
   let nextNum = maxNum + 1
   let candidate = `M-${nextNum.toString().padStart(4, '0')}`
-  while (await db.member.findUnique({ where: { memberId: candidate } })) {
+  while (existingSet.has(candidate)) {
     nextNum++
     candidate = `M-${nextNum.toString().padStart(4, '0')}`
   }
@@ -116,23 +118,22 @@ export async function createMember(data: MemberFormValues) {
 
   const pd = parsed.data
 
-  // Check unique constraints only if non-empty string provided
-  if (pd.nationalId && pd.nationalId.trim() !== "") {
-    const existingNid = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
-    if (existingNid) return { success: false, error: "members.validation.nid_exists" }
-  }
-  if (pd.mobile && pd.mobile.trim() !== "") {
-    const existingMobile = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
-    if (existingMobile) return { success: false, error: "members.validation.mobile_exists" }
-  }
-  if (pd.email && pd.email.trim() !== "") {
-    const existingEmail = await prisma.member.findUnique({ where: { email: pd.email.trim() } })
-    if (existingEmail) return { success: false, error: "members.validation.email_exists" }
-  }
+  // Check unique constraints in a single query outside transaction
+  const orConditions: any[] = [];
+  if (pd.nationalId && pd.nationalId.trim() !== "") orConditions.push({ nationalId: pd.nationalId.trim() });
+  if (pd.mobile && pd.mobile.trim() !== "") orConditions.push({ mobile: pd.mobile.trim() });
+  if (pd.email && pd.email.trim() !== "") orConditions.push({ email: pd.email.trim() });
+  if (pd.memberId && pd.memberId.trim() !== "") orConditions.push({ memberId: pd.memberId.trim() });
 
-  // Validate memberId
-  const existingId = await prisma.member.findUnique({ where: { memberId: pd.memberId } })
-  if (existingId) return { success: false, error: "members.validation.memberId_exists" }
+  if (orConditions.length > 0) {
+    const existing = await prisma.member.findFirst({ where: { OR: orConditions } });
+    if (existing) {
+      if (pd.nationalId && existing.nationalId === pd.nationalId.trim()) return { success: false, error: "members.validation.nid_exists" };
+      if (pd.mobile && existing.mobile === pd.mobile.trim()) return { success: false, error: "members.validation.mobile_exists" };
+      if (pd.email && existing.email === pd.email.trim()) return { success: false, error: "members.validation.email_exists" };
+      if (pd.memberId && existing.memberId === pd.memberId.trim()) return { success: false, error: "members.validation.memberId_exists" };
+    }
+  }
 
   try {
     const referenceData = (pd.referenceName || pd.referenceMobile || pd.referenceRelation) 
@@ -173,7 +174,7 @@ export async function createMember(data: MemberFormValues) {
       },
     })
 
-    // Handle Documents
+    // Handle Documents outside transaction
     await handleDocumentUpload(pd.photoBase64, "Member Photo", "foundation/members/photos", member.id, "P");
     await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/members/signatures", member.id, "SIG");
     
@@ -214,22 +215,26 @@ export async function updateMember(id: string, data: MemberFormValues) {
   }
   const pd = parsed.data
 
-  if (pd.nationalId && pd.nationalId.trim() !== "") {
-    const existing = await prisma.member.findUnique({ where: { nationalId: pd.nationalId.trim() } })
-    if (existing && existing.id !== id) return { success: false, error: "members.validation.nid_exists" }
-  }
-  
-  if (pd.memberId) {
-    const existing = await prisma.member.findUnique({ where: { memberId: pd.memberId } })
-    if (existing && existing.id !== id) return { success: false, error: "members.validation.memberId_exists" }
-  }
-  if (pd.mobile && pd.mobile.trim() !== "") {
-    const existing = await prisma.member.findUnique({ where: { mobile: pd.mobile.trim() } })
-    if (existing && existing.id !== id) return { success: false, error: "members.validation.mobile_exists" }
-  }
-  if (pd.email && pd.email.trim() !== "") {
-    const existing = await prisma.member.findUnique({ where: { email: pd.email.trim() } })
-    if (existing && existing.id !== id) return { success: false, error: "members.validation.email_exists" }
+  // Check unique constraints in a single query outside transaction
+  const orConditions: any[] = [];
+  if (pd.nationalId && pd.nationalId.trim() !== "") orConditions.push({ nationalId: pd.nationalId.trim() });
+  if (pd.mobile && pd.mobile.trim() !== "") orConditions.push({ mobile: pd.mobile.trim() });
+  if (pd.email && pd.email.trim() !== "") orConditions.push({ email: pd.email.trim() });
+  if (pd.memberId && pd.memberId.trim() !== "") orConditions.push({ memberId: pd.memberId.trim() });
+
+  if (orConditions.length > 0) {
+    const existing = await prisma.member.findFirst({
+      where: {
+        OR: orConditions,
+        NOT: { id }
+      }
+    });
+    if (existing) {
+      if (pd.nationalId && existing.nationalId === pd.nationalId.trim()) return { success: false, error: "members.validation.nid_exists" };
+      if (pd.mobile && existing.mobile === pd.mobile.trim()) return { success: false, error: "members.validation.mobile_exists" };
+      if (pd.email && existing.email === pd.email.trim()) return { success: false, error: "members.validation.email_exists" };
+      if (pd.memberId && existing.memberId === pd.memberId.trim()) return { success: false, error: "members.validation.memberId_exists" };
+    }
   }
 
   try {
@@ -380,13 +385,12 @@ export async function toggleMemberStatus(
     const session = await getAuthSession();
     const changedBy = (session?.user as any)?.name || (session?.user as any)?.username || "System";
 
-    const member = await prisma.$transaction(async (tx) => {
-      const updated = await tx.member.update({
+    const [updated] = await prisma.$transaction([
+      prisma.member.update({
         where: { id },
         data: { status: newStatus },
-      });
-
-      await tx.memberStatusHistory.create({
+      }),
+      prisma.memberStatusHistory.create({
         data: {
           memberId: id,
           fromStatus: fromStatus,
@@ -396,15 +400,13 @@ export async function toggleMemberStatus(
           changedBy: changedBy,
           changedAt: new Date(),
         },
-      });
-
-      return updated;
-    });
+      }),
+    ]);
 
     revalidatePath("/members/manage");
     revalidatePath("/members/dues");
     revalidatePath(`/members/${id}`);
-    return { success: true, data: member };
+    return { success: true, data: updated };
   } catch (error: any) {
     return { success: false, error: error.message || "members.messages.status_change_error" };
   }
@@ -423,13 +425,12 @@ export async function restoreMember(id: string, reason?: string) {
 
     const changedBy = (session?.user as any)?.name || "Super Admin";
 
-    await prisma.$transaction(async (tx) => {
-      await tx.member.update({
+    await prisma.$transaction([
+      prisma.member.update({
         where: { id },
         data: { status: "ACTIVE" }
-      });
-
-      await tx.memberStatusHistory.create({
+      }),
+      prisma.memberStatusHistory.create({
         data: {
           memberId: id,
           fromStatus: currentMember.status,
@@ -438,8 +439,8 @@ export async function restoreMember(id: string, reason?: string) {
           changedBy: changedBy,
           changedAt: new Date()
         }
-      });
-    });
+      })
+    ]);
 
     revalidatePath("/members/manage");
     revalidatePath(`/members/${id}`);
@@ -478,13 +479,12 @@ export async function deleteMember(id: string) {
     const session = await getAuthSession();
     const changedBy = (session?.user as any)?.name || "System";
 
-    await prisma.$transaction(async (tx) => {
-      await tx.member.update({
+    await prisma.$transaction([
+      prisma.member.update({
         where: { id },
         data: { status: "DELETED" }
-      });
-
-      await tx.memberStatusHistory.create({
+      }),
+      prisma.memberStatusHistory.create({
         data: {
           memberId: id,
           fromStatus: "ACTIVE",
@@ -493,8 +493,8 @@ export async function deleteMember(id: string) {
           changedBy: changedBy,
           changedAt: new Date()
         }
-      });
-    });
+      })
+    ]);
 
     revalidatePath("/members/manage")
     revalidatePath("/members")

@@ -225,9 +225,7 @@ export async function receiveDonation(data: {
   const userId = session?.user?.id
 
   try {
-    return await prisma.$transaction(async (tx) => {
-      
-      
+    const result = await prisma.$transaction(async (tx) => {
       const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(data.groupId, tx)
 
       const ledgerTx = await LedgerEngine.createTransaction({
@@ -241,6 +239,10 @@ export async function receiveDonation(data: {
         ]
       }, tx)
 
+      return { success: true }
+    })
+
+    if (result.success) {
       revalidatePath("/donors/ledger")
       revalidatePath("/donors/donations")
       revalidatePath(`/donors/${data.donorId}`)
@@ -248,8 +250,9 @@ export async function receiveDonation(data: {
       revalidatePath("/groups")
       revalidatePath("/groups/fund")
       revalidatePath(`/groups/${data.groupId}`)
-      return { success: true }
-    })
+    }
+
+    return result
   } catch (error: any) {
     console.error("Error receiving donation:", error)
     return { success: false, error: error.message || "Failed to receive donation" }
@@ -342,7 +345,7 @@ export async function updateDonationTransaction(transactionId: string, data: {
   const userId = session?.user?.id || null
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const existingTx = await tx.ledgerTransaction.findUnique({
         where: { id: transactionId },
         include: { entries: true }
@@ -398,6 +401,10 @@ export async function updateDonationTransaction(transactionId: string, data: {
         ]
       })
 
+      return { success: true }
+    })
+
+    if (result.success) {
       revalidatePath("/donors/donations")
       revalidatePath("/donors/ledger")
       if (data.donorId) revalidatePath(`/donors/${data.donorId}`)
@@ -405,8 +412,9 @@ export async function updateDonationTransaction(transactionId: string, data: {
       revalidatePath("/groups")
       revalidatePath("/groups/fund")
       if (data.groupId) revalidatePath(`/groups/${data.groupId}`)
-      return { success: true }
-    })
+    }
+
+    return result
   } catch (error: any) {
     console.error("Error updating donation transaction:", error)
     return { success: false, error: error.message || "Failed to update donation transaction" }
@@ -416,7 +424,10 @@ export async function updateDonationTransaction(transactionId: string, data: {
 export async function deleteDonationTransaction(transactionId: string) {
     await requirePermission("Donors", "Delete");
   try {
-    return await prisma.$transaction(async (tx) => {
+    let groupId: string | null = null
+    let donorId: string | null = null
+
+    const result = await prisma.$transaction(async (tx) => {
       const existingTx = await tx.ledgerTransaction.findUnique({
         where: { id: transactionId },
         include: { entries: { include: { fund: true } } }
@@ -427,8 +438,8 @@ export async function deleteDonationTransaction(transactionId: string) {
       }
 
       const creditEntry = existingTx.entries.find(e => e.isCredit)
-      const groupId = creditEntry?.fund?.groupId || null
-      const donorId = existingTx.referenceId
+      groupId = creditEntry?.fund?.groupId || null
+      donorId = existingTx.referenceId
 
       // Delete ledger entries first inside transaction
       await tx.ledgerEntry.deleteMany({
@@ -439,7 +450,11 @@ export async function deleteDonationTransaction(transactionId: string) {
       await tx.ledgerTransaction.delete({
         where: { id: transactionId }
       })
+      
+      return { success: true }
+    })
 
+    if (result.success) {
       revalidatePath("/donors/donations")
       revalidatePath("/donors/ledger")
       if (donorId) revalidatePath(`/donors/${donorId}`)
@@ -447,9 +462,9 @@ export async function deleteDonationTransaction(transactionId: string) {
       revalidatePath("/groups")
       revalidatePath("/groups/fund")
       if (groupId) revalidatePath(`/groups/${groupId}`)
-      
-      return { success: true }
-    })
+    }
+
+    return result
   } catch (error: any) {
     console.error("Error deleting donation transaction:", error)
     return { success: false, error: error.message || "Failed to delete donation transaction" }

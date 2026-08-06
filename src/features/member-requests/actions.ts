@@ -140,18 +140,30 @@ export async function approveMemberRequest(id: string) {
   if (request.status === "APPROVED") return { success: false, error: "Already approved" };
   if (!request.groupId) return { success: false, error: "Group not selected in application" };
 
+  const memberId = await generateMemberId();
+
+  const referenceData = (request.referenceName || request.referenceMobile || request.referenceRelation)
+    ? JSON.stringify({
+        name: request.referenceName || "",
+        mobile: request.referenceMobile || "",
+        relation: request.referenceRelation || "",
+      })
+    : null;
+
+  let docsToCreate: Array<{ title: string; cloudinaryPublicId: string; secureUrl: string }> = [];
+  if (request.documents) {
+    try {
+      docsToCreate = JSON.parse(request.documents) as Array<{ title: string; cloudinaryPublicId: string; secureUrl: string }>;
+    } catch (e) {
+      // Documents parsing failed, continue without documents
+    }
+  }
+
+  const approvedBy = user?.name || user?.id || "Admin";
+  const approvedAt = getNow();
+
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const memberId = await generateMemberId(tx);
-
-      const referenceData = (request.referenceName || request.referenceMobile || request.referenceRelation)
-        ? JSON.stringify({
-            name: request.referenceName || "",
-            mobile: request.referenceMobile || "",
-            relation: request.referenceRelation || "",
-          })
-        : null;
-
       const member = await tx.member.create({
         data: {
           memberId,
@@ -187,27 +199,22 @@ export async function approveMemberRequest(id: string) {
       });
 
       // Copy documents to member
-      if (request.documents) {
-        try {
-          const docs = JSON.parse(request.documents) as Array<{ title: string; cloudinaryPublicId: string; secureUrl: string }>;
-          for (const doc of docs) {
-            await tx.document.create({
-              data: {
-                documentNumber: `DOC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                title: doc.title === "Photo" ? "Member Photo" : doc.title,
-                type: "IMAGE",
-                cloudinaryPublicId: doc.cloudinaryPublicId,
-                secureUrl: doc.secureUrl,
-                originalFilename: `${doc.title.toLowerCase().replace(/\s/g, "_")}.jpg`,
-                mimeType: "image/jpeg",
-                sizeBytes: 0,
-                targetType: "MEMBER",
-                memberId: member.id,
-              },
-            });
-          }
-        } catch (e) {
-          // Documents parsing failed, continue without documents
+      if (docsToCreate.length > 0) {
+        for (const doc of docsToCreate) {
+          await tx.document.create({
+            data: {
+              documentNumber: `DOC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+              title: doc.title === "Photo" ? "Member Photo" : doc.title,
+              type: "IMAGE",
+              cloudinaryPublicId: doc.cloudinaryPublicId,
+              secureUrl: doc.secureUrl,
+              originalFilename: `${doc.title.toLowerCase().replace(/\s/g, "_")}.jpg`,
+              mimeType: "image/jpeg",
+              sizeBytes: 0,
+              targetType: "MEMBER",
+              memberId: member.id,
+            },
+          });
         }
       }
 
@@ -215,8 +222,8 @@ export async function approveMemberRequest(id: string) {
         where: { id },
         data: {
           status: "APPROVED",
-          approvedAt: getNow(),
-          approvedBy: user?.name || user?.id || "Admin",
+          approvedAt,
+          approvedBy,
           createdMemberId: member.id,
         },
       });
@@ -231,11 +238,11 @@ export async function approveMemberRequest(id: string) {
         },
       });
 
-      revalidatePath("/members/manage");
-      revalidatePath("/members/requests");
-
       return { success: true, memberId: member.memberId };
     });
+
+    revalidatePath("/members/manage");
+    revalidatePath("/members/requests");
 
     return result;
   } catch (error: any) {

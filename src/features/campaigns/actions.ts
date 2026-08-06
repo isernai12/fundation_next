@@ -109,9 +109,11 @@ export async function createCampaignContribution(data: CampaignContributionFormV
   const pd = parsed.data
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    let campaignId: string | null = null
+    const result = await prisma.$transaction(async (tx) => {
       const campaign = await tx.campaign.findUnique({ where: { id: pd.campaignId } })
       if (!campaign) throw new Error("তহবিল কার্যক্রম খুঁজে পাওয়া যায়নি")
+      campaignId = campaign.id
 
       // Ensure Campaign Fund exists
       let campaignFund = await tx.fund.findFirst({ where: { name: `Campaign: ${campaign.name}` } })
@@ -171,18 +173,23 @@ export async function createCampaignContribution(data: CampaignContributionFormV
         }
       })
 
+      return { success: true, error: undefined }
+    })
+
+    if (result.success) {
       revalidatePath("/")
       revalidatePath("/campaigns")
       revalidatePath("/campaigns/contributions")
-      revalidatePath(`/campaigns/${campaign.id}`)
+      if (campaignId) revalidatePath(`/campaigns/${campaignId}`)
       revalidatePath("/campaigns/manage")
       revalidatePath("/campaigns/ledger")
       revalidatePath("/donors/ledger")
       revalidatePath("/members/ledger")
       revalidatePath("/groups/fund")
       revalidatePath("/ledger")
-      return { success: true, error: undefined }
-    })
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "তহবিল গ্রহণ করতে ব্যর্থ হয়েছে" }
   }
@@ -191,27 +198,35 @@ export async function createCampaignContribution(data: CampaignContributionFormV
 export async function deleteCampaignContribution(id: string) {
     await requirePermission("Fund Collection", "Delete");
   try {
-    return await prisma.$transaction(async (tx) => {
+    let campaignId: string | null = null
+    const result = await prisma.$transaction(async (tx) => {
       const contribution = await tx.campaignContribution.findUnique({ where: { id } })
       if (!contribution) throw new Error("অবদান খুঁজে পাওয়া যায়নি")
+
+      campaignId = contribution.campaignId
 
       // This will cascade and delete LedgerEntry because LedgerTransaction is deleted
       await tx.ledgerTransaction.delete({ where: { id: contribution.ledgerTransactionId } })
       
       await tx.campaignContribution.delete({ where: { id } })
 
+      return { success: true, error: undefined }
+    })
+
+    if (result.success) {
       revalidatePath("/")
       revalidatePath("/campaigns")
       revalidatePath("/campaigns/contributions")
-      revalidatePath(`/campaigns/${contribution.campaignId}`)
+      if (campaignId) revalidatePath(`/campaigns/${campaignId}`)
       revalidatePath("/campaigns/manage")
       revalidatePath("/campaigns/ledger")
       revalidatePath("/donors/ledger")
       revalidatePath("/members/ledger")
       revalidatePath("/groups/fund")
       revalidatePath("/ledger")
-      return { success: true, error: undefined }
-    })
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "মুছে ফেলতে ব্যর্থ হয়েছে" }
   }
@@ -220,10 +235,12 @@ export async function deleteCampaignContribution(id: string) {
 export async function updateCampaignContribution(id: string, data: Partial<CampaignContributionFormValues>) {
     await requirePermission("Fund Collection", "Edit");
   try {
-    return await prisma.$transaction(async (tx) => {
+    let campaignId: string | null = null
+    const result = await prisma.$transaction(async (tx) => {
       const contribution = await tx.campaignContribution.findUnique({ where: { id }, include: { campaign: true } })
       if (!contribution) throw new Error("অবদান খুঁজে পাওয়া যায়নি")
 
+      campaignId = contribution.campaignId
       const amount = data.amount || contribution.amount
       const date = data.date ? new Date(data.date) : contribution.date
       const remarks = data.remarks !== undefined ? data.remarks : contribution.remarks
@@ -256,18 +273,23 @@ export async function updateCampaignContribution(id: string, data: Partial<Campa
         data: { amount, date, remarks }
       })
 
+      return { success: true, error: undefined }
+    })
+
+    if (result.success) {
       revalidatePath("/")
       revalidatePath("/campaigns")
       revalidatePath("/campaigns/contributions")
-      revalidatePath(`/campaigns/${contribution.campaignId}`)
+      if (campaignId) revalidatePath(`/campaigns/${campaignId}`)
       revalidatePath("/campaigns/manage")
       revalidatePath("/campaigns/ledger")
       revalidatePath("/donors/ledger")
       revalidatePath("/members/ledger")
       revalidatePath("/groups/fund")
       revalidatePath("/ledger")
-      return { success: true, error: undefined }
-    })
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "আপডেট করতে ব্যর্থ হয়েছে" }
   }
@@ -281,12 +303,19 @@ export async function createBeneficiaryPayment(data: BeneficiaryPaymentFormValue
   const pd = parsed.data
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    let campaignId: string | null = null
+    let beneficiaryId: string | null = null
+
+    const result = await prisma.$transaction(async (tx) => {
       const campaign = await tx.campaign.findUnique({ where: { id: pd.campaignId } })
       if (!campaign) throw new Error("তহবিল কার্যক্রম খুঁজে পাওয়া যায়নি")
 
+      campaignId = campaign.id
+
       const beneficiary = await tx.beneficiary.findUnique({ where: { id: pd.beneficiaryId } })
       if (!beneficiary) throw new Error("সুবিধাভোগী খুঁজে পাওয়া যায়নি")
+
+      beneficiaryId = beneficiary.id
 
       let campaignFund = await tx.fund.findFirst({ where: { name: `Campaign: ${campaign.name}` } })
       if (!campaignFund) {
@@ -329,17 +358,22 @@ export async function createBeneficiaryPayment(data: BeneficiaryPaymentFormValue
         }
       })
 
+      return { success: true, error: undefined }
+    })
+
+    if (result.success) {
       revalidatePath("/")
       revalidatePath("/campaigns")
       revalidatePath("/campaigns/distribute")
-      revalidatePath(`/campaigns/${campaign.id}`)
+      if (campaignId) revalidatePath(`/campaigns/${campaignId}`)
       revalidatePath("/campaigns/manage")
       revalidatePath("/campaigns/ledger")
       revalidatePath("/beneficiaries")
-      revalidatePath(`/beneficiaries/${beneficiary.id}`)
+      if (beneficiaryId) revalidatePath(`/beneficiaries/${beneficiaryId}`)
       revalidatePath("/ledger")
-      return { success: true, error: undefined }
-    })
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "অর্থ প্রদান করতে ব্যর্থ হয়েছে" }
   }

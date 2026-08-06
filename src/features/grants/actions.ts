@@ -21,9 +21,8 @@ export async function createGrant(data: GrantFormValues) {
   const pd = parsed.data
 
   try {
-    return await prisma.$transaction(async (tx) => {
-      const grantNumber = await generateGrantNumber()
-
+    const grantNumber = await generateGrantNumber()
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Create the Grant record
       const grant = await tx.grant.create({
         data: {
@@ -70,9 +69,14 @@ export async function createGrant(data: GrantFormValues) {
         entries: ledgerEntries
       }, tx)
 
-      revalidatePath("/grants")
       return { success: true, data: grant, error: undefined }
     })
+
+    if (result.success) {
+      revalidatePath("/grants")
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "অনুদান তৈরি করতে ব্যর্থ হয়েছে" }
   }
@@ -86,14 +90,10 @@ export async function updateGrant(id: string, data: GrantFormValues) {
   const pd = parsed.data
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const grant = await tx.grant.findUnique({ where: { id }, include: { allocations: true } })
       if (!grant) throw new Error("Grant not found")
 
-      // Notice: If amount changes, the ledger should technically be adjusted. 
-      // For simplicity in this module update as requested, we only update the Grant details.
-      // A complete ERP would recalculate the ledger. We will just update the Grant and Allocations.
-      
       await tx.grant.update({
         where: { id },
         data: {
@@ -122,10 +122,15 @@ export async function updateGrant(id: string, data: GrantFormValues) {
         })
       }
 
-      revalidatePath(`/grants/${id}`)
-      revalidatePath("/grants")
       return { success: true, data: grant, error: undefined }
     })
+
+    if (result.success) {
+      revalidatePath(`/grants/${id}`)
+      revalidatePath("/grants")
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "অনুদান আপডেট করতে ব্যর্থ হয়েছে" }
   }

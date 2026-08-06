@@ -46,8 +46,8 @@ export async function createLoanRequest(data: LoanFormValues) {
   const pd = parsed.data
 
   try {
+    const loanNumber = await generateLoanNumber()
     const loan = await prisma.$transaction(async (tx) => {
-      const loanNumber = await generateLoanNumber(tx)
 
 
       const newLoan = await tx.loan.create({

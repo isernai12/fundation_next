@@ -61,7 +61,7 @@ export async function createContribution(data: ContributionFormValues) {
   const pd = parsed.data
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Handle MEMBER CONTRIBUTION
       const member = await tx.member.findUnique({ where: { id: pd.memberId } })
       if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি")
@@ -138,12 +138,17 @@ export async function createContribution(data: ContributionFormValues) {
 
       await updateMemberPaidUntil(pd.memberId, tx)
 
-      revalidatePath("/contributions")
-      revalidatePath(`/members/${member.id}`)
-      revalidatePath(`/groups/${member.groupId}`)
-      revalidatePath("/")
-      return { success: true, error: undefined }
+      return { success: true, memberGroupId: member.groupId, error: undefined }
     })
+
+    if (result.success) {
+      revalidatePath("/contributions")
+      revalidatePath(`/members/${pd.memberId}`)
+      if (result.memberGroupId) revalidatePath(`/groups/${result.memberGroupId}`)
+      revalidatePath("/")
+    }
+
+    return result
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "মাসিক চাঁদা প্রক্রিয়া করতে ব্যর্থ হয়েছে" }
   }
@@ -169,7 +174,7 @@ export async function updateContribution(id: string, data: ContributionFormValue
   const pd = parsed.data;
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const contribution = await tx.monthlyContribution.findUnique({
         where: { id },
         include: { payments: true }
@@ -193,8 +198,6 @@ export async function updateContribution(id: string, data: ContributionFormValue
       });
 
       // Handle payments & ledger updates
-      // Note: We assume only 1 payment for simplicity in this MVP context unless multiple exist.
-      // If payment exists, update it. If not, and status is PAID, create it.
       if (pd.status === "PAID") {
         const existingPayment = contribution.payments[0];
         
@@ -273,12 +276,17 @@ export async function updateContribution(id: string, data: ContributionFormValue
 
       await updateMemberPaidUntil(pd.memberId, tx)
 
-      revalidatePath("/contributions");
-      revalidatePath(`/members/${member.id}`);
-      revalidatePath(`/groups/${member.groupId}`);
-      revalidatePath("/");
-      return { success: true, error: undefined };
+      return { success: true, memberGroupId: member.groupId, error: undefined };
     });
+
+    if (result.success) {
+      revalidatePath("/contributions");
+      revalidatePath(`/members/${pd.memberId}`);
+      if (result.memberGroupId) revalidatePath(`/groups/${result.memberGroupId}`);
+      revalidatePath("/");
+    }
+
+    return result;
   } catch (error: any) {
     return { success: false, error: error.message || "চাঁদা আপডেট করতে ব্যর্থ হয়েছে" };
   }
@@ -287,12 +295,15 @@ export async function updateContribution(id: string, data: ContributionFormValue
 export async function deleteContribution(id: string) {
     await requirePermission("Fund Collection", "Delete");
   try {
-    return await prisma.$transaction(async (tx) => {
+    let memberId: string | null = null;
+    const result = await prisma.$transaction(async (tx) => {
       const contribution = await tx.monthlyContribution.findUnique({
         where: { id },
         include: { payments: true }
       });
       if (!contribution) throw new Error("চাঁদার তথ্য খুঁজে পাওয়া যায়নি");
+
+      memberId = contribution.memberId;
 
       for (const payment of contribution.payments) {
         await tx.contributionPayment.delete({ where: { id: payment.id } });
@@ -303,9 +314,16 @@ export async function deleteContribution(id: string) {
       
       await updateMemberPaidUntil(contribution.memberId, tx);
 
-      revalidatePath("/");
       return { success: true, error: undefined };
     });
+
+    if (result.success) {
+      revalidatePath("/");
+      revalidatePath("/contributions");
+      if (memberId) revalidatePath(`/members/${memberId}`);
+    }
+
+    return result;
   } catch (error: any) {
     return { success: false, error: error.message || "চাঁদা মুছে ফেলতে ব্যর্থ হয়েছে" };
   }
@@ -319,31 +337,30 @@ export async function createBulkContribution(data: BulkContributionFormValues) {
   if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" };
   const pd = parsed.data;
 
+  if (pd.fromYear > pd.toYear || (pd.fromYear === pd.toYear && pd.fromMonth > pd.toMonth)) {
+     return { success: false, error: "শুরুর মাস শেষের মাসের চেয়ে বড় হতে পারে না" };
+  }
+
+  // Generate all month-year pairs in range outside transaction
+  const targetMonths: { month: number, year: number }[] = [];
+  let curMonth = pd.fromMonth;
+  let curYear = pd.fromYear;
+  const endMonth = pd.toMonth;
+  const endYear = pd.toYear;
+
+  while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
+    targetMonths.push({ month: curMonth, year: curYear });
+    curMonth++;
+    if (curMonth > 12) {
+      curMonth = 1;
+      curYear++;
+    }
+  }
+
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const member = await tx.member.findUnique({ where: { id: pd.memberId } });
       if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি");
-
-      // Generate all month-year pairs in range
-      const targetMonths: { month: number, year: number }[] = [];
-      let curMonth = pd.fromMonth;
-      let curYear = pd.fromYear;
-      
-      const endMonth = pd.toMonth;
-      const endYear = pd.toYear;
-
-      while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
-        targetMonths.push({ month: curMonth, year: curYear });
-        curMonth++;
-        if (curMonth > 12) {
-          curMonth = 1;
-          curYear++;
-        }
-      }
-
-      if (pd.fromYear > pd.toYear || (pd.fromYear === pd.toYear && pd.fromMonth > pd.toMonth)) {
-         throw new Error("শুরুর মাস শেষের মাসের চেয়ে বড় হতে পারে না");
-      }
 
       // Find existing
       const existing = await tx.monthlyContribution.findMany({
@@ -420,12 +437,17 @@ export async function createBulkContribution(data: BulkContributionFormValues) {
 
       await updateMemberPaidUntil(pd.memberId, tx);
 
+      return { success: true, count: processedCount, memberGroupId: member.groupId, error: undefined };
+    }, { timeout: 15000 });
+
+    if (result.success) {
       revalidatePath("/contributions");
-      revalidatePath(`/members/${member.id}`);
-      revalidatePath(`/groups/${member.groupId}`);
+      revalidatePath(`/members/${pd.memberId}`);
+      if (result.memberGroupId) revalidatePath(`/groups/${result.memberGroupId}`);
       revalidatePath("/");
-      return { success: true, count: processedCount, error: undefined };
-    });
+    }
+
+    return result;
   } catch (error: any) {
     return { success: false, error: error.message || "একাধিক মাসের চাঁদা প্রক্রিয়া করতে ব্যর্থ হয়েছে" };
   }
