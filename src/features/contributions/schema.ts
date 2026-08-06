@@ -29,3 +29,28 @@ export const bulkContributionSchema = z.object({
 })
 
 export type BulkContributionFormValues = z.infer<typeof bulkContributionSchema>
+
+export const contributionRefundSchema = z.object({
+  memberId: z.string().min(1, "সদস্য নির্বাচন করা আবশ্যক"),
+  amount: z.number().min(1, "ফেরতের পরিমাণ ১ টাকার বেশি হতে হবে"),
+  paymentDate: z.string().min(1, "তারিখ আবশ্যক"),
+  paymentMethod: z.string().min(1, "পরিশোধের মাধ্যম আবশ্যক"),
+  referenceNumber: z.string().optional(),
+  notes: z.string().min(1, "ফেরতের কারণ/রেফারেন্স উল্লেখ করুন"),
+})
+
+export type ContributionRefundFormValues = z.infer<typeof contributionRefundSchema>
+
+export const contributionAdjustmentSchema = z.object({
+  memberId: z.string().min(1, "সদস্য নির্বাচন করা আবশ্যক"),
+  adjustmentType: z.enum(["CREDIT", "DEBIT"]),
+  amount: z.number().min(1, "সমন্বয় পরিমাণ ১ টাকার বেশি হতে হবে"),
+  paymentDate: z.string().min(1, "তারিখ আবশ্যক"),
+  paymentMethod: z.string().min(1, "পরিশোধের মাধ্যম আবশ্যক"),
+  referenceNumber: z.string().optional(),
+  notes: z.string().min(1, "সমন্বয়ের কারণ উল্লেখ করুন"),
+})
+
+export type ContributionAdjustmentFormValues = z.infer<typeof contributionAdjustmentSchema>
+
+

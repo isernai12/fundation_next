@@ -4,7 +4,12 @@ import { getAuthSession } from "@/lib/auth"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 
-export default async function ContributionLedgerPage() {
+export default async function MemberContributionLedgerPage({
+  params,
+}: {
+  params: Promise<{ memberId: string }>
+}) {
+  const { memberId } = await params
   const [profile, session] = await Promise.all([
     getFoundationProfile().catch(() => null),
     getAuthSession().catch(() => null),
@@ -22,7 +27,11 @@ export default async function ContributionLedgerPage() {
           Fund Collection
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">Contribution Ledger</span>
+        <Link href="/contributions/ledger" className="hover:text-primary transition-colors">
+          Contribution Ledger
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-foreground">Member Ledger ({memberId})</span>
       </div>
 
       <ContributionLedgerView

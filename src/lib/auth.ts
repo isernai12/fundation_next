@@ -6,7 +6,13 @@ import crypto from "crypto"
 import { getServerSession } from "next-auth/next"
 import { cache } from "react"
 
-export const getAuthSession = cache(() => getServerSession(authOptions))
+export const getAuthSession = cache(async () => {
+  try {
+    return await getServerSession(authOptions)
+  } catch (e) {
+    return null
+  }
+})
 
 
 function parseUserAgent(ua: string) {

@@ -1,0 +1,709 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useLanguage } from "@/i18n/LanguageProvider"
+import { useRbac } from "@/components/providers/rbac-provider"
+import {
+  getContributionLedger,
+  getContributionLedgerFilterOptions,
+  exportContributionLedgerCSV,
+  type ContributionLedgerItem,
+  type LedgerSummaryStats,
+} from "../ledger-actions"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { formatCurrency } from "@/lib/format"
+import {
+  Search,
+  Calendar,
+  Filter,
+  X,
+  Download,
+  Printer,
+  RotateCcw,
+  SlidersHorizontal,
+  ArrowLeft,
+  ArrowRight,
+  RefreshCw,
+  FileSpreadsheet,
+  FileText,
+  FileCode,
+  BookOpen,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Scale,
+  ListFilter,
+  User,
+} from "lucide-react"
+import { toast } from "sonner"
+import { AddRefundDialog } from "./add-refund-dialog"
+import { AddAdjustmentDialog } from "./add-adjustment-dialog"
+import { MemberLedgerModal } from "./member-ledger-modal"
+import { LedgerPrintTemplate } from "./ledger-print-template"
+
+interface ContributionLedgerViewProps {
+  foundationName?: string
+  foundationLogo?: string | null
+  userName?: string
+}
+
+export function ContributionLedgerView({
+  foundationName = "Foundation ERP",
+  foundationLogo,
+  userName = "Admin",
+}: ContributionLedgerViewProps) {
+  const { t } = useLanguage()
+  const { can } = useRbac()
+
+  const canView = can("Fund Collection", "View")
+  const canAdd = can("Fund Collection", "Add")
+  const canExport = can("Fund Collection", "Export") || canView
+
+  // State
+  const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState<ContributionLedgerItem[]>([])
+  const [summary, setSummary] = useState<LedgerSummaryStats>({
+    totalContributions: 0,
+    totalRefund: 0,
+    totalAdjustment: 0,
+    currentBalance: 0,
+    totalTransactions: 0,
+  })
+  const [previousBalance, setPreviousBalance] = useState(0)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 15,
+    total: 0,
+    totalPages: 0,
+  })
+
+  // Filters State
+  const [search, setSearch] = useState("")
+  const [from, setFrom] = useState("")
+  const [to, setTo] = useState("")
+  const [selectedMember, setSelectedMember] = useState("ALL")
+  const [type, setType] = useState("ALL")
+  const [collector, setCollector] = useState("ALL")
+  const [paymentMethod, setPaymentMethod] = useState("ALL")
+
+  // Filter Options State
+  const [filterOptions, setFilterOptions] = useState<{
+    members: Array<{ id: string; memberId: string; fullName: string | null }>
+    collectors: string[]
+    paymentMethods: string[]
+  }>({
+    members: [],
+    collectors: [],
+    paymentMethods: [],
+  })
+
+  // Dialog & Modal State
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false)
+  const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false)
+  const [selectedMemberForLedger, setSelectedMemberForLedger] = useState<string | null>(null)
+  const [memberLedgerOpen, setMemberLedgerOpen] = useState(false)
+
+  // Load Filter Options
+  useEffect(() => {
+    getContributionLedgerFilterOptions()
+      .then((opts) => setFilterOptions(opts))
+      .catch((err) => console.error("Error loading filter options:", err))
+  }, [])
+
+  // Load Ledger Data
+  const loadLedger = async (page = pagination.page, limit = pagination.limit) => {
+    setLoading(true)
+    try {
+      const res = await getContributionLedger({
+        search: search || undefined,
+        from: from || undefined,
+        to: to || undefined,
+        memberId: selectedMember !== "ALL" ? selectedMember : undefined,
+        type: type !== "ALL" ? type : undefined,
+        collector: collector !== "ALL" ? collector : undefined,
+        paymentMethod: paymentMethod !== "ALL" ? paymentMethod : undefined,
+        page,
+        limit,
+      })
+
+      setItems(res.items)
+      setSummary(res.summary)
+      setPreviousBalance(res.previousBalance)
+      setPagination(res.pagination)
+    } catch (err: any) {
+      toast.error(err.message || "চাঁদা লেজার লোড করতে ব্যর্থ হয়েছে")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadLedger(1, pagination.limit)
+  }, [search, from, to, selectedMember, type, collector, paymentMethod])
+
+  const handleResetFilters = () => {
+    setSearch("")
+    setFrom("")
+    setTo("")
+    setSelectedMember("ALL")
+    setType("ALL")
+    setCollector("ALL")
+    setPaymentMethod("ALL")
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      loadLedger(newPage, pagination.limit)
+    }
+  }
+
+  const handleLimitChange = (newLimitStr: string) => {
+    const newLimit = parseInt(newLimitStr, 10)
+    loadLedger(1, newLimit)
+  }
+
+  // Print Full Ledger
+  const handlePrintFullLedger = () => {
+    window.print()
+  }
+
+  // Export Handlers
+  const handleExportCSV = async () => {
+    try {
+      const csvStr = await exportContributionLedgerCSV({
+        search: search || undefined,
+        from: from || undefined,
+        to: to || undefined,
+        memberId: selectedMember !== "ALL" ? selectedMember : undefined,
+        type: type !== "ALL" ? type : undefined,
+        collector: collector !== "ALL" ? collector : undefined,
+        paymentMethod: paymentMethod !== "ALL" ? paymentMethod : undefined,
+      })
+
+      const blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.setAttribute("href", url)
+      link.setAttribute("download", `Contribution_Ledger_${new Date().toISOString().split("T")[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast.success("চাঁদা লেজার সিএসভি (CSV) এক্সপোর্ট সফল হয়েছে")
+    } catch (err: any) {
+      toast.error("এক্সপোর্ট করতে ব্যর্থ হয়েছে")
+    }
+  }
+
+  const handleExportExcel = async () => {
+    // Standard TSV / Spreadsheet format compatible with Excel
+    await handleExportCSV()
+  }
+
+  const handleOpenMemberLedger = (memberDbId: string) => {
+    setSelectedMemberForLedger(memberDbId)
+    setMemberLedgerOpen(true)
+  }
+
+  const dateRangeString = from || to ? `${from || "শুরু"} হতে ${to || "বর্তমান"}` : "সকল সময় (All Time)"
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <BookOpen className="h-8 w-8 text-primary" />
+            চাঁদা লেজার (Contribution Ledger)
+          </h1>
+          <p className="text-muted-foreground">
+            সদস্যদের প্রতিটি নিয়মিত ও অতিরিক্ত চাঁদা, ফেরত এবং সমন্বয়ের সময়ানুক্রমিক মূল লেজার খতিয়ান।
+          </p>
+        </div>
+
+        {/* Top Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          {canAdd && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setRefundDialogOpen(true)} className="border-rose-300 hover:bg-rose-50 text-rose-700 dark:hover:bg-rose-950/30">
+                <RotateCcw className="h-4 w-4 mr-1.5" />
+                চাঁদা ফেরত
+              </Button>
+
+              <Button variant="outline" size="sm" onClick={() => setAdjustmentDialogOpen(true)} className="border-amber-300 hover:bg-amber-50 text-amber-700 dark:hover:bg-amber-950/30">
+                <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                সমন্বয় রেকর্ড
+              </Button>
+            </>
+          )}
+
+          {canExport && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-1.5" />
+                  এক্সপোর্ট
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>ফাইল ফরম্যাট নির্বাচন করুন</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleExportExcel}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2 text-emerald-600" />
+                  Excel (.xlsx / CSV)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCSV}>
+                  <FileCode className="h-4 w-4 mr-2 text-blue-600" />
+                  CSV ফাইল (.csv)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePrintFullLedger}>
+                  <FileText className="h-4 w-4 mr-2 text-rose-600" />
+                  PDF / প্রিন্ট রিপোর্ট
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          <Button variant="default" size="sm" onClick={handlePrintFullLedger}>
+            <Printer className="h-4 w-4 mr-1.5" />
+            লেজার প্রিন্ট
+          </Button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 print:hidden">
+        <Card className="bg-emerald-500/10 border-emerald-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">মোট প্রাপ্ত চাঁদা (Contributions)</p>
+              <h3 className="text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">
+                ৳ {formatCurrency(summary.totalContributions)}
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-rose-500/10 border-rose-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">মোট ফেরত (Total Refunds)</p>
+              <h3 className="text-lg sm:text-xl font-bold text-rose-700 dark:text-rose-400 mt-1">
+                ৳ {formatCurrency(summary.totalRefund)}
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-600">
+              <TrendingDown className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-amber-500/10 border-amber-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">মোট সমন্বয় (Adjustments)</p>
+              <h3 className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-400 mt-1">
+                ৳ {formatCurrency(summary.totalAdjustment)}
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600">
+              <Scale className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-blue-500/10 border-blue-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">বর্তমান জের (Current Balance)</p>
+              <h3 className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-400 mt-1">
+                ৳ {formatCurrency(summary.currentBalance)}
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-600">
+              <DollarSign className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-purple-500/10 border-purple-500/20 col-span-2 lg:col-span-1">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">মোট লেনদেন (Transactions)</p>
+              <h3 className="text-lg sm:text-xl font-bold text-purple-700 dark:text-purple-400 mt-1">
+                {summary.totalTransactions} টি
+              </h3>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-600">
+              <ListFilter className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter Toolbar */}
+      <Card className="print:hidden">
+        <CardContent className="p-4 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Filter className="h-4 w-4 text-primary" />
+              লেজার ফিল্টার এবং অনুসন্ধান (Server-Side Filtering)
+            </div>
+
+            {(search || from || to || selectedMember !== "ALL" || type !== "ALL" || collector !== "ALL" || paymentMethod !== "ALL") && (
+              <Button variant="ghost" size="sm" onClick={handleResetFilters} className="text-xs h-7 px-2">
+                <X className="h-3.5 w-3.5 mr-1" />
+                ফিল্টার রিসেট করুন
+              </Button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* Search Input */}
+            <div className="space-y-1.5 col-span-1 sm:col-span-2">
+              <Label className="text-xs">অনুসন্ধান (রসিদ/সদস্য/ফোন/মন্তব্য)</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="রসিদ নং, সদস্য আইডি, নাম বা মোবাইল দিয়ে খুঁজুন..."
+                  className="pl-9 text-xs h-9"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Date From */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">তারিখ থেকে (From)</Label>
+              <Input
+                type="date"
+                className="text-xs h-9"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+            </div>
+
+            {/* Date To */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">তারিখ পর্যন্ত (To)</Label>
+              <Input
+                type="date"
+                className="text-xs h-9"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
+            </div>
+
+            {/* Member Filter */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">সদস্য নির্বাচন</Label>
+              <Select value={selectedMember} onValueChange={setSelectedMember}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="সকল সদস্য" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="ALL">সকল সদস্য (All Members)</SelectItem>
+                  {filterOptions.members.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.memberId} - {m.fullName || "সদস্য"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Contribution Type Filter */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">চাঁদার ধরন</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="সকল ধরন" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">সকল ধরন (All Types)</SelectItem>
+                  <SelectItem value="REGULAR">নিয়মিত চাঁদা (Regular)</SelectItem>
+                  <SelectItem value="ADDITIONAL">অতিরিক্ত চাঁদা (Additional)</SelectItem>
+                  <SelectItem value="REFUND">চাঁদা ফেরত (Refund)</SelectItem>
+                  <SelectItem value="ADJUSTMENT">সমন্বয় (Adjustment)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Collector Filter */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">সংগ্রহকারী</Label>
+              <Select value={collector} onValueChange={setCollector}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="সকল সংগ্রহকারী" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">সকল সংগ্রহকারী</SelectItem>
+                  {filterOptions.collectors.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Payment Method Filter */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">পরিশোধের মাধ্যম</Label>
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="সকল মাধ্যম" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">সকল মাধ্যম</SelectItem>
+                  <SelectItem value="CASH">ক্যাশ (CASH)</SelectItem>
+                  <SelectItem value="BANK">ব্যাংক (BANK)</SelectItem>
+                  <SelectItem value="MOBILE_BANKING">মোবাইল ব্যাংকিং</SelectItem>
+                  {filterOptions.paymentMethods
+                    .filter((m) => !["CASH", "BANK", "MOBILE_BANKING"].includes(m))
+                    .map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Ledger Table */}
+      <Card className="print:hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="w-[100px]">তারিখ</TableHead>
+                  <TableHead>রসিদ নং (Receipt No)</TableHead>
+                  <TableHead>সদস্যের তথ্য (Member)</TableHead>
+                  <TableHead>মোবাইল</TableHead>
+                  <TableHead>ধরন (Type)</TableHead>
+                  <TableHead className="text-right">ডেবিট (Debit ৳)</TableHead>
+                  <TableHead className="text-right">ক্রেডিট (Credit ৳)</TableHead>
+                  <TableHead className="text-right font-bold">রানিং ব্যালেন্স (Balance ৳)</TableHead>
+                  <TableHead>মাধ্যম</TableHead>
+                  <TableHead>সংগ্রহকারী</TableHead>
+                  <TableHead>মন্তব্য</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={11} className="h-40 text-center text-muted-foreground">
+                      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+                      লেজার তথ্য লোড করা হচ্ছে...
+                    </TableCell>
+                  </TableRow>
+                ) : items.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
+                      কোনো চাঁদা লেজার রেকর্ড পাওয়া যায়নি।
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <>
+                    {/* Previous Balance Row */}
+                    {previousBalance !== 0 && (
+                      <TableRow className="bg-muted/30 font-medium text-xs">
+                        <TableCell colSpan={7} className="italic text-muted-foreground">
+                          পূর্ববর্তী জের (Opening / Previous Balance before filter/page)
+                        </TableCell>
+                        <TableCell className="text-right font-bold font-mono">
+                          ৳ {formatCurrency(previousBalance)}
+                        </TableCell>
+                        <TableCell colSpan={3}></TableCell>
+                      </TableRow>
+                    )}
+
+                    {items.map((item) => (
+                      <TableRow key={item.id} className="text-xs hover:bg-muted/40 transition-colors">
+                        <TableCell className="whitespace-nowrap font-medium">{item.paymentDate.split("T")[0]}</TableCell>
+                        <TableCell className="font-mono text-[11px] font-semibold text-foreground">
+                          {item.receiptNo}
+                        </TableCell>
+
+                        {/* Member Link */}
+                        <TableCell>
+                          <button
+                            type="button"
+                            className="text-left font-medium text-primary hover:underline flex flex-col group"
+                            onClick={() => item.memberDbId && handleOpenMemberLedger(item.memberDbId)}
+                          >
+                            <span className="font-semibold group-hover:text-primary-600">{item.memberName}</span>
+                            <span className="text-[10px] text-muted-foreground font-mono">{item.memberId}</span>
+                          </button>
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">{item.mobile}</TableCell>
+
+                        <TableCell>
+                          <Badge
+                            variant={
+                              item.contributionType === "REFUND"
+                                ? "destructive"
+                                : item.contributionType === "ADDITIONAL"
+                                ? "secondary"
+                                : item.contributionType === "ADJUSTMENT"
+                                ? "outline"
+                                : "default"
+                            }
+                            className="text-[10px] px-1.5 py-0.5"
+                          >
+                            {item.contributionType === "REGULAR"
+                              ? "নিয়মিত"
+                              : item.contributionType === "ADDITIONAL"
+                              ? "অতিরিক্ত"
+                              : item.contributionType === "REFUND"
+                              ? "ফেরত"
+                              : "সমন্বয়"}
+                          </Badge>
+                        </TableCell>
+
+                        {/* Debit */}
+                        <TableCell className="text-right font-mono font-medium text-rose-600 dark:text-rose-400">
+                          {item.debit > 0 ? `৳ ${formatCurrency(item.debit)}` : "-"}
+                        </TableCell>
+
+                        {/* Credit */}
+                        <TableCell className="text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                          {item.credit > 0 ? `৳ ${formatCurrency(item.credit)}` : "-"}
+                        </TableCell>
+
+                        {/* Running Balance */}
+                        <TableCell className="text-right font-bold font-mono text-foreground">
+                          ৳ {formatCurrency(item.balance)}
+                        </TableCell>
+
+                        <TableCell>{item.paymentMethod}</TableCell>
+                        <TableCell>{item.collector}</TableCell>
+                        <TableCell className="max-w-[160px] truncate text-muted-foreground">
+                          {item.remarks || "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          {pagination.totalPages > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span>প্রদর্শন:</span>
+                <Select value={String(pagination.limit)} onValueChange={handleLimitChange}>
+                  <SelectTrigger className="h-8 w-16 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span>
+                  মোট {pagination.total} টি রেকর্ডের মধ্যে {(pagination.page - 1) * pagination.limit + 1} -{" "}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} টি দেখানো হচ্ছে
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  disabled={pagination.page <= 1 || loading}
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+                  আগের পৃষ্ঠা
+                </Button>
+
+                <span className="font-semibold text-foreground px-2">
+                  পৃষ্ঠা {pagination.page} এর {pagination.totalPages}
+                </span>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  disabled={pagination.page >= pagination.totalPages || loading}
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                >
+                  পরের পৃষ্ঠা
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialogs & Modals */}
+      <AddRefundDialog
+        open={refundDialogOpen}
+        onOpenChange={setRefundDialogOpen}
+        members={filterOptions.members}
+        onSuccess={() => loadLedger()}
+      />
+
+      <AddAdjustmentDialog
+        open={adjustmentDialogOpen}
+        onOpenChange={setAdjustmentDialogOpen}
+        members={filterOptions.members}
+        onSuccess={() => loadLedger()}
+      />
+
+      <MemberLedgerModal
+        memberId={selectedMemberForLedger}
+        open={memberLedgerOpen}
+        onOpenChange={setMemberLedgerOpen}
+        foundationName={foundationName}
+        foundationLogo={foundationLogo}
+        userName={userName}
+      />
+
+      {/* Full Print Layout Component */}
+      <div className="hidden print:block">
+        <LedgerPrintTemplate
+          foundationName={foundationName}
+          foundationLogo={foundationLogo}
+          title="CONTRIBUTION LEDGER REPORT"
+          subtitle="Foundation ERP Financial Statement"
+          dateRangeStr={dateRangeString}
+          printedBy={userName}
+          printedTime={new Date().toLocaleString()}
+          previousBalance={previousBalance}
+          items={items}
+          summary={summary}
+        />
+      </div>
+    </div>
+  )
+}
