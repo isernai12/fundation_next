@@ -73,7 +73,7 @@ export default async function RootLayout({
   const branding = await getBrandingSettings()
 
   let userDateFormat = branding.dateFormat || 'dd MMM yyyy';
-  let userTimezone = branding.timezone || 'Asia/Dhaka';
+  const userTimezone = branding.timezone || 'Asia/Dhaka';
 
   if (isLoggedIn && user?.id) {
     const userPrefs = await getUserPreferences(user.id);

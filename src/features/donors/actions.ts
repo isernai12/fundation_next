@@ -213,26 +213,56 @@ export async function getDonorLedger(donorId: string) {
 }
 
 export async function receiveDonation(data: {
-  donorId: string,
+  sourceType?: "MEMBER" | "DONOR",
+  donorId?: string | null,
+  memberId?: string | null,
   groupId: string,
   amount: number,
   date: string,
   remarks?: string
 }) {
-    await requirePermission("Donors", "Receive Installment");
+  await requirePermission("Donors", "Receive Installment");
   const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id
+
+  const sourceType = data.sourceType || (data.memberId ? "MEMBER" : "DONOR");
+  let finalMemberId: string | null = null;
+  let finalDonorId: string | null = null;
+
+  if (sourceType === "MEMBER") {
+    if (!data.memberId || data.memberId.trim() === "") {
+      return { success: false, error: "Foundation Member is required." }
+    }
+    finalMemberId = data.memberId;
+  } else if (sourceType === "DONOR") {
+    if (!data.donorId || data.donorId.trim() === "") {
+      return { success: false, error: "External Donor is required." }
+    }
+    finalDonorId = data.donorId;
+  } else {
+    return { success: false, error: "Invalid donation source type." }
+  }
+
+  // Strict validation: never allow both or neither
+  if ((finalMemberId && finalDonorId) || (!finalMemberId && !finalDonorId)) {
+    return { success: false, error: "Donation must belong to either a Member or a Donor, not both or neither." }
+  }
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(data.groupId, tx)
 
+      const refId = finalMemberId || finalDonorId!
+
       const ledgerTx = await LedgerEngine.createTransaction({
         date: new Date(data.date),
         type: "DONATION",
-        referenceId: data.donorId,
+        referenceId: refId,
+        memberId: finalMemberId || undefined,
+        donorId: finalDonorId || undefined,
         notes: data.remarks || "Group Donation",
+        createdBy: userId,
         entries: [
           { fundId: generalFund.id, isCredit: false, amount: data.amount }, // Debit Cash/General
           { fundId: groupFund.id, isCredit: true, amount: data.amount }   // Credit Group Fund
@@ -245,7 +275,11 @@ export async function receiveDonation(data: {
     if (result.success) {
       revalidatePath("/donors/ledger")
       revalidatePath("/donors/donations")
-      revalidatePath(`/donors/${data.donorId}`)
+      if (finalDonorId) revalidatePath(`/donors/${finalDonorId}`)
+      if (finalMemberId) {
+        revalidatePath(`/members/${finalMemberId}`)
+        revalidatePath("/members/manage")
+      }
       revalidatePath("/")
       revalidatePath("/groups")
       revalidatePath("/groups/fund")
@@ -263,7 +297,8 @@ export type DonationTransactionItem = {
   id: string
   date: string
   voucherNo: string
-  donorId: string
+  sourceType: "MEMBER" | "DONOR"
+  donorId: string | null
   donor: {
     id: string
     donorId: string
@@ -271,6 +306,14 @@ export type DonationTransactionItem = {
     mobile: string
     address: string | null
     nationalId: string | null
+  } | null
+  memberId: string | null
+  member: {
+    id: string
+    memberId: string
+    fullName: string | null
+    mobile: string | null
+    groupName?: string | null
   } | null
   groupId: string | null
   groupName: string
@@ -282,11 +325,15 @@ export type DonationTransactionItem = {
 }
 
 export async function getReceivedDonations(): Promise<DonationTransactionItem[]> {
-    await requirePermission("Donors", "View");
+  await requirePermission("Donors", "View");
   const transactions = await prisma.ledgerTransaction.findMany({
     where: { type: "DONATION" },
     orderBy: { date: "desc" },
     include: {
+      member: {
+        include: { group: true }
+      },
+      donor: true,
       entries: {
         include: {
           fund: {
@@ -297,30 +344,75 @@ export async function getReceivedDonations(): Promise<DonationTransactionItem[]>
     }
   })
 
-  const donorIds = transactions.map(tx => tx.referenceId).filter(Boolean) as string[]
-  const donors = await prisma.donor.findMany({
-    where: { id: { in: donorIds } }
-  })
-  const donorMap = new Map(donors.map(d => [d.id, d]))
+  // Handle legacy records where memberId/donorId in tx might be null, but referenceId exists
+  const legacyRefIds = transactions.filter(tx => !tx.memberId && !tx.donorId && tx.referenceId).map(tx => tx.referenceId!)
+  const [legacyDonors, legacyMembers] = legacyRefIds.length > 0 ? await Promise.all([
+    prisma.donor.findMany({ where: { id: { in: legacyRefIds } } }),
+    prisma.member.findMany({ where: { id: { in: legacyRefIds } }, include: { group: true } })
+  ]) : [[], []]
+
+  const donorMap = new Map(legacyDonors.map(d => [d.id, d]))
+  const memberMap = new Map(legacyMembers.map(m => [m.id, m]))
 
   return transactions.map(tx => {
     const creditEntry = tx.entries.find(e => e.isCredit)
-    const donor = tx.referenceId ? donorMap.get(tx.referenceId) || null : null
     const group = creditEntry?.fund?.group || null
+
+    let sourceType: "MEMBER" | "DONOR" = "DONOR"
+    let donor = tx.donor ? {
+      id: tx.donor.id,
+      donorId: tx.donor.donorId,
+      fullName: tx.donor.fullName,
+      mobile: tx.donor.mobile,
+      address: tx.donor.address,
+      nationalId: tx.donor.nationalId
+    } : null
+
+    let member = tx.member ? {
+      id: tx.member.id,
+      memberId: tx.member.memberId,
+      fullName: tx.member.fullName,
+      mobile: tx.member.mobile,
+      groupName: tx.member.group?.name || null
+    } : null
+
+    if (tx.memberId || tx.member) {
+      sourceType = "MEMBER"
+    } else if (!tx.donorId && !tx.donor && tx.referenceId) {
+      const legM = memberMap.get(tx.referenceId)
+      if (legM) {
+        sourceType = "MEMBER"
+        member = {
+          id: legM.id,
+          memberId: legM.memberId,
+          fullName: legM.fullName,
+          mobile: legM.mobile,
+          groupName: legM.group?.name || null
+        }
+      } else {
+        const legD = donorMap.get(tx.referenceId)
+        if (legD) {
+          donor = {
+            id: legD.id,
+            donorId: legD.donorId,
+            fullName: legD.fullName,
+            mobile: legD.mobile,
+            address: legD.address,
+            nationalId: legD.nationalId
+          }
+        }
+      }
+    }
 
     return {
       id: tx.id,
       date: tx.date.toISOString(),
       voucherNo: `VCH-${tx.id.substring(0, 8).toUpperCase()}`,
-      donorId: tx.referenceId || "",
-      donor: donor ? {
-        id: donor.id,
-        donorId: donor.donorId,
-        fullName: donor.fullName,
-        mobile: donor.mobile,
-        address: donor.address,
-        nationalId: donor.nationalId
-      } : null,
+      sourceType,
+      donorId: tx.donorId || (sourceType === "DONOR" ? (donor?.id || tx.referenceId || null) : null),
+      donor,
+      memberId: tx.memberId || (sourceType === "MEMBER" ? (member?.id || tx.referenceId || null) : null),
+      member,
       groupId: group?.id || null,
       groupName: group?.name || "General Fund",
       amount: creditEntry ? creditEntry.amount : 0,
@@ -333,16 +425,40 @@ export async function getReceivedDonations(): Promise<DonationTransactionItem[]>
 }
 
 export async function updateDonationTransaction(transactionId: string, data: {
-  donorId: string,
+  sourceType?: "MEMBER" | "DONOR",
+  donorId?: string | null,
+  memberId?: string | null,
   groupId: string,
   amount: number,
   date: string,
   remarks?: string
 }) {
-    await requirePermission("Donors", "Edit");
+  await requirePermission("Donors", "Edit");
   const session = await getAuthSession()
   // @ts-ignore
   const userId = session?.user?.id || null
+
+  const sourceType = data.sourceType || (data.memberId ? "MEMBER" : "DONOR");
+  let finalMemberId: string | null = null;
+  let finalDonorId: string | null = null;
+
+  if (sourceType === "MEMBER") {
+    if (!data.memberId || data.memberId.trim() === "") {
+      return { success: false, error: "Foundation Member is required." }
+    }
+    finalMemberId = data.memberId;
+  } else if (sourceType === "DONOR") {
+    if (!data.donorId || data.donorId.trim() === "") {
+      return { success: false, error: "External Donor is required." }
+    }
+    finalDonorId = data.donorId;
+  } else {
+    return { success: false, error: "Invalid donation source type." }
+  }
+
+  if ((finalMemberId && finalDonorId) || (!finalMemberId && !finalDonorId)) {
+    return { success: false, error: "Donation must belong to either a Member or a Donor, not both or neither." }
+  }
 
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -355,7 +471,6 @@ export async function updateDonationTransaction(transactionId: string, data: {
         throw new Error("Donation transaction not found or invalid type.")
       }
 
-      
       const { groupFund, generalFund } = await LedgerEngine.getOrCreateFunds(data.groupId, tx)
       const group = await tx.group.findUnique({ where: { id: data.groupId } })
 
@@ -364,12 +479,16 @@ export async function updateDonationTransaction(transactionId: string, data: {
         where: { transactionId }
       })
 
+      const refId = finalMemberId || finalDonorId!
+
       // Update ledger transaction
       await tx.ledgerTransaction.update({
         where: { id: transactionId },
         data: {
           date: new Date(data.date),
-          referenceId: data.donorId,
+          referenceId: refId,
+          memberId: finalMemberId,
+          donorId: finalDonorId,
           notes: data.remarks || "Group Donation",
           updatedBy: userId,
         }
@@ -407,7 +526,11 @@ export async function updateDonationTransaction(transactionId: string, data: {
     if (result.success) {
       revalidatePath("/donors/donations")
       revalidatePath("/donors/ledger")
-      if (data.donorId) revalidatePath(`/donors/${data.donorId}`)
+      if (finalDonorId) revalidatePath(`/donors/${finalDonorId}`)
+      if (finalMemberId) {
+        revalidatePath(`/members/${finalMemberId}`)
+        revalidatePath("/members/manage")
+      }
       revalidatePath("/")
       revalidatePath("/groups")
       revalidatePath("/groups/fund")
@@ -422,10 +545,11 @@ export async function updateDonationTransaction(transactionId: string, data: {
 }
 
 export async function deleteDonationTransaction(transactionId: string) {
-    await requirePermission("Donors", "Delete");
+  await requirePermission("Donors", "Delete");
   try {
     let groupId: string | null = null
     let donorId: string | null = null
+    let memberId: string | null = null
 
     const result = await prisma.$transaction(async (tx) => {
       const existingTx = await tx.ledgerTransaction.findUnique({
@@ -439,7 +563,8 @@ export async function deleteDonationTransaction(transactionId: string) {
 
       const creditEntry = existingTx.entries.find(e => e.isCredit)
       groupId = creditEntry?.fund?.groupId || null
-      donorId = existingTx.referenceId
+      donorId = existingTx.donorId || existingTx.referenceId
+      memberId = existingTx.memberId
 
       // Delete ledger entries first inside transaction
       await tx.ledgerEntry.deleteMany({
@@ -458,6 +583,7 @@ export async function deleteDonationTransaction(transactionId: string) {
       revalidatePath("/donors/donations")
       revalidatePath("/donors/ledger")
       if (donorId) revalidatePath(`/donors/${donorId}`)
+      if (memberId) revalidatePath(`/members/${memberId}`)
       revalidatePath("/")
       revalidatePath("/groups")
       revalidatePath("/groups/fund")
@@ -470,5 +596,42 @@ export async function deleteDonationTransaction(transactionId: string) {
     return { success: false, error: error.message || "Failed to delete donation transaction" }
   }
 }
+
+export async function getMemberDonations(memberId: string) {
+  if (!await checkPermission("Members", "View")) return [];
+  const transactions = await prisma.ledgerTransaction.findMany({
+    where: {
+      type: "DONATION",
+      OR: [
+        { memberId },
+        { referenceId: memberId }
+      ]
+    },
+    include: {
+      entries: {
+        include: {
+          fund: {
+            include: { group: true }
+          }
+        }
+      }
+    },
+    orderBy: { date: "desc" }
+  })
+
+  return transactions.map(tx => {
+    const creditEntry = tx.entries.find(e => e.isCredit)
+    const groupName = creditEntry?.fund?.group?.name || "General Fund"
+    return {
+      id: tx.id,
+      date: tx.date.toISOString(),
+      voucherNo: `VCH-${tx.id.substring(0, 8).toUpperCase()}`,
+      groupName,
+      amount: creditEntry ? creditEntry.amount : 0,
+      remarks: tx.notes || "",
+    }
+  })
+}
+
 
 

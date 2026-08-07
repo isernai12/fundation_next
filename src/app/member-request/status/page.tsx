@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useLanguage } from "@/i18n/LanguageProvider"
 import { getMemberRequestByApplicationNumber } from "@/features/member-requests/actions"
 import { Button } from "@/components/ui/button"
@@ -19,16 +19,7 @@ export default function MemberRequestStatusPage() {
   const [error, setError] = useState("")
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-    const storedAppNum = localStorage.getItem("member_request_number")
-    if (storedAppNum) {
-      setAppNumber(storedAppNum)
-      fetchStatus(storedAppNum)
-    }
-  }, [])
-
-  const fetchStatus = async (numberToFetch: string) => {
+  const fetchStatus = useCallback(async (numberToFetch: string) => {
     if (!numberToFetch.trim()) {
       setError(t("member-requests.status.enter_number"))
       return
@@ -50,7 +41,16 @@ export default function MemberRequestStatusPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [t])
+
+  useEffect(() => {
+    setMounted(true)
+    const storedAppNum = localStorage.getItem("member_request_number")
+    if (storedAppNum) {
+      setAppNumber(storedAppNum)
+      fetchStatus(storedAppNum)
+    }
+  }, [fetchStatus])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

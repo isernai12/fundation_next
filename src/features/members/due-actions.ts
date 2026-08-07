@@ -4,6 +4,8 @@ import { getNow } from "@/lib/date";
 import { prisma } from "@/lib/prisma"
 import { requirePermission } from "@/lib/rbac";
 
+import { getMonthlyMembershipFee } from "@/features/settings/actions";
+
 export async function generateMissingContributions() {
   await requirePermission("Members", "Manage");
   const members = await prisma.member.findMany({
@@ -18,8 +20,7 @@ export async function generateMissingContributions() {
     }
   });
 
-  const setting = await prisma.systemSettings.findFirst({ where: { key: "DEFAULT_MONTHLY_CONTRIBUTION" } });
-  const defaultAmount = setting ? parseInt(setting.value) : 100;
+  const defaultAmount = await getMonthlyMembershipFee();
 
   const now = getNow();
   const currentYear = now.getFullYear();

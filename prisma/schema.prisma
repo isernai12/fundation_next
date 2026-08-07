@@ -37,16 +37,20 @@ model Group {
   shortName    String?
   description  String?
   remarks      String?
-  status       String   @default("ACTIVE")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  createdBy    String?
-  updatedBy    String?
+  status              String   @default("ACTIVE")
+  isFoundationGroup   Boolean  @default(false)
+  memberSignupEnabled Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  createdBy           String?
+  updatedBy           String?
 
   foundation Foundation @relation(fields: [foundationId], references: [id], onDelete: Restrict)
   members    Member[]
   funds      Fund[]
   documents  Document[]
+
+  @@index([isFoundationGroup])
 }
 
 model Member {
@@ -113,6 +117,7 @@ model Member {
   loans                 Loan[]
   documents             Document[]
   statusHistory         MemberStatusHistory[]
+  donations             LedgerTransaction[]
 }
 
 model Beneficiary {
@@ -175,6 +180,7 @@ model Donor {
 
   documents             Document[]
   campaignContributions CampaignContribution[]
+  donations             LedgerTransaction[]
 }
 
 // -----------------------------------------------------------------------------
@@ -242,6 +248,8 @@ model LedgerTransaction {
   date        DateTime
   type        String
   referenceId String? // Polymorphic link, handled in app logic (no explicit FK to keep generic)
+  memberId    String?
+  donorId     String?
   status      String   @default("COMPLETED")
   notes       String?
   createdAt   DateTime @default(now())
@@ -249,11 +257,16 @@ model LedgerTransaction {
   createdBy   String?
   updatedBy   String?
 
+  member               Member?                @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  donor                Donor?                 @relation(fields: [donorId], references: [id], onDelete: SetNull)
   entries              LedgerEntry[]
   contributionPayment  ContributionPayment?
   loanRepayment        LoanRepayment?
   campaignContribution CampaignContribution?
   beneficiaryPayment   BeneficiaryPayment?
+
+  @@index([memberId])
+  @@index([donorId])
 }
 
 model LedgerEntry {

@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Building2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Command,
   CommandEmpty,
@@ -23,6 +24,8 @@ export type ComboboxGroup = {
   id: string
   name: string
   code: string
+  isFoundationGroup?: boolean
+  memberSignupEnabled?: boolean
 }
 
 interface GroupComboboxProps {
@@ -31,6 +34,8 @@ interface GroupComboboxProps {
   onChange: (value: string) => void
   placeholder?: string
   emptyText?: string
+  disabled?: boolean
+  className?: string
 }
 
 export function GroupCombobox({
@@ -39,6 +44,8 @@ export function GroupCombobox({
   onChange,
   placeholder = "গ্রুপ নির্বাচন করুন...",
   emptyText = "কোন গ্রুপ পাওয়া যায়নি",
+  disabled = false,
+  className,
 }: GroupComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -51,11 +58,18 @@ export function GroupCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          disabled={disabled}
+          className={cn("w-full justify-between font-normal", className)}
         >
           {selectedGroup ? (
-            <div className="flex flex-col items-start overflow-hidden text-left truncate">
-              <span className="truncate w-full">{selectedGroup.code} — {selectedGroup.name}</span>
+            <div className="flex items-center gap-2 overflow-hidden text-left truncate">
+              {selectedGroup.isFoundationGroup && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-primary/20 shrink-0 flex items-center gap-1">
+                  <Building2 className="w-2.5 h-2.5" />
+                  <span>Central</span>
+                </Badge>
+              )}
+              <span className="truncate">{selectedGroup.code} — {selectedGroup.name}</span>
             </div>
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>
@@ -63,13 +77,13 @@ export function GroupCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" align="start">
+      <PopoverContent className="w-[320px] sm:w-[380px] p-0" align="start">
         <Command filter={(value, search) => {
            if (!search) return 1
            const searchLower = search.toLowerCase()
            const group = groups.find(g => g.id === value)
            if (!group) return 0
-           const searchableStr = `${group.code} ${group.name}`.toLowerCase()
+           const searchableStr = `${group.code} ${group.name} ${group.isFoundationGroup ? 'foundation central' : ''}`.toLowerCase()
            return searchableStr.includes(searchLower) ? 1 : 0
         }}>
           <CommandInput placeholder="খুঁজুন (নাম বা কোড)..." />
@@ -84,19 +98,25 @@ export function GroupCombobox({
                     onChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
-                  className="flex flex-col items-start p-2 cursor-pointer"
+                  className="flex items-center justify-between p-2.5 cursor-pointer"
                 >
-                  <div className="flex w-full items-center justify-between">
-                    <span className="font-medium">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    {group.isFoundationGroup && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-primary/20 shrink-0 flex items-center gap-1">
+                        <Building2 className="w-2.5 h-2.5" />
+                        <span>Central</span>
+                      </Badge>
+                    )}
+                    <span className="font-medium text-sm truncate">
                       {group.code} — {group.name}
                     </span>
-                    <Check
-                      className={cn(
-                        "h-4 w-4 shrink-0 text-primary",
-                        value === group.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
                   </div>
+                  <Check
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-primary ml-2",
+                      value === group.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -1,4 +1,5 @@
 import { getReceivedDonations, getDonors } from "@/features/donors/actions"
+import { getMembers } from "@/features/members/actions"
 import { prisma } from "@/lib/prisma"
 import { DonorLedgerClient } from "@/features/donors/components/donor-ledger-client"
 import { BookOpen } from "lucide-react"
@@ -12,9 +13,10 @@ export const metadata = {
 }
 
 export default async function DonorLedgerPage() {
-  const [donations, donors, groups] = await Promise.all([
+  const [donations, donors, members, groups] = await Promise.all([
     getReceivedDonations(),
     getDonors(),
+    getMembers(),
     prisma.group.findMany({
       where: { status: "ACTIVE" },
       orderBy: { name: "asc" },
@@ -50,6 +52,13 @@ export default async function DonorLedgerPage() {
           fullName: d.fullName,
           donorId: d.donorId,
           mobile: d.mobile,
+        }))}
+        members={members.map(m => ({
+          id: m.id,
+          memberId: m.memberId,
+          fullName: m.fullName,
+          group: m.group,
+          status: m.status,
         }))}
         groups={groups.map(g => ({
           id: g.id,

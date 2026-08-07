@@ -2,22 +2,27 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { GroupCombobox, type ComboboxGroup } from "@/components/group-combobox"
 import { getGroups } from "../actions"
-import type { Group } from "@prisma/client"
 import { useLanguage } from "@/i18n/LanguageProvider";
 
 export function GroupSelector() {
-    const { t } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const currentGroupId = searchParams.get("groupId") || ""
   
-  const [groups, setGroups] = useState<Group[]>([])
+  const [groups, setGroups] = useState<ComboboxGroup[]>([])
   
   useEffect(() => {
-    getGroups().then(data => setGroups(data))
+    getGroups().then(data => setGroups(data.map(g => ({
+      id: g.id,
+      name: g.name,
+      code: g.code,
+      isFoundationGroup: g.isFoundationGroup,
+      memberSignupEnabled: g.memberSignupEnabled,
+    }))))
   }, [])
 
   const handleValueChange = (value: string) => {
@@ -32,19 +37,15 @@ export function GroupSelector() {
 
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium">{t("groups.selector.label")}</span>
-      <Select value={currentGroupId} onValueChange={handleValueChange}>
-        <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder={t("groups.selector.placeholder")} />
-        </SelectTrigger>
-        <SelectContent>
-          {groups.map((g) => (
-            <SelectItem key={g.id} value={g.id}>
-              {g.code} - {g.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <span className="text-sm font-medium whitespace-nowrap">{t("groups.selector.label")}</span>
+      <div className="w-[260px] sm:w-[300px]">
+        <GroupCombobox
+          groups={groups}
+          value={currentGroupId}
+          onChange={handleValueChange}
+          placeholder={t("groups.selector.placeholder")}
+        />
+      </div>
     </div>
   )
 }

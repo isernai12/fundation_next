@@ -55,13 +55,13 @@ export function EditCampaignContributionSheet({ isOpen, onClose, contribution }:
     },
   })
 
-  if (!contribution) return null
-
   useEffect(() => {
-    if (!contribution?.date) {
+    if (contribution && !contribution.date) {
       form.setValue("date", getNow().toLocaleDateString('en-CA'))
     }
   }, [form, contribution])
+
+  if (!contribution) return null
 
   const contributorName = contribution.member ? contribution.member.fullName : contribution.donor?.fullName || "অজানা"
 

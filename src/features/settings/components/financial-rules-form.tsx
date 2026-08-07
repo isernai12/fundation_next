@@ -13,6 +13,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 export function FinancialRulesForm({ initialData }: { initialData: Record<string, string> }) {
     const { t } = useLanguage();
   const [data, setData] = useState({
+    DEFAULT_MONTHLY_CONTRIBUTION: initialData.DEFAULT_MONTHLY_CONTRIBUTION || initialData["membership.monthlyFee"] || "100",
     FIN_CURRENCY: initialData.FIN_CURRENCY || "BDT",
     FIN_CURRENCY_SYMBOL: initialData.FIN_CURRENCY_SYMBOL || "৳",
     FIN_DECIMAL_PLACES: initialData.FIN_DECIMAL_PLACES || "2",
@@ -26,10 +27,20 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const feeNum = parseInt(data.DEFAULT_MONTHLY_CONTRIBUTION, 10)
+    if (isNaN(feeNum) || feeNum <= 0) {
+      toast.error("Monthly fee must be a positive number greater than 0")
+      return
+    }
+
     setIsSaving(true)
     try {
-      await saveSystemSettings(data, "Financial")
-      toast.success(t("settings.financial_rules_save_e666eb"))
+      const res = await saveSystemSettings(data, "Financial")
+      if (res.success) {
+        toast.success(t("settings.financial_rules_save_e666eb"))
+      } else {
+        toast.error(res.error || t("settings.failed_to_save_finan_75c2f8"))
+      }
     } catch (err) {
       toast.error(t("settings.failed_to_save_finan_75c2f8"))
     } finally {
@@ -46,6 +57,21 @@ export function FinancialRulesForm({ initialData }: { initialData: Record<string
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <Label className="text-sm font-semibold">Monthly Membership Fee (মাসিক সদস্য চাঁদা)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-sm font-bold text-muted-foreground">৳</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={data.DEFAULT_MONTHLY_CONTRIBUTION}
+                  onChange={e => setData({...data, DEFAULT_MONTHLY_CONTRIBUTION: e.target.value})}
+                  className="pl-8 font-mono font-bold"
+                  required
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Monthly fee amount used for generating new dues.</p>
+            </div>
             <div className="space-y-2">
               <Label>{t("settings.default_currency_9992b8")}</Label>
               <Input value={data.FIN_CURRENCY} onChange={e => setData({...data, FIN_CURRENCY: e.target.value})} required />

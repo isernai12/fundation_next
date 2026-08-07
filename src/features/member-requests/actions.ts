@@ -30,6 +30,13 @@ export async function submitMemberRequest(data: BaseMemberFormValues) {
       ...restData
     } = parsed.data;
 
+    if (restData.groupId) {
+      const selectedGroup = await prisma.group.findUnique({ where: { id: restData.groupId } });
+      if (!selectedGroup || !selectedGroup.memberSignupEnabled || selectedGroup.isFoundationGroup) {
+        return { success: false, error: "Member registration is disabled for the selected group." };
+      }
+    }
+
     const year = getNow().getFullYear();
     const count = await prisma.memberRequest.count();
     const applicationNumber = `MR-${year}-${(count + 1).toString().padStart(5, "0")}`;
@@ -139,6 +146,11 @@ export async function approveMemberRequest(id: string) {
   if (!request) return { success: false, error: "Request not found" };
   if (request.status === "APPROVED") return { success: false, error: "Already approved" };
   if (!request.groupId) return { success: false, error: "Group not selected in application" };
+
+  const targetGroup = await prisma.group.findUnique({ where: { id: request.groupId } });
+  if (!targetGroup || !targetGroup.memberSignupEnabled || targetGroup.isFoundationGroup) {
+    return { success: false, error: "Member registration is disabled for the selected group." };
+  }
 
   const memberId = await generateMemberId();
 
@@ -340,8 +352,8 @@ export async function deleteMemberRequest(id: string) {
 
 export async function getGroups() {
   return prisma.group.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: "ACTIVE", memberSignupEnabled: true, isFoundationGroup: false },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, code: true },
+    select: { id: true, name: true, code: true, isFoundationGroup: true, memberSignupEnabled: true },
   });
 }

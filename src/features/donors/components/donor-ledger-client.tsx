@@ -6,24 +6,29 @@ import { formatCurrency, formatDate } from "@/lib/format"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Printer, Download, Search, FilterX, Users, FileText, Banknote } from "lucide-react"
+import { Printer, Download, Search, FilterX, Users, FileText, Banknote, UserCheck } from "lucide-react"
 import type { DonationTransactionItem } from "../actions"
 import { useBranding } from "@/components/providers/branding-provider"
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/LanguageProvider"
+import type { ComboboxMember } from "@/components/member-combobox"
 
 interface DonorLedgerClientProps {
   data: DonationTransactionItem[]
   donors: { id: string; fullName: string; donorId: string; mobile: string }[]
+  members?: ComboboxMember[]
   groups: { id: string; name: string }[]
 }
 
-export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientProps) {
-    const { t } = useLanguage();
+export function DonorLedgerClient({ data, donors, members = [], groups }: DonorLedgerClientProps) {
+  const { t } = useLanguage();
   const branding = useBranding()
+  
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedSource, setSelectedSource] = useState("ALL")
   const [selectedDonor, setSelectedDonor] = useState("ALL")
   const [selectedGroup, setSelectedGroup] = useState<string>("ALL")
   const [fromDate, setFromDate] = useState("")
@@ -42,18 +47,32 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
         const q = searchQuery.toLowerCase()
         const voucherNo = row.voucherNo.toLowerCase()
         const donorName = (row.donor?.fullName || "").toLowerCase()
+        const donorId = (row.donor?.donorId || "").toLowerCase()
+        const memberName = (row.member?.fullName || "").toLowerCase()
+        const memberId = (row.member?.memberId || "").toLowerCase()
         const groupName = (row.groupName || "").toLowerCase()
         const remarks = (row.remarks || "").toLowerCase()
 
-        if (!voucherNo.includes(q) && !donorName.includes(q) && !groupName.includes(q) && !remarks.includes(q)) {
+        if (!voucherNo.includes(q) && 
+            !donorName.includes(q) && 
+            !donorId.includes(q) &&
+            !memberName.includes(q) &&
+            !memberId.includes(q) &&
+            !groupName.includes(q) && 
+            !remarks.includes(q)) {
           return false
         }
       }
-      // 2. Donor filter
-      if (selectedDonor !== "ALL" && row.donorId !== selectedDonor) return false
-      // 3. Group filter
+      // 2. Source filter
+      if (selectedSource !== "ALL" && row.sourceType !== selectedSource) return false
+
+      // 3. Donor/Member filter
+      if (selectedDonor !== "ALL" && row.donorId !== selectedDonor && row.memberId !== selectedDonor) return false
+
+      // 4. Group filter
       if (selectedGroup !== "ALL" && row.groupId !== selectedGroup) return false
-      // 4. Date Range
+
+      // 5. Date Range
       if (fromDate) {
         if (new Date(row.date).setHours(0,0,0,0) < new Date(fromDate).setHours(0,0,0,0)) return false
       }
@@ -62,12 +81,10 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
       }
       return true
     })
-  }, [data, searchQuery, selectedDonor, selectedGroup, fromDate, toDate])
+  }, [data, searchQuery, selectedSource, selectedDonor, selectedGroup, fromDate, toDate])
 
   // Compute Running Balance (calculated from oldest to newest)
-  // Data is already sorted newest first (desc) from the action, so we reverse it for balance calculation
   const dataWithBalance = useMemo(() => {
-    // Clone and reverse to oldest first
     const oldestFirst = [...filteredData].reverse()
     let balance = 0
     const calculated = []
@@ -75,14 +92,13 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
       balance += row.amount
       calculated.push({ ...row, runningBalance: balance })
     }
-    // Reverse back to newest first
     return calculated.reverse()
   }, [filteredData])
 
   // Summary Metrics
   const summary = useMemo(() => {
     const totalAmount = filteredData.reduce((sum, row) => sum + row.amount, 0)
-    const uniqueDonors = new Set(filteredData.map(r => r.donorId)).size
+    const uniqueDonors = new Set(filteredData.map(r => r.donorId || r.memberId)).size
     return { totalTransactions: filteredData.length, totalAmount, uniqueDonors }
   }, [filteredData])
 
@@ -90,6 +106,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
 
   const handleResetFilters = () => {
     setSearchQuery("")
+    setSelectedSource("ALL")
     setSelectedDonor("ALL")
     setSelectedGroup("ALL")
     setFromDate("")
@@ -101,31 +118,38 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
   }
 
   const handleExportCSV = () => {
-    const headers = ["Date", "Voucher No", "Donor Name", "Mobile", "Group", "Remarks", "Amount", "Running Balance"]
-    const rows = dataWithBalance.map(r => [
-      formatDate(r.date),
-      r.voucherNo,
-      r.donor?.fullName || "",
-      r.donor?.mobile || "",
-      r.groupName,
-      (r.remarks || "").replace(/,/g, " "), // avoid csv comma issue
-      r.amount,
-      r.runningBalance
-    ].join(","))
+    const headers = ["Date", "Voucher No", "Source", "Donated By / Name", "ID / Mobile", "Group", "Remarks", "Amount", "Running Balance"]
+    const rows = dataWithBalance.map(r => {
+      const isMember = r.sourceType === "MEMBER"
+      const name = isMember ? (r.member?.fullName || "Member") : (r.donor?.fullName || "Donor")
+      const idOrMobile = isMember ? (r.member?.memberId || r.memberId || "") : (r.donor?.mobile || r.donor?.donorId || "")
+      const source = isMember ? "Foundation Member" : "External Donor"
+      return [
+        formatDate(r.date),
+        r.voucherNo,
+        source,
+        name,
+        idOrMobile,
+        r.groupName,
+        (r.remarks || "").replace(/,/g, " "),
+        r.amount,
+        r.runningBalance
+      ].join(",")
+    })
     
     const csvContent = '\uFEFF' + headers.join(",") + "\n" + rows.join("\n")
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `Donor_Ledger_${getNow().toLocaleDateString('en-CA')}.csv`
+    a.download = `Donation_Ledger_${getNow().toLocaleDateString('en-CA')}.csv`
     a.click()
   }
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/30 p-4 rounded-lg border hide-print">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 bg-muted/30 p-4 rounded-lg border hide-print">
         <div>
           <Label className="mb-2 block">{t("donors.search_939bb4")}</Label>
           <div className="relative">
@@ -138,6 +162,21 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             />
           </div>
         </div>
+
+        <div>
+          <Label className="mb-2 block">{t("donors.donation_source")}</Label>
+          <Select value={selectedSource} onValueChange={setSelectedSource}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Sources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Sources</SelectItem>
+              <SelectItem value="MEMBER">{t("donors.source_member")}</SelectItem>
+              <SelectItem value="DONOR">{t("donors.source_donor")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div>
           <Label className="mb-2 block">{t("donors.donor_9c2b8d")}</Label>
           <Select value={selectedDonor} onValueChange={setSelectedDonor}>
@@ -152,6 +191,7 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label className="mb-2 block">{t("donors.group_d4d811")}</Label>
           <Select value={selectedGroup} onValueChange={setSelectedGroup}>
@@ -166,10 +206,12 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label className="mb-2 block">{t("donors.from_b4afab")}</Label>
           <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </div>
+
         <div className="flex items-end gap-2">
           <div className="flex-1">
             <Label className="mb-2 block">{t("donors.k_a0eff4")}</Label>
@@ -203,8 +245,8 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{t("donors.total_donors_49269b")}</p>
-                <h3 className="text-2xl font-bold mt-1">{summary.uniqueDonors} {t("donors.k_27efa5")}</h3>
+                <p className="text-sm font-medium text-muted-foreground">Total Sources</p>
+                <h3 className="text-2xl font-bold mt-1">{summary.uniqueDonors}</h3>
               </div>
             </CardContent>
           </Card>
@@ -268,7 +310,8 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
               <tr>
                 <th className="px-4 py-3 font-medium">{t("donors.k_3e10c2")}</th>
                 <th className="px-4 py-3 font-medium">{t("donors.k_390ea9")}</th>
-                <th className="px-4 py-3 font-medium">{t("donors.mobile_e69db9")}</th>
+                <th className="px-4 py-3 font-medium">{t("donors.donation_source")}</th>
+                <th className="px-4 py-3 font-medium">Donated By</th>
                 <th className="px-4 py-3 font-medium">{t("donors.group_d4d811")}</th>
                 <th className="px-4 py-3 font-medium">{t("donors.k_e147d5")}</th>
                 <th className="px-4 py-3 font-medium text-right">{t("donors.amount_261c82")}</th>
@@ -277,31 +320,56 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             </thead>
             <tbody className="divide-y">
               {dataWithBalance.length > 0 ? (
-                dataWithBalance.map((row) => (
-                  <tr key={row.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div>{formatDate(row.date)}</div>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs">{row.voucherNo}</td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{row.donor?.fullName}</div>
-                      <div className="text-xs text-muted-foreground">{row.donor?.mobile}</div>
-                    </td>
-                    <td className="px-4 py-3">{row.groupName}</td>
-                    <td className="px-4 py-3 max-w-[200px] truncate" title={row.remarks}>
-                      {row.remarks || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-emerald-600 font-medium">
-                      ৳{formatCurrency(row.amount)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold text-primary">
-                      ৳{formatCurrency(row.runningBalance)}
-                    </td>
-                  </tr>
-                ))
+                dataWithBalance.map((row) => {
+                  const isMember = row.sourceType === "MEMBER"
+                  return (
+                    <tr key={row.id} className="hover:bg-muted/30">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div>{formatDate(row.date)}</div>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">{row.voucherNo}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {isMember ? (
+                          <Badge className="bg-emerald-600 text-white text-[10px] flex items-center gap-1 w-fit">
+                            <UserCheck className="w-3 h-3" />
+                            <span>{t("donors.source_member")}</span>
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-primary text-primary text-[10px] flex items-center gap-1 w-fit">
+                            <Users className="w-3 h-3" />
+                            <span>{t("donors.source_donor")}</span>
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {isMember ? (
+                          <>
+                            <div className="font-medium text-foreground">{row.member?.fullName || "Foundation Member"}</div>
+                            <div className="text-xs text-muted-foreground">{row.member?.memberId || row.memberId}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-medium text-foreground">{row.donor?.fullName || "External Donor"}</div>
+                            <div className="text-xs text-muted-foreground">{row.donor?.mobile || row.donor?.donorId}</div>
+                          </>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">{row.groupName}</td>
+                      <td className="px-4 py-3 max-w-[200px] truncate" title={row.remarks}>
+                        {row.remarks || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-emerald-600 font-medium font-mono">
+                        ৳{formatCurrency(row.amount)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-primary font-mono">
+                        ৳{formatCurrency(row.runningBalance)}
+                      </td>
+                    </tr>
+                  )
+                })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     {t("donors.k_31c268")}</td>
                 </tr>
               )}
@@ -310,8 +378,8 @@ export function DonorLedgerClient({ data, donors, groups }: DonorLedgerClientPro
             {dataWithBalance.length > 0 && (
               <tfoot className="bg-muted/50 font-bold border-t-2">
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right">{t("donors.total_amount_195a6a")}</td>
-                  <td className="px-4 py-3 text-right text-emerald-600">৳{formatCurrency(summary.totalAmount)}</td>
+                  <td colSpan={6} className="px-4 py-3 text-right">{t("donors.total_amount_195a6a")}</td>
+                  <td className="px-4 py-3 text-right text-emerald-600 font-mono">৳{formatCurrency(summary.totalAmount)}</td>
                   <td className="px-4 py-3"></td>
                 </tr>
               </tfoot>

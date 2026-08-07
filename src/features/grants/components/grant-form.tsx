@@ -292,7 +292,12 @@ export function GrantForm({
                                           <FormLabel>{t("grants.form.fundingGroup")}</FormLabel>
                                           <FormControl>
                                             <GroupCombobox
-                                              groups={groups}
+                                              groups={groups.map((g) => ({
+                                                id: g.id,
+                                                name: g.name,
+                                                code: g.code,
+                                                isFoundationGroup: (g as any).isFoundationGroup,
+                                              }))}
                                               value={field.value}
                                               onChange={field.onChange}
                                             />

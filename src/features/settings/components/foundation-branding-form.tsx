@@ -114,67 +114,6 @@ export function FoundationBrandingForm({ initialSettings }: FoundationBrandingFo
     }
   };
 
-function ImageUploadField({ 
-  id, 
-  label, 
-  description,
-  formData,
-  uploadingField,
-  handleFileChange,
-  setFormData
-}: { 
-  id: any, 
-  label: string, 
-  description: string,
-  formData: any,
-  uploadingField: string | null,
-  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>, fieldName: any) => Promise<void>,
-  setFormData: React.Dispatch<React.SetStateAction<any>>
-}) {
-  return (
-    <div className="flex flex-col space-y-3">
-      <Label htmlFor={id} className="text-base font-medium">{label}</Label>
-      <p className="text-xs text-muted-foreground">{description}</p>
-      
-      <div className="flex items-center gap-4 mt-2">
-        <div className="relative h-20 w-32 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted/50 overflow-hidden group">
-          {formData[id] ? (
-            <img src={formData[id]} alt={label} className="h-full w-full object-contain p-2" />
-          ) : (
-            <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-          )}
-          {uploadingField === id && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            </div>
-          )}
-        </div>
-        
-        <div className="flex-1 flex gap-2">
-          <Input
-            id={id}
-            type="file"
-            accept={id.includes('FAVICON') ? ".png,.jpg,.jpeg,.webp,.ico" : ".png,.jpg,.jpeg,.webp,.svg"}
-            onChange={(e) => handleFileChange(e, id)}
-            disabled={uploadingField !== null}
-            className="cursor-pointer"
-          />
-          {formData[id] && (
-            <Button 
-              type="button" 
-              variant="destructive" 
-              size="icon" 
-              onClick={() => setFormData((prev: any) => ({ ...prev, [id]: "" }))}
-              title={t("settings.delete_logo_c117e2")}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
   return (
     <Card>
       <CardHeader>
@@ -265,5 +204,68 @@ function ImageUploadField({
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+function ImageUploadField({ 
+  id, 
+  label, 
+  description,
+  formData,
+  uploadingField,
+  handleFileChange,
+  setFormData
+}: { 
+  id: any, 
+  label: string, 
+  description: string,
+  formData: any,
+  uploadingField: string | null,
+  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>, fieldName: any) => Promise<void>,
+  setFormData: React.Dispatch<React.SetStateAction<any>>
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className="flex flex-col space-y-3">
+      <Label htmlFor={id} className="text-base font-medium">{label}</Label>
+      <p className="text-xs text-muted-foreground">{description}</p>
+      
+      <div className="flex items-center gap-4 mt-2">
+        <div className="relative h-20 w-32 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted/50 overflow-hidden group">
+          {formData[id] ? (
+            <img src={formData[id]} alt={label} className="h-full w-full object-contain p-2" />
+          ) : (
+            <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+          )}
+          {uploadingField === id && (
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 flex gap-2">
+          <Input
+            id={id}
+            type="file"
+            accept={id.includes('FAVICON') ? ".png,.jpg,.jpeg,.webp,.ico" : ".png,.jpg,.jpeg,.webp,.svg"}
+            onChange={(e) => handleFileChange(e, id)}
+            disabled={uploadingField !== null}
+            className="cursor-pointer"
+          />
+          {formData[id] && (
+            <Button 
+              type="button" 
+              variant="destructive" 
+              size="icon" 
+              onClick={() => setFormData((prev: any) => ({ ...prev, [id]: "" }))}
+              title={t("settings.delete_logo_c117e2")}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -22,6 +22,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useLanguage } from "@/i18n/LanguageProvider";
 
+import { Switch } from "@/components/ui/switch"
+import { FormDescription } from "@/components/ui/form"
+
 export function GroupForm() {
     const { t } = useLanguage();
   const router = useRouter()
@@ -38,6 +41,8 @@ export function GroupForm() {
       status: "ACTIVE",
       openingBalance: 0,
       remarks: "",
+      memberSignupEnabled: true,
+      isFoundationGroup: false,
     },
   })
 
@@ -139,6 +144,30 @@ export function GroupForm() {
                                       </FormItem>
                                     ));
                   }}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="memberSignupEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 col-span-1 md:col-span-2">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base font-semibold">
+                          Allow Member Signup (সদস্য নিবন্ধনের অনুমতি)
+                        </FormLabel>
+                        <FormDescription className="text-xs text-muted-foreground">
+                          If turned OFF, this group will be hidden from public and admin registration forms.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={form.watch("isFoundationGroup")}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
               </div>
               <FormField

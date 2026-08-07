@@ -27,6 +27,9 @@ import type { Group } from "@prisma/client"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLanguage } from "@/i18n/LanguageProvider";
 
+import { Switch } from "@/components/ui/switch"
+import { FormDescription } from "@/components/ui/form"
+
 interface GroupFormDialogProps {
   group?: Group
   trigger?: React.ReactNode
@@ -48,6 +51,8 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
       status: (group?.status as "ACTIVE" | "INACTIVE") || "ACTIVE",
       openingBalance: 0,
       remarks: group?.remarks || "",
+      memberSignupEnabled: group?.memberSignupEnabled ?? true,
+      isFoundationGroup: group?.isFoundationGroup ?? false,
     },
   })
 
@@ -121,6 +126,31 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
                             ));
               }}
             />
+
+            <FormField
+              control={form.control}
+              name="memberSignupEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5 pr-2">
+                    <FormLabel className="text-sm font-semibold">
+                      Allow Member Signup (সদস্য নিবন্ধন)
+                    </FormLabel>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Enable or disable member registration for this group.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={group?.isFoundationGroup || form.watch("isFoundationGroup")}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             {isEditing && (
               <FormField
                 control={form.control}

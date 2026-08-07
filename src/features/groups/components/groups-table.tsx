@@ -29,7 +29,7 @@ import { GroupFormDialog } from "./group-form-dialog"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Eye, Edit, Trash, MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { Eye, Edit, Trash, MoreHorizontal, ArrowUpDown, Building2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +73,17 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
           </Button>
         )
       },
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-foreground">{row.getValue("name")}</span>
+          {row.original.isFoundationGroup && (
+            <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] py-0 px-2 flex items-center gap-1">
+              <Building2 className="w-3 h-3" />
+              <span>Foundation Central Fund</span>
+            </Badge>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: "_count.members",
@@ -88,6 +99,17 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
       id: "currentFund",
       header: t("groups.table.columns.currentFund"),
       cell: ({ row }) => `৳${formatCurrency(row.original.currentFund || 0)}`,
+    },
+    {
+      accessorKey: "memberSignupEnabled",
+      header: "Member Signup",
+      cell: ({ row }) => (
+        row.original.memberSignupEnabled ? (
+          <Badge variant="outline" className="border-emerald-500 text-emerald-600 text-[11px]">Allowed</Badge>
+        ) : (
+          <Badge variant="secondary" className="text-muted-foreground text-[11px]">Disabled</Badge>
+        )
+      ),
     },
     {
       accessorKey: "status",
@@ -153,6 +175,8 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                               status: "ACTIVE" as const,
                               openingBalance: 0,
                               remarks: group.remarks || "",
+                              memberSignupEnabled: group.memberSignupEnabled ?? true,
+                              isFoundationGroup: group.isFoundationGroup ?? false,
                             }
                             const res = await updateGroup(group.id, payload)
                             if (res.success) toast.success(t("groups.table.activateSuccess"))
@@ -171,6 +195,8 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                               status: "INACTIVE" as const,
                               openingBalance: 0,
                               remarks: group.remarks || "",
+                              memberSignupEnabled: group.memberSignupEnabled ?? true,
+                              isFoundationGroup: group.isFoundationGroup ?? false,
                             }
                             const res = await updateGroup(group.id, payload)
                             if (res.success) toast.success(t("groups.table.deactivateSuccess"))

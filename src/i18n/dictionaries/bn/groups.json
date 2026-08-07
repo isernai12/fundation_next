@@ -30,6 +30,10 @@
     "description": "বিবরণ",
     "currentFund": "বর্তমান তহবিল",
     "remarks": "মন্তব্য",
+    "allowMemberSignup": "সদস্য নিবন্ধনের অনুমতি",
+    "allowMemberSignupDesc": "বন্ধ করা হলে, এই গ্রুপটি প্রকাশ্য আবেদন এবং এডমিন সদস্য যোগ করার ফর্ম থেকে হাইড থাকবে।",
+    "isFoundationGroup": "ফাউন্ডেশন সেন্ট্রাল গ্রুপ",
+    "isFoundationGroupDesc": "সেন্ট্রাল ফান্ডের জন্য নির্দিষ্ট গ্রুপ।",
     "placeholders": {
       "groupName": "গ্রুপের নাম লিখুন",
       "description": "গ্রুপের বিবরণ লিখুন...",
@@ -52,6 +56,7 @@
       "name": "গ্রুপের নাম",
       "members": "সদস্য",
       "currentFund": "বর্তমান তহবিল",
+      "memberSignup": "সদস্য নিবন্ধন",
       "status": "অবস্থা",
       "created": "তৈরির তারিখ",
       "actions": "অ্যাকশন",

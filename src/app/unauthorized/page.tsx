@@ -11,7 +11,7 @@ import { Trans } from "@/components/shared/trans";
 function UnauthorizedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const module = searchParams.get("module");
+  const moduleName = searchParams.get("module");
   const action = searchParams.get("action");
   const { can, permissions } = useRbac();
   const hasDashboardAccess = true;
@@ -26,13 +26,13 @@ function UnauthorizedContent() {
       <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
         <Trans tKey="unauthorized.desc" /></p>
 
-      {(module || action) && (
+      {(moduleName || action) && (
         <div className="bg-white dark:bg-card rounded-xl p-6 mb-10 w-full max-w-md text-center border shadow-sm">
-          <p className="text-sm text-muted-foreground mb-3 font-medium tracking-wide uppercase"><Trans tKey="unauthorized.required_permission" /></p>
-          <div className="flex items-center justify-center gap-3">
-            <span className="bg-muted px-4 py-1.5 rounded-md font-semibold text-foreground">{module || "অজানা"}</span>
-            <span className="text-muted-foreground font-light">→</span>
-            <span className="bg-muted px-4 py-1.5 rounded-md font-semibold text-foreground">{action || "অজানা"}</span>
+          <p className="text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2"><Trans tKey="unauthorized.requested_permission" /></p>
+          <div className="inline-flex items-center gap-2 bg-gray-50 dark:bg-muted/50 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 border">
+            {moduleName && <span>Module: <strong className="text-primary">{moduleName}</strong></span>}
+            {moduleName && action && <span>•</span>}
+            {action && <span>Action: <strong className="text-primary">{action}</strong></span>}
           </div>
         </div>
       )}

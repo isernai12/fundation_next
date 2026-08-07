@@ -19,7 +19,13 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 
 import { InfoIcon, CheckCircle2, AlertTriangle } from "lucide-react"
 
-export function BulkContributionForm({ members }: { members: { id: string; memberId: string; fullName: string | null; group: { name: string; code: string } | null }[] }) {
+export function BulkContributionForm({
+  members,
+  defaultMonthlyFee = 100,
+}: {
+  members: { id: string; memberId: string; fullName: string | null; group: { name: string; code: string } | null }[]
+  defaultMonthlyFee?: number
+}) {
     const { t } = useLanguage();
     const router = useRouter()
     const [loading, setLoading] = useState(false)
@@ -32,7 +38,7 @@ export function BulkContributionForm({ members }: { members: { id: string; membe
       fromYear: getNow().getFullYear(),
       toMonth: getNow().getMonth() + 1,
       toYear: getNow().getFullYear(),
-      monthlyAmount: 100,
+      monthlyAmount: defaultMonthlyFee,
       paymentDate: "",
       paymentMethod: "CASH",
       referenceNumber: "",

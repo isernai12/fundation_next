@@ -6,7 +6,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Printer, Download, X, Building, CheckCircle2, HeartHandshake } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Printer, Download, X, Building, CheckCircle2, HeartHandshake, UserCheck, Users } from "lucide-react"
 import { formatDate } from "@/lib/format"
 import type { DonationTransactionItem } from "../actions"
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -19,8 +20,10 @@ interface ReceiptDonationModalProps {
 }
 
 export function ReceiptDonationModal({ isOpen, onClose, donation, mode = "print" }: ReceiptDonationModalProps) {
-    const { t } = useLanguage();
+  const { t } = useLanguage();
   if (!donation) return null
+
+  const isMember = donation.sourceType === "MEMBER"
 
   const handlePrint = () => {
     window.print()
@@ -52,10 +55,6 @@ export function ReceiptDonationModal({ isOpen, onClose, donation, mode = "print"
             <Button size="sm" variant="outline" onClick={handlePrint} className="flex items-center gap-1">
               <Printer className="w-4 h-4" />
               <span>{t("donors.k_d26d50")}</span>
-            </Button>
-            <Button size="sm" variant="default" onClick={handleExportPDF} className="flex items-center gap-1">
-              <Download className="w-4 h-4" />
-              <span>{t("donors.pdf_5dbe87")}</span>
             </Button>
             <Button size="icon" variant="ghost" className="h-8 w-8 ml-2" onClick={onClose}>
               <X className="w-4 h-4" />
@@ -103,23 +102,45 @@ export function ReceiptDonationModal({ isOpen, onClose, donation, mode = "print"
               </thead>
               <tbody className="divide-y text-sm">
                 <tr>
-                  <td className="py-4 px-4 space-y-1">
+                  <td className="py-4 px-4 space-y-2">
                     <div className="flex items-center gap-1.5 font-bold text-base text-foreground">
                       <HeartHandshake className="w-4 h-4 text-primary" />
                       <span>{t("donors.k_b76b08")}{donation.groupName}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("donors.k_4f08c3")}<span className="font-semibold text-foreground">{donation.donor?.fullName || "Unknown Donor"}</span>
-                    </p>
-                    {donation.donor && (
-                      <>
-                        <p className="text-xs text-muted-foreground">{t("donors.k_72629d")}{donation.donor.donorId}</p>
-                        <p className="text-xs text-muted-foreground">{t("donors.k_9767a6")}{donation.donor.mobile}</p>
-                        {donation.donor.address && (
-                          <p className="text-xs text-muted-foreground">{t("donors.k_5f4a05")}{donation.donor.address}</p>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-xs text-muted-foreground uppercase font-semibold">{t("donors.donation_source")}:</span>
+                      {isMember ? (
+                        <Badge className="bg-emerald-600 text-white text-xs flex items-center gap-1">
+                          <UserCheck className="w-3 h-3" />
+                          <span>{t("donors.source_member")}</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-primary text-primary text-xs flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          <span>{t("donors.source_donor")}</span>
+                        </Badge>
+                      )}
+                    </div>
+
+                    {isMember ? (
+                      <div className="text-xs text-muted-foreground space-y-0.5 border-l-2 border-emerald-500 pl-2 mt-1">
+                        <p>{t("donors.k_4f08c3")} <span className="font-semibold text-foreground">{donation.member?.fullName || "Foundation Member"}</span></p>
+                        <p>{t("donors.k_e6f2eb")} {donation.member?.memberId || donation.memberId}</p>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground space-y-0.5 border-l-2 border-primary pl-2 mt-1">
+                        <p>{t("donors.k_4f08c3")} <span className="font-semibold text-foreground">{donation.donor?.fullName || "External Donor"}</span></p>
+                        {donation.donor && (
+                          <>
+                            <p>{t("donors.k_72629d")} {donation.donor.donorId}</p>
+                            <p>{t("donors.k_9767a6")} {donation.donor.mobile}</p>
+                            {donation.donor.address && <p>{t("donors.k_5f4a05")} {donation.donor.address}</p>}
+                          </>
                         )}
-                      </>
+                      </div>
                     )}
+
                     {donation.remarks && (
                       <p className="text-xs italic bg-muted/50 p-2 rounded mt-2 text-muted-foreground border">
                         {t("donors.k_b6aa98")}{donation.remarks}

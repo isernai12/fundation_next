@@ -1,5 +1,10 @@
 {
   "receive_donation_9b92b8": "সাদাকা গ্রহণ (Receive Donation)",
+  "donation_source": "রিসিভ ফ্রম (Donation Source) *",
+  "source_member": "ফাউন্ডেশনের সদস্য (Foundation Member)",
+  "source_donor": "বহিরাগত / সদকাকারী (Non-member / Donor)",
+  "member_label": "ফাউন্ডেশন সদস্য (Member) *",
+  "selected_member_info": "নির্বাচিত সদস্যের তথ্য",
   "donor_462f00": "সাদাকাদাতা (Donor) *",
   "foundation_group_ce625d": "তহবিল গন্তব্য (Foundation Group) *",
   "amount_5fb1f4": "পরিমাণ (Amount) *",

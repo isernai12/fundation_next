@@ -44,19 +44,54 @@ export async function saveFoundationProfile(data: any) {
   return { success: true }
 }
 
+export async function getMonthlyMembershipFee(): Promise<number> {
+  const settings = await prisma.systemSettings.findMany({
+    where: {
+      key: { in: ["DEFAULT_MONTHLY_CONTRIBUTION", "membership.monthlyFee"] }
+    }
+  })
+  const setting = settings.find(s => s.key === "DEFAULT_MONTHLY_CONTRIBUTION") || settings.find(s => s.key === "membership.monthlyFee")
+  if (!setting || !setting.value) return 100
+  const fee = parseInt(setting.value, 10)
+  return isNaN(fee) || fee <= 0 ? 100 : fee
+}
+
 export async function getSystemSettings() {
-    await requirePermission("Settings", "View");
+  await requirePermission("Settings", "View");
   const settings = await prisma.systemSettings.findMany()
   const map: Record<string, string> = {}
   for (const s of settings) {
     map[s.key] = s.value
   }
+  if (!map["DEFAULT_MONTHLY_CONTRIBUTION"] && !map["membership.monthlyFee"]) {
+    map["DEFAULT_MONTHLY_CONTRIBUTION"] = "100"
+    map["membership.monthlyFee"] = "100"
+  }
   return map
 }
 
 export async function saveSystemSettings(settingsMap: Record<string, string>, group: string = "General") {
-    await requirePermission("Settings", "Manage");
+  await requirePermission("Settings", "Manage");
+
+  // Validate Monthly Membership Fee if present
   for (const [key, value] of Object.entries(settingsMap)) {
+    if (key === "DEFAULT_MONTHLY_CONTRIBUTION" || key === "membership.monthlyFee") {
+      const feeNum = parseInt(value, 10)
+      if (isNaN(feeNum) || feeNum <= 0) {
+        return { success: false, error: "Monthly membership fee must be a positive number greater than 0" }
+      }
+    }
+  }
+
+  // If monthly fee is updated, sync both keys
+  const updatedMap = { ...settingsMap }
+  if (updatedMap["DEFAULT_MONTHLY_CONTRIBUTION"]) {
+    updatedMap["membership.monthlyFee"] = updatedMap["DEFAULT_MONTHLY_CONTRIBUTION"]
+  } else if (updatedMap["membership.monthlyFee"]) {
+    updatedMap["DEFAULT_MONTHLY_CONTRIBUTION"] = updatedMap["membership.monthlyFee"]
+  }
+
+  for (const [key, value] of Object.entries(updatedMap)) {
     await prisma.systemSettings.upsert({
       where: { key },
       update: { value },
@@ -74,6 +109,8 @@ export async function saveSystemSettings(settingsMap: Record<string, string>, gr
   })
 
   revalidatePath("/", "layout");
+  revalidatePath("/settings/general");
+  revalidatePath("/settings/financial");
 
   return { success: true }
 }

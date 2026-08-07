@@ -62,6 +62,7 @@ export interface MemberProfileData {
   documents?: any[]
   position?: string | null
   reasonForJoining?: string | null
+  voluntaryDonations?: { id: string; date: string; voucherNo: string; groupName: string; amount: number; remarks: string }[]
 }
 
 export function MemberProfileLayout({
@@ -206,6 +207,42 @@ export function MemberProfileLayout({
               )}
             </div>
           </section>
+
+          {/* Voluntary Donations Section */}
+          {data.voluntaryDonations && data.voluntaryDonations.length > 0 && (
+            <section className="print:break-before-page">
+              <div className="flex items-center justify-between bg-muted/30 px-3 py-1.5 border-l-4 border-emerald-600 mb-3 mt-6">
+                <h2 className="text-lg font-bold">Voluntary Donations (ঐচ্ছিক সদকা / অনুদান)</h2>
+                <span className="text-sm font-bold text-emerald-600 font-mono">
+                  Total: ৳{data.voluntaryDonations.reduce((acc, d) => acc + d.amount, 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="border rounded-md overflow-hidden">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead className="bg-muted/50 font-semibold border-b">
+                    <tr>
+                      <th className="p-2"><Trans tKey="donors.k_3e10c2" /></th>
+                      <th className="p-2"><Trans tKey="donors.k_390ea9" /></th>
+                      <th className="p-2"><Trans tKey="donors.group_d4d811" /></th>
+                      <th className="p-2"><Trans tKey="donors.k_e147d5" /></th>
+                      <th className="p-2 text-right"><Trans tKey="donors.amount_261c82" /></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.voluntaryDonations.map((d) => (
+                      <tr key={d.id} className="border-b hover:bg-muted/20">
+                        <td className="p-2">{formatDate(d.date)}</td>
+                        <td className="p-2 font-mono text-primary font-medium">{d.voucherNo}</td>
+                        <td className="p-2">{d.groupName}</td>
+                        <td className="p-2 text-muted-foreground">{d.remarks || '-'}</td>
+                        <td className="p-2 text-right font-bold text-emerald-600 font-mono">৳{d.amount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {/* SECTION 6 (Audit) */}
           {data.statusHistory && data.statusHistory.length > 0 && (

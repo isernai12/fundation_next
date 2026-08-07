@@ -33,13 +33,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Beneficiary, Document } from "@prisma/client"
 import { MemberCombobox } from "@/components/member-combobox"
+import { GroupCombobox } from "@/components/group-combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useLanguage } from "@/i18n/LanguageProvider";
 
 interface LoanFormProps {
   beneficiaries: Beneficiary[]
-  groups?: { id: string; name: string; currentFund?: number }[]
+  groups?: { id: string; name: string; code?: string; isFoundationGroup?: boolean; currentFund?: number }[]
   initialData?: LoanFormValues & { id: string }
   initialDocuments?: Document[]
 }
@@ -447,26 +448,25 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
                       <FormField
                         control={form.control}
                         name={`fundAllocations.${index}.groupId`}
-                        render={({ field: selectField }) => {
-                          return ((
-                                                  <FormItem>
-                                                    <FormLabel>{t("loans.form.group")}</FormLabel>
-                                                    <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
-                                                      <FormControl>
-                                                        <SelectTrigger>
-                                                          <SelectValue placeholder={t("loans.form.selectFundingSource")} />
-                                                        </SelectTrigger>
-                                                      </FormControl>
-                                                      <SelectContent>
-                                                        {groups?.map(g => (
-                                                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                                                        ))}
-                                                      </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                  </FormItem>
-                                                ));
-                        }}
+                        render={({ field: selectField }) => (
+                          <FormItem>
+                            <FormLabel>{t("loans.form.group")}</FormLabel>
+                            <FormControl>
+                              <GroupCombobox
+                                groups={(groups || []).map((g) => ({
+                                  id: g.id,
+                                  name: g.name,
+                                  code: g.code || g.name.substring(0, 3).toUpperCase(),
+                                  isFoundationGroup: g.isFoundationGroup,
+                                }))}
+                                value={selectField.value}
+                                onChange={selectField.onChange}
+                                placeholder={t("loans.form.selectFundingSource")}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                       {group && (
                         <div className="flex justify-between text-sm bg-muted p-2 rounded">

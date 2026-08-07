@@ -1,5 +1,6 @@
 import { DonationForm } from "@/features/donors/components/donation-form"
 import { getDonors } from "@/features/donors/actions"
+import { getMembers } from "@/features/members/actions"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
@@ -10,11 +11,14 @@ export const metadata = {
 }
 
 export default async function ReceiveDonationPage() {
-  const donors = await getDonors()
-  const groups = await prisma.group.findMany({
-    where: { status: "ACTIVE" },
-    orderBy: { name: "asc" }
-  })
+  const [donors, members, groups] = await Promise.all([
+    getDonors(),
+    getMembers(),
+    prisma.group.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { name: "asc" }
+    })
+  ])
 
   return (
     <div className="space-y-4">
@@ -40,6 +44,13 @@ export default async function ReceiveDonationPage() {
           donorId: d.donorId,
           mobile: d.mobile
         }))} 
+        members={members.map(m => ({
+          id: m.id,
+          memberId: m.memberId,
+          fullName: m.fullName,
+          group: m.group,
+          status: m.status
+        }))}
         groups={groups.map(g => ({
           id: g.id,
           name: g.name

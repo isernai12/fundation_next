@@ -35,6 +35,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { memberSchema, baseMemberSchema, type MemberFormValues, type BaseMemberFormValues } from "../schema";
+import { GroupCombobox } from "@/components/group-combobox";
 import { createMember, updateMember, deleteMemberDocument } from "../actions";
 import type { Member } from "@prisma/client";
 import { formatDate } from "@/lib/format";
@@ -384,28 +385,26 @@ export function MemberForm({
             <FormField
               control={form.control}
               name="groupId"
-              render={({ field }) => {
-                return ((
-                            <FormItem>
-                              <FormLabel className="text-lg">{t("members.group_selector.label")}</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder={t("members.group_selector.placeholder")} />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {groups.map((g) => (
-                                    <SelectItem key={g.id} value={g.id}>
-                                      {g.name} ({g.code})
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          ));
-              }}
+              render={({ field }) => (
+                <FormItem className="flex flex-col justify-end">
+                  <FormLabel className="text-lg mb-2">{t("members.group_selector.label")}</FormLabel>
+                  <FormControl>
+                    <GroupCombobox
+                      groups={groups.map((g) => ({
+                        id: g.id,
+                        name: g.name,
+                        code: g.code,
+                        isFoundationGroup: g.isFoundationGroup,
+                        memberSignupEnabled: g.memberSignupEnabled,
+                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder={t("members.group_selector.placeholder")}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             {mode === "edit" && (
@@ -443,20 +442,20 @@ export function MemberForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("member-requests.public.form.group") || "Group"} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("member-requests.public.form.selectGroup") || "Select Group"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name} ({group.code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <GroupCombobox
+                      groups={groups.map((g) => ({
+                        id: g.id,
+                        name: g.name,
+                        code: g.code,
+                        isFoundationGroup: g.isFoundationGroup,
+                        memberSignupEnabled: g.memberSignupEnabled,
+                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder={t("member-requests.public.form.selectGroup") || "Select Group"}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

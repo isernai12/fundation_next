@@ -53,7 +53,7 @@ export default async function GrantLedgerPage({ searchParams }: { searchParams: 
     const beneficiaryName = grant?.beneficiary?.fullName || "Unknown"
 
     let debit = 0
-    let credit = 0
+    const credit = 0
 
     // Grants only debit from the foundation funds
     debit = t.entries.filter(e => e.isCredit).reduce((sum, e) => sum + e.amount, 0)

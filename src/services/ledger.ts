@@ -11,6 +11,8 @@ export type LedgerTransactionInput = {
   date: Date
   type: string
   referenceId?: string
+  memberId?: string
+  donorId?: string
   notes?: string
   createdBy?: string
   entries: LedgerEntryInput[]
@@ -48,6 +50,8 @@ export class LedgerEngine {
         date: data.date,
         type: data.type,
         referenceId: data.referenceId,
+        memberId: data.memberId,
+        donorId: data.donorId,
         notes: data.notes,
         createdBy: data.createdBy,
         entries: {

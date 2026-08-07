@@ -135,6 +135,11 @@ export async function createMember(data: MemberFormValues) {
     }
   }
 
+  const selectedGroup = await prisma.group.findUnique({ where: { id: pd.groupId as string } });
+  if (!selectedGroup || !selectedGroup.memberSignupEnabled || selectedGroup.isFoundationGroup) {
+    return { success: false, error: "Member registration is disabled for the selected group." };
+  }
+
   try {
     const referenceData = (pd.referenceName || pd.referenceMobile || pd.referenceRelation) 
       ? JSON.stringify({
@@ -248,6 +253,13 @@ export async function updateMember(id: string, data: MemberFormValues) {
 
     const currentMember = await prisma.member.findUnique({ where: { id } });
     if (!currentMember) return { success: false, error: "members.messages.update_error" };
+
+    if (currentMember.groupId !== pd.groupId) {
+      const targetGroup = await prisma.group.findUnique({ where: { id: pd.groupId as string } });
+      if (!targetGroup || !targetGroup.memberSignupEnabled || targetGroup.isFoundationGroup) {
+        return { success: false, error: "Member registration is disabled for the selected group." };
+      }
+    }
 
     const member = await prisma.member.update({
       where: { id },

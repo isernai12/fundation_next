@@ -1,11 +1,15 @@
 import { BulkContributionForm } from "@/features/contributions/components/bulk-contribution-form"
 import { getMembers } from "@/features/members/actions"
+import { getMonthlyMembershipFee } from "@/features/settings/actions"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { Trans } from "@/components/shared/trans";
 
 export default async function AddContributionPage() {
-  const members = await getMembers()
+  const [members, defaultMonthlyFee] = await Promise.all([
+    getMembers(),
+    getMonthlyMembershipFee(),
+  ])
 
   return (
     <div className="space-y-4">
@@ -23,7 +27,7 @@ export default async function AddContributionPage() {
         </div>
       </div>
 
-      <BulkContributionForm members={members} />
+      <BulkContributionForm members={members} defaultMonthlyFee={defaultMonthlyFee} />
     </div>
   )
 }

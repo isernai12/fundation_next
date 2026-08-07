@@ -1,6 +1,11 @@
 {
   "receive_donation_9b92b8": "Receive Donation",
-  "donor_462f00": "Donor",
+  "donation_source": "Donation Source *",
+  "source_member": "Foundation Member",
+  "source_donor": "Non-member / Donor",
+  "member_label": "Foundation Member *",
+  "selected_member_info": "Selected Member Info",
+  "donor_462f00": "Donor *",
   "foundation_group_ce625d": "Foundation Group",
   "amount_5fb1f4": "Amount",
   "date_fd1a4c": "Date",

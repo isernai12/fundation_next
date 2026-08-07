@@ -8,6 +8,8 @@ export const groupSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
   openingBalance: z.coerce.number().min(0, "groups.validation.openingBalanceMin").default(0),
   remarks: z.string().optional(),
+  memberSignupEnabled: z.boolean().default(true),
+  isFoundationGroup: z.boolean().default(false),
 })
 
 export type GroupFormValues = z.infer<typeof groupSchema>

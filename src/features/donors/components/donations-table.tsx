@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -36,7 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, FileText, Download, Printer, Eye, Edit, Trash, Search, FilterX, Users, Building } from "lucide-react"
+import { MoreHorizontal, FileText, Download, Printer, Eye, Edit, Trash, Search, FilterX, Users, Building, UserCheck } from "lucide-react"
 import { formatDate } from "@/lib/format"
 import { toast } from "sonner"
 import { deleteDonationTransaction, type DonationTransactionItem } from "../actions"
@@ -44,16 +45,18 @@ import { ViewDonationDialog } from "./view-donation-dialog"
 import { EditDonationSheet } from "./edit-donation-sheet"
 import { ReceiptDonationModal } from "./receipt-donation-modal"
 import { useRbac } from "@/components/providers/rbac-provider"
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/LanguageProvider"
+import type { ComboboxMember } from "@/components/member-combobox"
 
 interface DonationsTableProps {
   data: DonationTransactionItem[]
   donors: { id: string; fullName: string; donorId: string; mobile: string }[]
+  members?: ComboboxMember[]
   groups: { id: string; name: string }[]
 }
 
-export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
-    const { t } = useLanguage();
+export function DonationsTable({ data, donors, members = [], groups }: DonationsTableProps) {
+  const { t } = useLanguage();
   const router = useRouter()
   const [sorting, setSorting] = useState<SortingState>([])
   const { can } = useRbac()
@@ -64,6 +67,7 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedSource, setSelectedSource] = useState("ALL")
   const [selectedDonor, setSelectedDonor] = useState("ALL")
   const [selectedGroup, setSelectedGroup] = useState("ALL")
   const [fromDate, setFromDate] = useState("")
@@ -92,27 +96,43 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
         const q = searchQuery.toLowerCase()
         const voucherNo = row.voucherNo.toLowerCase()
         const donorName = (row.donor?.fullName || "").toLowerCase()
+        const donorId = (row.donor?.donorId || "").toLowerCase()
         const donorMobile = (row.donor?.mobile || "").toLowerCase()
+        const memberName = (row.member?.fullName || "").toLowerCase()
+        const memberId = (row.member?.memberId || "").toLowerCase()
         const groupName = (row.groupName || "").toLowerCase()
         const remarks = (row.remarks || "").toLowerCase()
         const creator = (row.createdBy || "").toLowerCase()
 
-        if (!voucherNo.includes(q) && !donorName.includes(q) && !donorMobile.includes(q) && !groupName.includes(q) && !remarks.includes(q) && !creator.includes(q)) {
+        if (!voucherNo.includes(q) && 
+            !donorName.includes(q) && 
+            !donorId.includes(q) &&
+            !donorMobile.includes(q) && 
+            !memberName.includes(q) &&
+            !memberId.includes(q) &&
+            !groupName.includes(q) && 
+            !remarks.includes(q) && 
+            !creator.includes(q)) {
           return false
         }
       }
 
-      // 2. Donor filter
-      if (selectedDonor !== "ALL" && row.donorId !== selectedDonor) {
+      // 2. Source filter
+      if (selectedSource !== "ALL" && row.sourceType !== selectedSource) {
         return false
       }
 
-      // 3. Group filter
+      // 3. Donor filter
+      if (selectedDonor !== "ALL" && row.donorId !== selectedDonor && row.memberId !== selectedDonor) {
+        return false
+      }
+
+      // 4. Group filter
       if (selectedGroup !== "ALL" && row.groupId !== selectedGroup) {
         return false
       }
 
-      // 4. Date Range filter
+      // 5. Date Range filter
       if (fromDate) {
         const rowDate = new Date(row.date).setHours(0, 0, 0, 0)
         const filterFrom = new Date(fromDate).setHours(0, 0, 0, 0)
@@ -126,10 +146,11 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
 
       return true
     })
-  }, [data, searchQuery, selectedDonor, selectedGroup, fromDate, toDate])
+  }, [data, searchQuery, selectedSource, selectedDonor, selectedGroup, fromDate, toDate])
 
   const handleResetFilters = () => {
     setSearchQuery("")
+    setSelectedSource("ALL")
     setSelectedDonor("ALL")
     setSelectedGroup("ALL")
     setFromDate("")
@@ -160,17 +181,48 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
       ),
     },
     {
-      id: "donorName",
-      header: "Donor Name",
+      id: "sourceType",
+      header: "Source",
       cell: ({ row }) => {
+        const isMember = row.original.sourceType === "MEMBER"
+        return isMember ? (
+          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-normal flex items-center gap-1 w-fit">
+            <UserCheck className="w-3 h-3" />
+            <span>{t("donors.source_member")}</span>
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-primary text-primary text-[11px] font-normal flex items-center gap-1 w-fit">
+            <Users className="w-3 h-3" />
+            <span>{t("donors.source_donor")}</span>
+          </Badge>
+        )
+      }
+    },
+    {
+      id: "donorName",
+      header: "Donated By",
+      cell: ({ row }) => {
+        const isMember = row.original.sourceType === "MEMBER"
         const donor = row.original.donor
+        const member = row.original.member
         return (
           <div>
-            <div className="font-semibold text-foreground">{donor?.fullName || "Unknown Donor"}</div>
-            {donor && (
-              <div className="text-xs text-muted-foreground">
-                {t("donors.k_e6f2eb")}{donor.donorId} | {donor.mobile}
-              </div>
+            {isMember ? (
+              <>
+                <div className="font-semibold text-foreground">{member?.fullName || "Foundation Member"}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t("donors.k_e6f2eb")}{member?.memberId || row.original.memberId}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="font-semibold text-foreground">{donor?.fullName || "External Donor"}</div>
+                {donor && (
+                  <div className="text-xs text-muted-foreground">
+                    {t("donors.k_e6f2eb")}{donor.donorId} | {donor.mobile}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )
@@ -220,6 +272,7 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
       },
       cell: ({ row }) => {
         const item = row.original
+        const isMember = item.sourceType === "MEMBER"
         return (
           <div className="text-right">
             <DropdownMenu>
@@ -255,18 +308,32 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
                   <>
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem
-                      onClick={() => {
-                        if (item.donorId) {
-                          router.push(`/donors/ledger?donorId=${item.donorId}`)
-                          toast.info(t("donors.k_eb7528"), { description: `Donor: ${item.donor?.fullName || item.donorId}` })
-                        } else {
-                          toast.error(t("donors.k_4838f6"))
-                        }
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <Users className="mr-2 h-4 w-4 text-sky-500" /> {t("donors.k_247207")}</DropdownMenuItem>
+                    {isMember ? (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          if (item.memberId) {
+                            router.push(`/members/${item.memberId}`)
+                          } else {
+                            toast.error("Member details not found")
+                          }
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <UserCheck className="mr-2 h-4 w-4 text-emerald-500" /> View Member Profile</DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          if (item.donorId) {
+                            router.push(`/donors/ledger?donorId=${item.donorId}`)
+                            toast.info(t("donors.k_eb7528"), { description: `Donor: ${item.donor?.fullName || item.donorId}` })
+                          } else {
+                            toast.error(t("donors.k_4838f6"))
+                          }
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Users className="mr-2 h-4 w-4 text-sky-500" /> {t("donors.k_247207")}</DropdownMenuItem>
+                    )}
 
                     <DropdownMenuItem
                       onClick={() => {
@@ -311,7 +378,7 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
     },
   })
 
-  const hasActiveFilters = searchQuery !== "" || selectedDonor !== "ALL" || selectedGroup !== "ALL" || fromDate !== "" || toDate !== ""
+  const hasActiveFilters = searchQuery !== "" || selectedSource !== "ALL" || selectedDonor !== "ALL" || selectedGroup !== "ALL" || fromDate !== "" || toDate !== ""
 
   return (
     <div className="space-y-4">
@@ -327,9 +394,9 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* Search Input */}
-          <div className="space-y-1">
+          <div className="space-y-1 col-span-1 sm:col-span-2 md:col-span-1">
             <label className="text-xs font-medium text-muted-foreground">{t("donors.search_939bb4")}</label>
             <Input
               placeholder={t("donors.k_f26d2e")}
@@ -339,7 +406,22 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
             />
           </div>
 
-          {/* Donor Filter */}
+          {/* Source Filter */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">{t("donors.donation_source")}</label>
+            <Select value={selectedSource} onValueChange={setSelectedSource}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="All Sources" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Sources</SelectItem>
+                <SelectItem value="MEMBER">{t("donors.source_member")}</SelectItem>
+                <SelectItem value="DONOR">{t("donors.source_donor")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Donor/Member Filter */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">{t("donors.donor_9c2b8d")}</label>
             <Select value={selectedDonor} onValueChange={setSelectedDonor}>
@@ -488,6 +570,7 @@ export function DonationsTable({ data, donors, groups }: DonationsTableProps) {
         onClose={() => setEditingItem(null)}
         donation={editingItem}
         donors={donors}
+        members={members}
         groups={groups}
       />
 

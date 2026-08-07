@@ -1,4 +1,5 @@
 import { getMember } from "@/features/members/actions"
+import { getMemberDonations } from "@/features/donors/actions"
 import { notFound } from "next/navigation"
 import { MemberProfileActions } from "@/features/members/components/member-profile-actions"
 import { Trans } from "@/components/shared/trans";
@@ -6,7 +7,10 @@ import { MemberProfileLayout, MemberProfileData } from "@/features/members/compo
 
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const member = await getMember(resolvedParams.id)
+  const [member, voluntaryDonations] = await Promise.all([
+    getMember(resolvedParams.id),
+    getMemberDonations(resolvedParams.id),
+  ])
 
   if (!member) return notFound()
 
@@ -23,6 +27,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     groupName: member.group?.name,
     groupCode: member.group?.code,
     statusHistory: (member as any).statusHistory,
+    voluntaryDonations,
   }
 
   return (

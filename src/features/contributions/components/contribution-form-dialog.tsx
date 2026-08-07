@@ -34,22 +34,20 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 interface ContributionFormDialogProps {
   members: { id: string; fullName: string | null; memberId: string }[]
   trigger?: React.ReactNode
+  defaultMonthlyFee?: number
 }
 
-export function ContributionFormDialog({ members, trigger }: ContributionFormDialogProps) {
+export function ContributionFormDialog({ members, trigger, defaultMonthlyFee = 100 }: ContributionFormDialogProps) {
     const { t } = useLanguage();
   const [open, setOpen] = useState(false)
 
-  
-  
-
   const form = useForm<ContributionFormValues>({
-    resolver: zodResolver(contributionSchema),
+    resolver: zodResolver(contributionSchema) as any,
     defaultValues: {
       memberId: "",
       month: 1,
       year: 2026,
-      amount: 100,
+      amount: defaultMonthlyFee,
       paymentDate: "",
       paymentMethod: "CASH",
       referenceNumber: "",

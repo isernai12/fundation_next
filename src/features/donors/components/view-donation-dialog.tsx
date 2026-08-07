@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/format"
 import { Separator } from "@/components/ui/separator"
 import type { DonationTransactionItem } from "../actions"
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { UserCheck, Users } from "lucide-react"
 
 interface ViewDonationDialogProps {
   isOpen: boolean
@@ -20,8 +21,10 @@ interface ViewDonationDialogProps {
 }
 
 export function ViewDonationDialog({ isOpen, onClose, donation }: ViewDonationDialogProps) {
-    const { t } = useLanguage();
+  const { t } = useLanguage();
   if (!donation) return null
+
+  const isMember = donation.sourceType === "MEMBER"
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -34,21 +37,50 @@ export function ViewDonationDialog({ isOpen, onClose, donation }: ViewDonationDi
 
         <div className="grid grid-cols-2 gap-y-4 gap-x-8 py-4">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{t("donors.donor_9c2b8d")}</p>
-            <p className="font-semibold text-base text-foreground">{donation.donor?.fullName || "Unknown Donor"}</p>
-            {donation.donor && (
+            <p className="text-sm font-medium text-muted-foreground">{t("donors.donation_source")}</p>
+            <div className="mt-1 flex items-center gap-1.5">
+              {isMember ? (
+                <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>{t("donors.source_member")}</span>
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-primary text-primary flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>{t("donors.source_donor")}</span>
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">
+              {isMember ? t("donors.member_label") : t("donors.donor_9c2b8d")}
+            </p>
+            {isMember ? (
               <>
-                <p className="text-xs text-muted-foreground">{t("donors.k_e6f2eb")}{donation.donor.donorId}</p>
-                <p className="text-xs text-muted-foreground">{t("donors.k_9767a6")}{donation.donor.mobile}</p>
+                <p className="font-semibold text-base text-foreground mt-0.5">{donation.member?.fullName || "Foundation Member"}</p>
+                <p className="text-xs text-muted-foreground">{t("donors.k_e6f2eb")} {donation.member?.memberId || donation.memberId}</p>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-base text-foreground mt-0.5">{donation.donor?.fullName || "External Donor"}</p>
+                {donation.donor && (
+                  <>
+                    <p className="text-xs text-muted-foreground">{t("donors.k_e6f2eb")} {donation.donor.donorId}</p>
+                    <p className="text-xs text-muted-foreground">{t("donors.k_9767a6")} {donation.donor.mobile}</p>
+                  </>
+                )}
               </>
             )}
           </div>
+
+          <Separator className="col-span-2 my-1" />
+
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("donors.selected_group_a218b2")}</p>
             <p className="font-semibold text-base text-primary mt-0.5">{donation.groupName}</p>
           </div>
-
-          <Separator className="col-span-2 my-1" />
 
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("donors.voucher_no_69acba")}</p>
@@ -56,6 +88,9 @@ export function ViewDonationDialog({ isOpen, onClose, donation }: ViewDonationDi
               {donation.voucherNo}
             </p>
           </div>
+
+          <Separator className="col-span-2 my-1" />
+
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("donors.amount_261c82")}</p>
             <p className="font-mono text-xl font-bold text-green-600 dark:text-green-400 mt-0.5">
@@ -63,20 +98,19 @@ export function ViewDonationDialog({ isOpen, onClose, donation }: ViewDonationDi
             </p>
           </div>
 
-          <Separator className="col-span-2 my-1" />
-
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("donors.date_806233")}</p>
             <p className="font-medium text-sm mt-0.5">{formatDate(donation.date)}</p>
             <p className="text-xs text-muted-foreground">({new Date(donation.date).toLocaleDateString("bn-BD")})</p>
           </div>
+
+          <Separator className="col-span-2 my-1" />
+
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("donors.created_by_e33dc9")}</p>
             <p className="font-medium text-sm mt-0.5">{donation.createdBy}</p>
             <p className="text-xs text-muted-foreground">{t("donors.k_70cb19")}<Badge variant="outline" className="text-[10px] ml-1">{donation.status}</Badge></p>
           </div>
-
-          <Separator className="col-span-2 my-1" />
 
           <div className="col-span-2">
             <p className="text-sm font-medium text-muted-foreground">{t("donors.remarks_19ab1b")}</p>
