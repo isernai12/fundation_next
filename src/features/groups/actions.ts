@@ -3,6 +3,7 @@ import { FinancialService } from "@/services/finance"
 
 import { prisma } from "@/lib/prisma"
 import { groupSchema, type GroupFormValues } from "./schema"
+import type { GroupWithCount } from "./types"
 import { revalidatePath } from "next/cache"
 import { requirePermission, checkPermission } from "@/lib/rbac";
 
@@ -46,7 +47,7 @@ export async function ensureFoundationGroup() {
   return foundationGroup
 }
 
-export async function getGroups() {
+export async function getGroups(): Promise<GroupWithCount[]> {
   if (!(await checkPermission("Groups", "View"))) return []
 
   await ensureFoundationGroup()
@@ -63,7 +64,7 @@ export async function getGroups() {
   if (groups.length === 0) return []
 
   const summaries = await FinancialService.getAllGroupSummaries()
-  const summaryMap = new Map(summaries.map((s: any) => [s.groupId, s.currentBalance]))
+  const summaryMap = new Map(summaries.map((s) => [s.groupId, s.currentBalance]))
 
   return groups.map((group) => {
     return {

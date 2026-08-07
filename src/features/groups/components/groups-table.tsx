@@ -38,10 +38,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { archiveGroup, deleteGroup, updateGroup } from "../actions"
+import type { GroupWithCount } from "../types"
 import { useRbac } from "@/components/providers/rbac-provider"
 import { useLanguage } from "@/i18n/LanguageProvider";
-
-type GroupWithCount = Group & { _count: { members: number }, currentFund?: number }
 
 export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount[], manageMode?: boolean }) {
     const { t } = useLanguage();

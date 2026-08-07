@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { groupSchema, type GroupFormValues } from "../schema"
 import { createGroup } from "../actions"
@@ -31,8 +31,7 @@ export function GroupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<GroupFormValues>({
-     
-    resolver: zodResolver(groupSchema) as any,
+    resolver: zodResolver(groupSchema) as Resolver<GroupFormValues>,
     defaultValues: {
       name: "",
       code: "",

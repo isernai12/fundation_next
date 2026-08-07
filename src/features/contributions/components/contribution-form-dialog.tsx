@@ -42,7 +42,7 @@ export function ContributionFormDialog({ members, trigger, defaultMonthlyFee = 1
   const [open, setOpen] = useState(false)
 
   const form = useForm<ContributionFormValues>({
-    resolver: zodResolver(contributionSchema) as any,
+    resolver: zodResolver(contributionSchema),
     defaultValues: {
       memberId: "",
       month: 1,

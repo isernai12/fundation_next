@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -55,6 +55,8 @@ const formSchema = z.object({
   }
 })
 
+type DonationFormValues = z.infer<typeof formSchema>
+
 export function DonationForm({ 
   donors, 
   members = [],
@@ -68,8 +70,8 @@ export function DonationForm({
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema) as any,
+  const form = useForm<DonationFormValues>({
+    resolver: zodResolver(formSchema) as Resolver<DonationFormValues>,
     defaultValues: {
       sourceType: "DONOR",
       memberId: "",

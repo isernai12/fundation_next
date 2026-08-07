@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { groupSchema, type GroupFormValues } from "../schema"
 import { createGroup, updateGroup } from "../actions"
@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import type { Group } from "@prisma/client"
+import type { GroupWithCount } from "../types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLanguage } from "@/i18n/LanguageProvider";
 
@@ -31,7 +32,7 @@ import { Switch } from "@/components/ui/switch"
 import { FormDescription } from "@/components/ui/form"
 
 interface GroupFormDialogProps {
-  group?: Group
+  group?: Group | GroupWithCount
   trigger?: React.ReactNode
 }
 
@@ -41,8 +42,7 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
   const isEditing = !!group
 
   const form = useForm<GroupFormValues>({
-     
-    resolver: zodResolver(groupSchema) as any,
+    resolver: zodResolver(groupSchema) as Resolver<GroupFormValues>,
     defaultValues: {
       name: group?.name || "",
       code: group?.code || "",
