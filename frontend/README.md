@@ -42,7 +42,7 @@ It handles:
 ## 3. Project Structure
 
 ```text
-frontend/
+.
 ├── public/                       # Static branding, logos, icons, fonts
 ├── src/
 │   ├── app/                      # Next.js App Router hierarchy
@@ -179,7 +179,7 @@ async rewrites() {
 
 ## 6. Required Environment Variables
 
-Create a `.env.local` file in the `/frontend` directory based on `.env.example`:
+Create a `.env.local` file in the project root based on `.env.example`:
 
 ```env
 # =============================================================================
@@ -220,9 +220,10 @@ CLOUDINARY_FOLDER="foundation-erp"
 - **FastAPI Backend**: Ensure the backend is running (typically on `http://127.0.0.1:8000`).
 
 ### Step-by-Step Installation
-1. **Navigate to the frontend directory**:
+1. **Clone the repository**:
    ```bash
-   cd /workspaces/foundation-backend-migration/frontend
+   git clone https://github.com/isernai12/foundation-frontend.git
+   cd foundation-frontend
    ```
 
 2. **Install dependencies**:
@@ -270,11 +271,11 @@ npm run start -- -p 3000
 ## 10. How to Connect Frontend to the Backend
 
 ### Local Development
-1. Start the FastAPI backend on port `8000`:
+1. Start your standalone FastAPI backend (e.g. on `http://127.0.0.1:8000`):
    ```bash
-   cd ../backend && uvicorn app.main:app --host 127.0.0.1 --port 8000
+   uvicorn app.main:app --host 127.0.0.1 --port 8000
    ```
-2. In `frontend/.env.local`, set:
+2. In `.env.local`, configure:
    ```env
    NEXT_PUBLIC_API_URL="http://127.0.0.1:8000"
    ```
@@ -292,8 +293,8 @@ npm run start -- -p 3000
 ## 11. How to Deploy / Host the Frontend
 
 ### Deploying to Vercel (Recommended)
-1. Import your GitHub repository on [Vercel](https://vercel.com).
-2. Set **Root Directory** to `frontend`.
+1. Import the `isernai12/foundation-frontend` repository on [Vercel](https://vercel.com).
+2. Framework Preset: **Next.js** (Root Directory: `./`).
 3. In **Environment Variables**, configure:
    - `NEXT_PUBLIC_API_URL`: `https://your-backend-service.onrender.com`
    - `NEXTAUTH_URL`: `https://your-frontend-app.vercel.app`
@@ -302,9 +303,8 @@ npm run start -- -p 3000
 4. Click **Deploy**.
 
 ### Deploying to Render (Web Service)
-1. Create a new **Web Service** on [Render](https://render.com).
+1. Create a new **Web Service** on [Render](https://render.com) from `isernai12/foundation-frontend`.
 2. Set:
-   - **Root Directory**: `frontend`
    - **Environment**: `Node`
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm run start`
@@ -313,7 +313,8 @@ npm run start -- -p 3000
 
 ### Deploying to Linux VPS / PM2
 ```bash
-cd frontend
+git clone https://github.com/isernai12/foundation-frontend.git
+cd foundation-frontend
 npm install
 npm run build
 pm2 start npm --name "foundation-frontend" -- start -- -p 3000
