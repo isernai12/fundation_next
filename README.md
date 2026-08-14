@@ -1,84 +1,157 @@
 # Foundation ERP
 
-## 1. Project Overview
-Foundation ERP is a comprehensive, modern enterprise resource planning application tailored for managing the complex operations of a non-profit foundation.
+Modern enterprise resource planning application tailored for non-profit foundation management, featuring financial ledgers, member registries, donation tracking (Sadaqah), benevolent loans (Qard Hasan), and campaign workflows.
 
-**Main Modules:**
-- **Authentication**: Secure login, session persistence, and role-based access control.
-- **Members**: Complete membership management.
-- **Groups**: Organize members into structured foundation groups.
-- **Beneficiaries**: Track individuals receiving support.
-- **Donors & Sadaqah**: Manage donor profiles and donation history.
-- **Monthly Dues**: Track recurring membership payments.
-- **Financial Activities**: Run and manage fund collection campaigns.
-- **Qard-e-Hasana**: Disburse and track benevolent financial assistance.
-- **Ledger**: Centralized double-entry accounting truth for all transactions.
-- **Documents**: Cloud-based document and media management.
+---
 
-**Technology Stack:**
-- **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS, shadcn/ui
-- **Backend API**: Python 3.12, FastAPI, Pydantic 2.x
-- **Database Engine**: PostgreSQL (Neon Cloud)
-- **Database ORM**: SQLAlchemy 2.x (FastAPI) & Prisma (Client)
-- **Authentication**: NextAuth.js (Frontend) + JWT / UserSessions (FastAPI)
-- **Deployment**: Single Docker Container (Render)
+## 1. Decoupled Architecture
 
-## 2. Architecture
+The project is structured as two independently buildable and deployable applications:
 
-```
-Browser
-  ↓
-Next.js (Public Port 3000)
-  ↓ (Internal Proxy / Server Actions)
-FastAPI Backend (127.0.0.1:8000, Internal Only)
-  ↓
-SQLAlchemy 2.x
-  ↓
-PostgreSQL Database
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                       Frontend Web Client                       │
+│              (Next.js 16 + TypeScript + Tailwind)               │
+│                  Hosted on Vercel / Render / Node               │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                     HTTPS / JSON REST API
+                   (NEXT_PUBLIC_API_URL)
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Backend API Service                       │
+│                 (Python 3.12 + FastAPI + Uvicorn)               │
+│                 Hosted on Render / Railway / VPS                │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                  PostgreSQL Connection Pool (psycopg3)
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       PostgreSQL Database                       │
+│                     (Neon Cloud / AWS / Self)                   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## 3. Requirements
-- **Node.js**: Version 20.x or higher
-- **Python**: Version 3.12.x
-- **PostgreSQL**: Version 15+ (or Cloud Neon Database)
-- **Docker**: For production containerized deployment
+### Key Principles
+- **Separation of Concerns**: The frontend contains zero direct database queries; all interactions flow through the FastAPI REST API.
+- **Independent Lifecycles**: Frontend and Backend can be updated, scaled, and deployed independently without Docker or monorepo coupling.
+- **Unified Configuration**: A single environment variable (`NEXT_PUBLIC_API_URL`) directs the frontend to any backend host.
+- **Production Ready**: Native cloud deployment guides for Vercel, Render, Railway, Fly.io, and standard Linux servers without Docker dependencies.
 
-## 4. Local Development
+---
 
+## 2. Repository Structure
+
+```text
+project/
+├── frontend/                     # Standalone Next.js 16 + TypeScript application
+│   ├── src/                      # App router, UI components, API client
+│   ├── .env.example              # Frontend environment variables template
+│   ├── package.json              # Next.js scripts and dependencies
+│   └── README.md                 # Frontend architecture, setup & deployment guide
+│
+├── backend/                      # Standalone Python 3.12 + FastAPI application
+│   ├── app/                      # FastAPI routers, models, services, repositories
+│   ├── tests/                    # Pytest test suite (73 tests)
+│   ├── .env.example              # Backend environment variables template
+│   ├── pyproject.toml            # Python project configuration & pytest settings
+│   ├── requirements.txt          # Production Python dependencies
+│   └── README.md                 # Backend architecture, setup & deployment guide
+│
+├── render.yaml                   # Native Render Blueprint for both independent services
+└── README.md                     # Root project documentation
+```
+
+---
+
+## 3. Quick Start — Local Development
+
+### Step 1: Clone & Navigate
 ```bash
-# 1. Install frontend dependencies
-cd frontend
-npm install
+git clone <repository-url>
+cd foundation-backend-migration
+```
 
-# 2. Install backend dependencies
-cd ../backend
+### Step 2: Start Python FastAPI Backend
+```bash
+cd backend
+
+# Create & activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure environment variables
-# Copy .env.example files and configure PostgreSQL DATABASE_URL
-cp frontend/.env.example frontend/.env
-cp backend/.env.example backend/.env
+# Configure environment
+cp .env.example .env
+# Edit .env and supply your PostgreSQL DATABASE_URL and SECRET_KEY
 
-# 4. Start FastAPI backend
-PYTHONPATH=.. uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+# Start backend server
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+*Backend runs at `http://127.0.0.1:8000` with Swagger docs at `http://127.0.0.1:8000/api/v1/docs` and health probe at `http://127.0.0.1:8000/health`.*
 
-# 5. Start Next.js frontend (in another terminal)
+### Step 3: Start Next.js Frontend (in a new terminal)
+```bash
 cd frontend
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env.local
+# Set NEXT_PUBLIC_API_URL="http://127.0.0.1:8000"
+
+# Start frontend development server
 npm run dev
 ```
+*Frontend runs at `http://localhost:3000`.*
 
-## 5. Docker Single-Container Deployment
+---
 
+## 4. Environment Variables Summary
+
+### Frontend (`frontend/.env.local`)
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | Base URL of FastAPI Backend | `http://127.0.0.1:8000` or `https://backend.onrender.com` |
+| `NEXTAUTH_URL` | Canonical URL of Frontend | `http://localhost:3000` or `https://app.vercel.app` |
+| `NEXTAUTH_SECRET` | Secret key for session encryption | *Random 32+ char string* |
+
+### Backend (`backend/.env`)
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | PostgreSQL Connection URI | `postgresql+psycopg://user:pass@host:5432/dbname?sslmode=require` |
+| `SECRET_KEY` | JWT Signing Secret Key | *Random 32+ char string* |
+| `CORS_ORIGINS` | Allowed Frontend Origins | `http://localhost:3000,https://app.vercel.app` |
+| `ENVIRONMENT` | Environment Mode | `development` / `production` |
+
+---
+
+## 5. Automated Verification & Testing
+
+### Test Backend
 ```bash
-# Build the single container
-docker build -t foundation-app:latest .
-
-# Run container locally with PostgreSQL connection
-docker run -p 3000:3000 \
-  -e DATABASE_URL="postgresql://user:password@host/database?sslmode=require" \
-  -e NEXTAUTH_SECRET="your-secret-key" \
-  -e SECRET_KEY="your-backend-secret-key" \
-  foundation-app:latest
+cd backend
+.venv/bin/pytest
 ```
+*Executes all 73 automated tests covering Authentication, RBAC, Members, Member Requests, Groups, Funds, Sadaqah, Dues, and Qard Hasan.*
+
+### Verify Frontend
+```bash
+cd frontend
+npm run typecheck
+npm run lint
+npm run build
+```
+*Verifies TypeScript typings, code linting, and compiles the production Next.js bundle.*
+
+---
+
+## 6. Detailed Sub-Project Documentation
+
+- [Frontend Documentation](file:///workspaces/foundation-backend-migration/frontend/README.md)
+- [Backend Documentation](file:///workspaces/foundation-backend-migration/backend/README.md)

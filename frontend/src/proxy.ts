@@ -16,6 +16,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - login
      */
-    "/((?!api/auth|api/public|_next/static|_next/image|favicon.ico|login|member-request|$).*)",
+    "/((?!api/auth|api/v1|api/public|_next/static|_next/image|favicon.ico|login|member-request|$).*)",
   ],
 }

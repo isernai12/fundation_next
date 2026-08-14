@@ -18,7 +18,7 @@ export interface GroupDto {
   updated_at: string;
 }
 
-export interface GroupListResponse extends PaginatedResult<GroupDto> {}
+export type GroupListResponse = PaginatedResult<GroupDto>;
 
 export interface GroupCreatePayload {
   name: string;
@@ -31,7 +31,7 @@ export interface GroupCreatePayload {
   member_signup_enabled?: boolean;
 }
 
-export interface GroupUpdatePayload extends Partial<GroupCreatePayload> {}
+export type GroupUpdatePayload = Partial<GroupCreatePayload>;
 
 export const groupsApi = {
   async list(params?: {

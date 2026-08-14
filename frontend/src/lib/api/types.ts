@@ -72,7 +72,7 @@ export interface MemberDto {
   updated_at: string;
 }
 
-export interface MemberListResponse extends PaginatedResult<MemberDto> {}
+export type MemberListResponse = PaginatedResult<MemberDto>;
 
 export interface MemberDetailResponse extends MemberDto {
   documents?: DocumentDto[];
@@ -159,9 +159,9 @@ export interface MemberRequestDto {
   documents?: DocumentDto[];
 }
 
-export interface MemberRequestListResponse extends PaginatedResult<MemberRequestDto> {}
+export type MemberRequestListResponse = PaginatedResult<MemberRequestDto>;
 
-export interface MemberRequestCreatePayload extends MemberCreatePayload {}
+export type MemberRequestCreatePayload = MemberCreatePayload;
 
 export interface MemberRequestApprovePayload {
   remarks?: string | null;

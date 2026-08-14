@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     const internalApi =
+      process.env.NEXT_PUBLIC_API_URL ||
       process.env.INTERNAL_API_URL ||
       process.env.FASTAPI_INTERNAL_URL ||
       "http://127.0.0.1:8000";

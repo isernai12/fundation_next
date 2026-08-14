@@ -40,7 +40,7 @@ export interface SadaqahDto {
   created_at: string;
 }
 
-export interface SadaqahListResponse extends PaginatedResult<SadaqahDto> {}
+export type SadaqahListResponse = PaginatedResult<SadaqahDto>;
 
 export const sadaqahApi = {
   async receive(data: SadaqahReceivePayload, token?: string): Promise<SadaqahDto> {

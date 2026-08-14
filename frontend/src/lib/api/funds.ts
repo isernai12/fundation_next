@@ -12,7 +12,7 @@ export interface FundDto {
   updated_at: string;
 }
 
-export interface FundListResponse extends PaginatedResult<FundDto> {}
+export type FundListResponse = PaginatedResult<FundDto>;
 
 export interface FundCreatePayload {
   name: string;

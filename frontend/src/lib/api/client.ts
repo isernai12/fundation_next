@@ -17,11 +17,11 @@ export class ApiClient {
       // In browser environment, use empty string to fetch via same-origin relative URLs
       this.baseUrl = "";
     } else {
-      // In server environment (SSR / Server Actions), connect to internal FastAPI instance
+      // In server environment (SSR / Server Actions), connect to backend FastAPI instance
       const defaultUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
         process.env.INTERNAL_API_URL ||
         process.env.FASTAPI_INTERNAL_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
         "http://127.0.0.1:8000";
       this.baseUrl = defaultUrl.replace(/\/$/, "");
     }
