@@ -17,31 +17,77 @@ import { beneficiariesApi } from "@/lib/api";
 
 export async function getBeneficiaries() {
   if (!(await checkPermission("Beneficiaries", "View"))) return [];
-  return prisma.beneficiary.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      member: { select: { fullName: true, memberId: true } },
-    },
-  });
+  try {
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    const res = await beneficiariesApi.list({ page_size: 1000 }, token);
+    return res.items.map((item) => {
+      const b = item as any;
+      return {
+        id: b.id,
+        beneficiaryId: b.beneficiary_id || b.id,
+        name: b.name,
+        fullName: b.name,
+        mobile: b.mobile,
+        nationalId: b.national_id,
+        fatherOrHusbandName: b.father_or_husband_name || null,
+        motherName: b.mother_name || null,
+        address: b.address || null,
+        occupation: b.occupation || null,
+        monthlyIncome: b.monthly_income || null,
+        category: b.category || null,
+        status: b.status,
+        memberId: b.member_id || null,
+        createdAt: new Date(b.created_at),
+        updatedAt: new Date(b.updated_at),
+        member: b.member_id ? { fullName: b.name, memberId: b.member_id } : null,
+      };
+    });
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function getBeneficiary(id: string) {
   if (!(await checkPermission("Beneficiaries", "View"))) return null;
-  return prisma.beneficiary.findUnique({
-    where: { id },
-    include: {
-      member: true,
-      loans: true,
-      grants: true,
-      documents: true,
-      beneficiaryPayments: {
-        include: {
-          campaign: true,
-        },
-        orderBy: { date: "desc" },
-      },
-    },
-  });
+  try {
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    const item = await beneficiariesApi.get(id, token);
+    const b = item as any;
+    return {
+      id: b.id,
+      beneficiaryId: b.beneficiary_id || b.id,
+      name: b.name,
+      fullName: b.name,
+      mobile: b.mobile,
+      nationalId: b.national_id,
+      fatherOrHusbandName: b.father_or_husband_name || null,
+      motherName: b.mother_name || null,
+      address: b.address || null,
+      presentAddress: b.address || null,
+      permanentAddress: b.address || null,
+      emergencyContactName: null as string | null,
+      emergencyContactRelation: null as string | null,
+      emergencyContactMobile: null as string | null,
+      beneficiaryPhoto: null as string | null,
+      nidOrBirthCertificate: null as string | null,
+      occupation: b.occupation || null,
+      monthlyIncome: b.monthly_income || null,
+      category: b.category || null,
+      status: b.status,
+      memberId: b.member_id || null,
+      createdAt: new Date(b.created_at),
+      updatedAt: new Date(b.updated_at),
+      member: null,
+      loans: [],
+      grants: [],
+      documents: [],
+      beneficiaryPayments: [],
+    };
+  } catch (error) {
+    return null;
+  }
 }
 
 async function generateBeneficiaryId() {

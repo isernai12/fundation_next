@@ -11,17 +11,32 @@ export class ApiClient {
   private baseUrl: string;
 
   constructor(baseUrl?: string) {
-    // In server environment (SSR / Server Actions), prioritize internal server URL or NEXT_PUBLIC_API_URL
-    const defaultUrl =
-      process.env.INTERNAL_API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://127.0.0.1:8000";
-    this.baseUrl = (baseUrl || defaultUrl).replace(/\/$/, "");
+    if (baseUrl !== undefined) {
+      this.baseUrl = baseUrl.replace(/\/$/, "");
+    } else if (typeof window !== "undefined") {
+      // In browser environment, use empty string to fetch via same-origin relative URLs
+      this.baseUrl = "";
+    } else {
+      // In server environment (SSR / Server Actions), connect to internal FastAPI instance
+      const defaultUrl =
+        process.env.INTERNAL_API_URL ||
+        process.env.FASTAPI_INTERNAL_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://127.0.0.1:8000";
+      this.baseUrl = defaultUrl.replace(/\/$/, "");
+    }
   }
 
   private buildUrl(path: string, params?: Record<string, any>): string {
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    const url = new URL(`${this.baseUrl}${cleanPath}`);
+    let url: URL;
+
+    if (typeof window !== "undefined") {
+      const base = this.baseUrl || window.location.origin;
+      url = new URL(cleanPath, base);
+    } else {
+      url = new URL(`${this.baseUrl}${cleanPath}`);
+    }
 
     if (params) {
       Object.entries(params).forEach(([key, val]) => {

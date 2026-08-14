@@ -11,6 +11,8 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { Trans } from "@/components/shared/trans"
 
+export const dynamic = "force-dynamic";
+
 export default async function ManageBeneficiariesPage() {
   const beneficiaries = await getBeneficiaries()
   const members = await getMembers()
@@ -34,7 +36,7 @@ export default async function ManageBeneficiariesPage() {
         </div>
       </div>
 
-      <BeneficiariesTable data={beneficiaries} members={members} manageMode={true} />
+      <BeneficiariesTable data={beneficiaries as any} members={members} manageMode={true} />
     </div>
   )
 }

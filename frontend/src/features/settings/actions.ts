@@ -45,15 +45,19 @@ export async function saveFoundationProfile(data: any) {
 }
 
 export async function getMonthlyMembershipFee(): Promise<number> {
-  const settings = await prisma.systemSettings.findMany({
-    where: {
-      key: { in: ["DEFAULT_MONTHLY_CONTRIBUTION", "membership.monthlyFee"] }
-    }
-  })
-  const setting = settings.find(s => s.key === "DEFAULT_MONTHLY_CONTRIBUTION") || settings.find(s => s.key === "membership.monthlyFee")
-  if (!setting || !setting.value) return 100
-  const fee = parseInt(setting.value, 10)
-  return isNaN(fee) || fee <= 0 ? 100 : fee
+  try {
+    const settings = await prisma.systemSettings.findMany({
+      where: {
+        key: { in: ["DEFAULT_MONTHLY_CONTRIBUTION", "membership.monthlyFee"] }
+      }
+    })
+    const setting = settings.find(s => s.key === "DEFAULT_MONTHLY_CONTRIBUTION") || settings.find(s => s.key === "membership.monthlyFee")
+    if (!setting || !setting.value) return 100
+    const fee = parseInt(setting.value, 10)
+    return isNaN(fee) || fee <= 0 ? 100 : fee
+  } catch (error) {
+    return 100;
+  }
 }
 
 export async function getSystemSettings() {
@@ -145,7 +149,7 @@ export async function createBackup() {
     }
   })
   
-  return { success: true, message: "Backup successfully generated and saved to /backups/dev_backup.sqlite" }
+  return { success: true, message: "Backup successfully generated" }
 }
 
 export async function saveUserPreferences(userId: string, data: any) {

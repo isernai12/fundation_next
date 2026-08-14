@@ -1,13 +1,31 @@
 import { LoanForm } from "@/features/loans/components/loan-form"
-import { prisma } from "@/lib/prisma"
+import { getBeneficiaries } from "@/features/beneficiaries/actions"
 import { getGroups } from "@/features/groups/actions"
 import { Trans } from "@/components/shared/trans";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewLoanPage() {
-  const beneficiaries = await prisma.beneficiary.findMany({
-    where: { status: "ACTIVE" },
-    orderBy: { fullName: "asc" }
-  })
+  const rawBeneficiaries = await getBeneficiaries()
+  const beneficiaries = rawBeneficiaries.map(b => ({
+    id: b.id,
+    beneficiaryId: b.beneficiaryId,
+    fullName: b.name,
+    mobile: b.mobile,
+    address: b.address,
+    category: b.category,
+    status: b.status,
+    memberId: b.memberId,
+    createdAt: b.createdAt,
+    updatedAt: b.updatedAt,
+    fatherOrHusbandName: b.fatherOrHusbandName,
+    motherName: b.motherName,
+    nationalId: b.nationalId,
+    occupation: b.occupation,
+    monthlyIncome: b.monthlyIncome,
+    beneficiaryPhoto: null,
+    nidOrBirthCertificate: null,
+  }))
 
   const groups = await getGroups()
 
@@ -20,7 +38,7 @@ export default async function NewLoanPage() {
             <p className="text-muted-foreground">
               <Trans tKey="loans.new.subtitle" /></p>
           </div>
-          <LoanForm beneficiaries={beneficiaries} groups={groups} />
+          <LoanForm beneficiaries={beneficiaries as any} groups={groups} />
         </div>
       </div>
     </div>

@@ -1,10 +1,12 @@
 import { DonationForm } from "@/features/donors/components/donation-form"
 import { getDonors } from "@/features/donors/actions"
 import { getMembers } from "@/features/members/actions"
-import { prisma } from "@/lib/prisma"
+import { getGroups } from "@/features/groups/actions"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { Trans } from "@/components/shared/trans";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Receive Donation | Foundation ERP",
@@ -14,10 +16,7 @@ export default async function ReceiveDonationPage() {
   const [donors, members, groups] = await Promise.all([
     getDonors(),
     getMembers(),
-    prisma.group.findMany({
-      where: { status: "ACTIVE" },
-      orderBy: { name: "asc" }
-    })
+    getGroups(),
   ])
 
   return (

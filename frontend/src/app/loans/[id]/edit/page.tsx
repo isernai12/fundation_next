@@ -2,7 +2,10 @@ import { LoanForm } from "@/features/loans/components/loan-form"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { getGroups } from "@/features/groups/actions"
+import { getBeneficiaries } from "@/features/beneficiaries/actions"
 import { Trans } from "@/components/shared/trans";
+
+export const dynamic = "force-dynamic";
 
 export default async function EditLoanPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -16,10 +19,26 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
     notFound()
   }
 
-  const beneficiaries = await prisma.beneficiary.findMany({
-    where: { status: "ACTIVE" },
-    orderBy: { fullName: "asc" }
-  })
+  const rawBeneficiaries = await getBeneficiaries()
+  const beneficiaries = rawBeneficiaries.map(b => ({
+    id: b.id,
+    beneficiaryId: b.beneficiaryId,
+    fullName: b.name,
+    mobile: b.mobile,
+    address: b.address,
+    category: b.category,
+    status: b.status,
+    memberId: b.memberId,
+    createdAt: b.createdAt,
+    updatedAt: b.updatedAt,
+    fatherOrHusbandName: b.fatherOrHusbandName,
+    motherName: b.motherName,
+    nationalId: b.nationalId,
+    occupation: b.occupation,
+    monthlyIncome: b.monthlyIncome,
+    beneficiaryPhoto: null,
+    nidOrBirthCertificate: null,
+  }))
 
   const groups = await getGroups()
 
@@ -50,7 +69,7 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
             <p className="text-muted-foreground">
               <Trans tKey="loans.table.actions.edit" /></p>
           </div>
-          <LoanForm beneficiaries={beneficiaries} groups={groups} initialData={initialData} initialDocuments={loan.documents} />
+          <LoanForm beneficiaries={beneficiaries as any} groups={groups} initialData={initialData} initialDocuments={loan.documents} />
         </div>
       </div>
     </div>
