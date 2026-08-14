@@ -1,0 +1,45 @@
+# Git
+.git
+.github
+
+# Node / Next.js
+node_modules
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/build
+*.tsbuildinfo
+
+# Python / Virtualenv
+venv
+.venv
+backend/venv
+backend/.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+backend/.pytest_cache
+
+# Environment / Secret files
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+frontend/.env
+frontend/.env.local
+backend/.env
+backend/.env.local
+
+# Databases & local sqlite
+*.sqlite
+*.db
+prisma/dev.db
+frontend/prisma/dev.db
+
+# Misc
+.DS_Store
+*.log
+.coverage
