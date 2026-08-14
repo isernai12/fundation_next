@@ -38,8 +38,26 @@ export async function submitMemberRequest(data: BaseMemberFormValues) {
     }
 
     const year = getNow().getFullYear();
-    const count = await prisma.memberRequest.count();
-    const applicationNumber = `MR-${year}-${(count + 1).toString().padStart(5, "0")}`;
+    const prefix = `MR-${year}-`;
+    
+    const existingRequests = await prisma.memberRequest.findMany({
+      where: { applicationNumber: { startsWith: prefix } },
+      select: { applicationNumber: true }
+    });
+    
+    let maxNum = 0;
+    const existingNumbers = new Set<string>();
+    
+    for (const req of existingRequests) {
+      existingNumbers.add(req.applicationNumber);
+      const match = req.applicationNumber.match(new RegExp(`^MR-${year}-(\\d+)$`));
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
 
     const uploadedDocuments: Array<{ title: string; cloudinaryPublicId: string; secureUrl: string }> = [];
 
@@ -64,38 +82,71 @@ export async function submitMemberRequest(data: BaseMemberFormValues) {
       uploadedDocuments.push({ title: "Signature", cloudinaryPublicId: res.public_id, secureUrl: res.secure_url });
     }
 
-    const memberRequest = await prisma.memberRequest.create({
-      data: {
-        applicationNumber,
-        fullName: restData.fullName,
-        fatherName: restData.fatherName || null,
-        motherName: restData.motherName || null,
-        gender: restData.gender || null,
-        dob: restData.dob || null,
-        nationalId: restData.nationalId || null,
-        idDocumentType: restData.idDocumentType || "NID",
-        occupation: restData.occupation || null,
-        education: restData.education || null,
-        bloodGroup: restData.bloodGroup || null,
-        maritalStatus: restData.maritalStatus || null,
-        mobile: restData.mobile || null,
-        altMobile: restData.altMobile || null,
-        email: restData.email || null,
-        phone: restData.phone || null,
-        presentAddress: restData.presentAddress || null,
-        permanentAddress: restData.permanentAddress || null,
-        emergencyContactName: restData.emergencyContactName || null,
-        emergencyContactMobile: restData.emergencyContactMobile || null,
-        emergencyContactRelation: restData.emergencyContactRelation || null,
-        referenceName: restData.referenceName || null,
-        referenceMobile: restData.referenceMobile || null,
-        referenceRelation: restData.referenceRelation || null,
-        groupId: restData.groupId || null,
-        reasonForJoining: restData.reasonForJoining || null,
-        documents: uploadedDocuments.length > 0 ? JSON.stringify(uploadedDocuments) : null,
-        status: "PENDING",
-      },
-    });
+    let memberRequest;
+    let applicationNumber = "";
+    let nextNum = maxNum + 1;
+    let retries = 0;
+    const maxRetries = 5;
+
+    while (retries < maxRetries) {
+      applicationNumber = `${prefix}${nextNum.toString().padStart(5, "0")}`;
+      
+      if (existingNumbers.has(applicationNumber)) {
+        nextNum++;
+        continue;
+      }
+
+      try {
+        memberRequest = await prisma.memberRequest.create({
+          data: {
+            applicationNumber,
+            fullName: restData.fullName,
+            fatherName: restData.fatherName || null,
+            motherName: restData.motherName || null,
+            gender: restData.gender || null,
+            dob: restData.dob || null,
+            nationalId: restData.nationalId || null,
+            idDocumentType: restData.idDocumentType || "NID",
+            occupation: restData.occupation || null,
+            education: restData.education || null,
+            bloodGroup: restData.bloodGroup || null,
+            maritalStatus: restData.maritalStatus || null,
+            mobile: restData.mobile || null,
+            altMobile: restData.altMobile || null,
+            email: restData.email || null,
+            phone: restData.phone || null,
+            presentAddress: restData.presentAddress || null,
+            permanentAddress: restData.permanentAddress || null,
+            emergencyContactName: restData.emergencyContactName || null,
+            emergencyContactMobile: restData.emergencyContactMobile || null,
+            emergencyContactRelation: restData.emergencyContactRelation || null,
+            referenceName: restData.referenceName || null,
+            referenceMobile: restData.referenceMobile || null,
+            referenceRelation: restData.referenceRelation || null,
+            groupId: restData.groupId || null,
+            reasonForJoining: restData.reasonForJoining || null,
+            documents: uploadedDocuments.length > 0 ? JSON.stringify(uploadedDocuments) : null,
+            status: "PENDING",
+          },
+        });
+        break; // Success
+      } catch (error: any) {
+        const isUniqueConstraint = 
+          error.code === "P2002" || 
+          (error.message && error.message.includes("UNIQUE constraint failed") && error.message.includes("applicationNumber"));
+          
+        if (isUniqueConstraint) {
+          nextNum++;
+          retries++;
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!memberRequest) {
+      throw new Error("Failed to generate a unique application number. Please try again.");
+    }
 
     return { success: true, applicationNumber, id: memberRequest.id };
   } catch (error: any) {
