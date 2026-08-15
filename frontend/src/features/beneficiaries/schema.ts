@@ -39,6 +39,9 @@ export const beneficiarySchema = z.object({
   relationToMember: z.string().optional().or(z.literal("")),
   remarks: z.string().optional().or(z.literal("")),
 
+  category: z.string().optional().or(z.literal("")),
+  monthlyIncome: z.number().optional().or(z.literal(0)),
+
   // Required for backend mapping
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
 })

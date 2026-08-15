@@ -27,7 +27,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     groupName: member.group?.name,
     groupCode: member.group?.code,
     statusHistory: (member as any).statusHistory,
-    voluntaryDonations,
+    voluntaryDonations: voluntaryDonations as any,
   }
 
   return (

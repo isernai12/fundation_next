@@ -126,7 +126,6 @@ npm run dev
 | :--- | :--- | :--- |
 | `DATABASE_URL` | PostgreSQL Connection URI | `postgresql+psycopg://user:pass@host:5432/dbname?sslmode=require` |
 | `SECRET_KEY` | JWT Signing Secret Key | *Random 32+ char string* |
-| `CORS_ORIGINS` | Allowed Frontend Origins | `http://localhost:3000,https://app.vercel.app` |
 | `ENVIRONMENT` | Environment Mode | `development` / `production` |
 
 ---

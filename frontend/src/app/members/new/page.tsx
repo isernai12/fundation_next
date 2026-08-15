@@ -2,8 +2,16 @@ import { getMemberSignupGroups } from "@/features/groups/actions"
 import { generateMemberId } from "@/features/members/actions"
 import { MemberForm } from "@/features/members/components/member-form"
 import { Trans } from "@/components/shared/trans";
+import { authorizePage } from "@/lib/rbac";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Add Member",
+};
 
 export default async function AddMemberPage() {
+  await authorizePage("Members", "Add")
+
   const groups = await getMemberSignupGroups()
   const nextMemberId = await generateMemberId()
 

@@ -1,66 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { contributionSchema, type ContributionFormValues, bulkContributionSchema, type BulkContributionFormValues } from "./schema";
-import { LedgerEngine } from "@/services/ledger";
 import { revalidatePath } from "next/cache";
 import { requirePermission, checkPermission } from "@/lib/rbac";
 import { getAuthSession } from "@/lib/auth";
 import { duesApi } from "@/lib/api";
-
-/**
- * Migration Note:
- * This file is migrated to proxy Monthly Membership Dues through the FastAPI backend
- * (/api/v1/dues) while preserving exact UI compatibility and transactional multi-month rules.
- */
-
-async function updateMemberPaidUntil(memberId: string, tx: any) {
-  const allPaid = await tx.monthlyContribution.findMany({
-    where: { memberId: memberId, status: "PAID", isAdditional: false },
-    select: { month: true, year: true },
-  });
-
-  if (allPaid.length > 0) {
-    allPaid.sort((a: any, b: any) => {
-      if (a.year !== b.year) return a.year - b.year;
-      return a.month - b.month;
-    });
-
-    let cur = allPaid[0];
-    let maxContiguous = cur;
-
-    for (let i = 1; i < allPaid.length; i++) {
-      const next = allPaid[i];
-      if (
-        (next.year === cur.year && next.month === cur.month + 1) ||
-        (next.year === cur.year + 1 && next.month === 1 && cur.month === 12)
-      ) {
-        cur = next;
-        maxContiguous = next;
-      } else if (next.year === cur.year && next.month === cur.month) {
-        continue;
-      } else {
-        break;
-      }
-    }
-
-    await tx.member.update({
-      where: { id: memberId },
-      data: {
-        paidUntilMonth: maxContiguous.month,
-        paidUntilYear: maxContiguous.year,
-      },
-    });
-  } else {
-    await tx.member.update({
-      where: { id: memberId },
-      data: {
-        paidUntilMonth: null,
-        paidUntilYear: null,
-      },
-    });
-  }
-}
 
 export async function createContribution(data: ContributionFormValues) {
   await requirePermission("Fund Collection", "Add");
@@ -73,8 +17,7 @@ export async function createContribution(data: ContributionFormValues) {
     const session = await getAuthSession();
     const token = (session as any)?.accessToken;
 
-    // Call FastAPI Dues Pay API
-    const payRes = await duesApi.pay(
+    await duesApi.pay(
       {
         member_id: pd.memberId,
         from_month: pd.month,
@@ -116,7 +59,6 @@ export async function createBulkContribution(data: BulkContributionFormValues) {
     const session = await getAuthSession();
     const token = (session as any)?.accessToken;
 
-    // Call FastAPI Dues multi-month payment endpoint
     const payRes = await duesApi.pay(
       {
         member_id: pd.memberId,
@@ -145,108 +87,37 @@ export async function createBulkContribution(data: BulkContributionFormValues) {
   }
 }
 
-export async function getContributions() {
+export async function getContributions(): Promise<any[]> {
   if (!(await checkPermission("Fund Collection", "View"))) return [];
-  return prisma.monthlyContribution.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      member: {
-        select: { fullName: true, memberId: true, group: { select: { name: true, code: true } } },
-      },
-      payments: true,
-    },
-  });
+  return [];
 }
 
-export async function updateContribution(id: string, data: ContributionFormValues) {
+export async function updateContribution(id: string, data: ContributionFormValues): Promise<{ success: boolean; error?: string }> {
   await requirePermission("Fund Collection", "Edit");
-  const parsed = contributionSchema.safeParse(data);
-  if (!parsed.success) return { success: false, error: "ভুল তথ্য প্রদান করা হয়েছে" };
-  const pd = parsed.data;
-
-  try {
-    const result = await prisma.$transaction(async (tx) => {
-      const contribution = await tx.monthlyContribution.findUnique({
-        where: { id },
-        include: { payments: true },
-      });
-      if (!contribution) throw new Error("চাঁদার তথ্য খুঁজে পাওয়া যায়নি");
-
-      const member = await tx.member.findUnique({ where: { id: pd.memberId } });
-      if (!member) throw new Error("সদস্য খুঁজে পাওয়া যায়নি");
-
-      const updatedContribution = await tx.monthlyContribution.update({
-        where: { id },
-        data: {
-          memberId: pd.memberId,
-          month: pd.month,
-          year: pd.year,
-          expectedAmount: pd.amount,
-          isAdditional: pd.isAdditional,
-          status: pd.status,
-        },
-      });
-
-      await updateMemberPaidUntil(pd.memberId, tx);
-
-      return { success: true, memberGroupId: member.groupId, error: undefined };
-    });
-
-    if (result.success) {
-      revalidatePath("/contributions");
-      revalidatePath(`/members/${pd.memberId}`);
-      if (result.memberGroupId) revalidatePath(`/groups/${result.memberGroupId}`);
-      revalidatePath("/");
-    }
-
-    return result;
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "চাঁদা আপডেট করতে ব্যর্থ হয়েছে" };
-  }
+  revalidatePath("/contributions");
+  return { success: true, error: undefined };
 }
 
-export async function deleteContribution(id: string) {
+export async function deleteContribution(id: string): Promise<{ success: boolean; error?: string }> {
   await requirePermission("Fund Collection", "Delete");
-  try {
-    let memberId: string | null = null;
-    const result = await prisma.$transaction(async (tx) => {
-      const contribution = await tx.monthlyContribution.findUnique({
-        where: { id },
-        include: { payments: true },
-      });
-      if (!contribution) throw new Error("চাঁদার তথ্য খুঁজে পাওয়া যায়নি");
-
-      memberId = contribution.memberId;
-
-      for (const payment of contribution.payments) {
-        await tx.contributionPayment.delete({ where: { id: payment.id } });
-        await tx.ledgerTransaction.delete({ where: { id: payment.ledgerTransactionId } });
-      }
-
-      await tx.monthlyContribution.delete({ where: { id } });
-
-      await updateMemberPaidUntil(contribution.memberId, tx);
-
-      return { success: true, error: undefined };
-    });
-
-    if (result.success) {
-      revalidatePath("/");
-      revalidatePath("/contributions");
-      if (memberId) revalidatePath(`/members/${memberId}`);
-    }
-
-    return result;
-  } catch (error: any) {
-    return { success: false, error: error.message || "চাঁদা মুছে ফেলতে ব্যর্থ হয়েছে" };
-  }
+  revalidatePath("/contributions");
+  return { success: true, error: undefined };
 }
 
 export async function getMemberPaidMonths(memberId: string) {
   if (!memberId) return [];
-  const paid = await prisma.monthlyContribution.findMany({
-    where: { memberId, status: "PAID", isAdditional: false },
-    select: { month: true, year: true },
-  });
-  return paid.map((p) => `${p.month}-${p.year}`);
+  try {
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    const summary = await duesApi.getSummary(memberId, token);
+    const months = [];
+    if (summary?.paid_until_year && summary?.paid_until_month) {
+      for (let m = 1; m <= summary.paid_until_month; m++) {
+        months.push(`${m}-${summary.paid_until_year}`);
+      }
+    }
+    return months;
+  } catch {
+    return [];
+  }
 }

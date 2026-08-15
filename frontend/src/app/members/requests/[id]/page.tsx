@@ -1,49 +1,42 @@
-import { notFound } from "next/navigation"
-import { getMemberRequest } from "@/features/member-requests/actions"
-import { authorizePage } from "@/lib/rbac"
-import { Trans } from "@/components/shared/trans"
-import { RequestActions } from "@/features/member-requests/components/request-actions"
-import { Badge } from "@/components/ui/badge"
-import { MemberProfileLayout, MemberProfileData } from "@/features/members/components/member-profile-layout"
-import { Card, CardContent } from "@/components/ui/card"
-import { prisma } from "@/lib/prisma"
+import { notFound } from "next/navigation";
+import { getMemberRequest } from "@/features/member-requests/actions";
+import { authorizePage } from "@/lib/rbac";
+import { Trans } from "@/components/shared/trans";
+import { RequestActions } from "@/features/member-requests/components/request-actions";
+import { Badge } from "@/components/ui/badge";
+import { MemberProfileLayout, MemberProfileData } from "@/features/members/components/member-profile-layout";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function MemberRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  await authorizePage("Members", "View")
+  await authorizePage("Members", "View");
   const resolvedParams = await params;
   if (!resolvedParams.id) {
-    notFound()
+    notFound();
   }
-  const request = await getMemberRequest(resolvedParams.id)
+  const request = await getMemberRequest(resolvedParams.id);
 
   if (!request) {
-    notFound()
+    notFound();
   }
 
-  let groupName = null
-  let groupCode = null
-  
-  if (request.groupId) {
-    const group = await prisma.group.findUnique({ where: { id: request.groupId } })
-    if (group) {
-      groupName = group.name
-      groupCode = group.code
-    }
+  let refData: any = {};
+  if (request.reference) {
+    try {
+      refData = typeof request.reference === "string" ? JSON.parse(request.reference) : request.reference;
+    } catch {}
   }
-
-  const documents = request.documents ? JSON.parse(request.documents) : []
 
   const profileData: MemberProfileData = {
     ...request,
-    referenceName: request.referenceName,
-    referenceRelation: request.referenceRelation,
-    referenceMobile: request.referenceMobile,
-    groupName: groupName,
-    groupCode: groupCode,
+    referenceName: refData.name || "",
+    referenceRelation: refData.relation || "",
+    referenceMobile: refData.mobile || "",
+    groupName: request.group?.name || null,
+    groupCode: null,
     joinDate: request.submittedAt,
     applicationNumber: request.applicationNumber,
-    documents: documents
-  }
+    documents: request.documents || [],
+  };
 
   const statusBadge = (
     <Badge 
@@ -61,7 +54,7 @@ export default async function MemberRequestDetailPage({ params }: { params: Prom
       : request.status === "NEEDS_CHANGES" ? <Trans tKey="member-requests.status.needsChanges" />
       : request.status}
     </Badge>
-  )
+  );
 
   const adminNotes = (
     <div className="space-y-4">
@@ -87,7 +80,7 @@ export default async function MemberRequestDetailPage({ params }: { params: Prom
         <RequestActions requestId={request.id} status={request.status} />
       </div>
     </div>
-  )
+  );
 
   return (
     <MemberProfileLayout
@@ -97,5 +90,5 @@ export default async function MemberRequestDetailPage({ params }: { params: Prom
       statusNode={statusBadge}
       bottomActionNode={adminNotes}
     />
-  )
+  );
 }

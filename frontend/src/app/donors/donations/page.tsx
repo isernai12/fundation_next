@@ -1,27 +1,26 @@
-import { getReceivedDonations, getDonors } from "@/features/donors/actions"
-import { getMembers } from "@/features/members/actions"
-import { DonationsTable } from "@/features/donors/components/donations-table"
-import { prisma } from "@/lib/prisma"
-import Link from "next/link"
-import { ChevronRight, Plus, HeartHandshake } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { getReceivedDonations, getDonors } from "@/features/donors/actions";
+import { getMembers } from "@/features/members/actions";
+import { DonationsTable } from "@/features/donors/components/donations-table";
+import { groupsApi } from "@/lib/api/groups";
+import Link from "next/link";
+import { ChevronRight, Plus, HeartHandshake } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Trans } from "@/components/shared/trans";
 
 export const metadata = {
   title: "Donation Management | Foundation ERP",
   description: "Manage all received donation transactions, print receipts, and synchronize ledgers.",
-}
+};
 
 export default async function ReceivedDonationsPage() {
-  const [donations, donors, members, groups] = await Promise.all([
+  const [donations, donors, members, groupsRes] = await Promise.all([
     getReceivedDonations(),
     getDonors(),
     getMembers(),
-    prisma.group.findMany({
-      where: { status: "ACTIVE" },
-      orderBy: { name: "asc" },
-    }),
-  ])
+    groupsApi.list({ status: "ACTIVE", page_size: 1000 }).catch(() => ({ items: [] })),
+  ]);
+
+  const groups = groupsRes.items || [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -73,5 +72,5 @@ export default async function ReceivedDonationsPage() {
         }))}
       />
     </div>
-  )
+  );
 }

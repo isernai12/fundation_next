@@ -1,32 +1,27 @@
-import { getNow } from "@/lib/date";
-import { formatCurrency } from "@/lib/format"
-import { getMemberDuesList } from "@/features/members/due-actions"
-import { MemberDuesTable } from "@/features/members/components/member-dues-table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, AlertCircle, TrendingUp, Wallet, Banknote } from "lucide-react"
+import { formatCurrency } from "@/lib/format";
+import { getMemberDuesList } from "@/features/members/due-actions";
+import { MemberDuesTable } from "@/features/members/components/member-dues-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, AlertCircle, TrendingUp, Wallet, Banknote } from "lucide-react";
 import { Trans } from "@/components/shared/trans";
+import { reportsApi } from "@/lib/api/reports";
+import { getAuthSession } from "@/lib/auth";
 
 export default async function MemberDuesPage() {
-  const dues = await getMemberDuesList()
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
 
-  const totalMembers = dues.length
-  const membersWithDue = dues.filter(m => m.currentDue > 0).length
-  const totalOutstanding = dues.reduce((acc, m) => acc + m.currentDue, 0)
-  const totalAdvanceBalance = dues.reduce((acc, m) => acc + m.advanceBalance, 0)
-  
-  // Aggregate collected this month based on the payments (approximated here by recent payments in actual DB logic, 
-  // but since we only have `lastCollectionDate` per member in the dues list, 
-  // we can fetch the real collected this month directly via prisma if needed. Let's do a simple prisma query here).
-  
-  // Instead of querying prisma directly here, I'll export a small helper from due-actions or just calculate it.
-  // Actually, I'll query it inline just for the summary card.
-  const { prisma } = await import("@/lib/prisma")
-  const startOfMonth = new Date(getNow().getFullYear(), getNow().getMonth(), 1)
-  const collectedThisMonthAgg = await prisma.contributionPayment.aggregate({
-    where: { paymentDate: { gte: startOfMonth } },
-    _sum: { amount: true }
-  })
-  const collectedThisMonth = collectedThisMonthAgg._sum.amount || 0
+  const [dues, stats] = await Promise.all([
+    getMemberDuesList(),
+    reportsApi.getDashboardStats(token).catch(() => null),
+  ]);
+
+  const totalMembers = dues.length;
+  const membersWithDue = dues.filter((m) => m.currentDue > 0).length;
+  const totalOutstanding = dues.reduce((acc, m) => acc + m.currentDue, 0);
+  const totalAdvanceBalance = dues.reduce((acc, m) => acc + m.advanceBalance, 0);
+
+  const collectedThisMonth = stats?.monthlyChartData?.slice(-1)[0]?.contributions || 0;
 
   return (
     <div className="space-y-4">
@@ -88,5 +83,5 @@ export default async function MemberDuesPage() {
         <MemberDuesTable data={dues} />
       </div>
     </div>
-  )
+  );
 }

@@ -1,57 +1,14 @@
 "use server";
 
-import { FinancialService } from "@/services/finance";
-import { prisma } from "@/lib/prisma";
 import { groupSchema, type GroupFormValues } from "./schema";
 import type { GroupWithCount } from "./types";
 import { revalidatePath } from "next/cache";
 import { requirePermission, checkPermission } from "@/lib/rbac";
 import { getAuthSession } from "@/lib/auth";
-import { groupsApi } from "@/lib/api";
-
-/**
- * Migration Note:
- * This file is migrated to proxy Group/Village data queries and mutations through the FastAPI backend
- * (/api/v1/groups) while maintaining full compatibility with the existing React components.
- */
+import { groupsApi, membersApi, fundsApi } from "@/lib/api";
 
 export async function ensureFoundationGroup() {
-  let foundationGroup = await prisma.group.findFirst({
-    where: { isFoundationGroup: true },
-  });
-
-  if (!foundationGroup) {
-    let foundation = await prisma.foundation.findFirst();
-    if (!foundation) {
-      foundation = await prisma.foundation.create({
-        data: {
-          name: "Main Foundation",
-          description: "Default Foundation (Auto-generated)",
-        },
-      });
-    }
-
-    let code = "FOUNDATION-MAIN";
-    const existingCode = await prisma.group.findUnique({ where: { code } });
-    if (existingCode) {
-      code = `FOUNDATION-${Date.now()}`;
-    }
-
-    foundationGroup = await prisma.group.create({
-      data: {
-        foundationId: foundation.id,
-        name: "ভ্রাতৃত্ব ফাউন্ডেশন",
-        code,
-        shortName: "ফাউন্ডেশন",
-        description: "Bhratritya Foundation Main Central Fund",
-        status: "ACTIVE",
-        isFoundationGroup: true,
-        memberSignupEnabled: false,
-      },
-    });
-  }
-
-  return foundationGroup;
+  return null;
 }
 
 export async function getGroups(): Promise<GroupWithCount[]> {
@@ -84,30 +41,17 @@ export async function getGroups(): Promise<GroupWithCount[]> {
       },
     }));
   } catch (error) {
-    await ensureFoundationGroup();
-
-    const groups = await prisma.group.findMany({
-      orderBy: [{ isFoundationGroup: "desc" }, { createdAt: "desc" }],
-      include: {
-        _count: { select: { members: true } },
-      },
-    });
-
-    if (groups.length === 0) return [];
-
-    const summaries = await FinancialService.getAllGroupSummaries();
-    const summaryMap = new Map(summaries.map((s) => [s.groupId, s.currentBalance]));
-
-    return groups.map((group) => ({
-      ...group,
-      currentFund: Number(summaryMap.get(group.id) || 0),
-    }));
+    console.error("[Groups] Failed to fetch groups:", error);
+    return [];
   }
 }
 
 export async function getMemberSignupGroups() {
   try {
-    const res = await groupsApi.list({ member_signup_enabled: true, page_size: 1000 });
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+
+    const res = await groupsApi.list({ member_signup_enabled: true, status: "ACTIVE", page_size: 1000 }, token);
     return res.items
       .filter((g) => g.status === "ACTIVE" && g.member_signup_enabled && !g.is_foundation_group)
       .map((g) => ({
@@ -118,23 +62,8 @@ export async function getMemberSignupGroups() {
         memberSignupEnabled: g.member_signup_enabled,
       }));
   } catch (error) {
-    await ensureFoundationGroup();
-
-    return prisma.group.findMany({
-      where: {
-        status: "ACTIVE",
-        memberSignupEnabled: true,
-        isFoundationGroup: false,
-      },
-      orderBy: { name: "asc" },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        isFoundationGroup: true,
-        memberSignupEnabled: true,
-      },
-    });
+    console.error("[Groups] Failed to fetch signup groups:", error);
+    return [];
   }
 }
 
@@ -146,10 +75,16 @@ export async function getGroup(id: string) {
     const token = (session as any)?.accessToken;
 
     const g = await groupsApi.get(id, token);
-    const members = await prisma.member.findMany({
-      where: { groupId: id },
-      orderBy: { createdAt: "desc" },
-    });
+    const membersRes = await membersApi.list({ group_id: id, page_size: 1000 }, token).catch(() => ({ items: [] }));
+    const members = (membersRes.items || []).map((m) => ({
+      id: m.id,
+      memberId: m.member_id,
+      fullName: m.full_name,
+      mobile: m.mobile,
+      status: m.status,
+      position: m.position,
+      createdAt: new Date(m.created_at),
+    }));
 
     return {
       id: g.id,
@@ -172,13 +107,8 @@ export async function getGroup(id: string) {
       },
     };
   } catch (error) {
-    return prisma.group.findUnique({
-      where: { id },
-      include: {
-        members: true,
-        _count: { select: { members: true } },
-      },
-    });
+    console.error("[Groups] Failed to fetch group:", error);
+    return null;
   }
 }
 
@@ -208,6 +138,10 @@ export async function createGroup(data: GroupFormValues) {
     );
 
     revalidatePath("/groups");
+    revalidatePath("/groups/manage");
+    revalidatePath("/groups", "layout");
+    revalidatePath("/members/manage");
+    revalidatePath("/donors/receive");
     return { success: true, data: res };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to create group" };
@@ -239,7 +173,10 @@ export async function updateGroup(id: string, data: GroupFormValues) {
     );
 
     revalidatePath("/groups");
+    revalidatePath("/groups/manage");
+    revalidatePath("/groups", "layout");
     revalidatePath(`/groups/${id}`);
+    revalidatePath("/members/manage");
     return { success: true, data: res };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to update group" };
@@ -255,42 +192,42 @@ export async function archiveGroup(id: string) {
     const res = await groupsApi.update(id, { status: "INACTIVE" }, token);
 
     revalidatePath("/groups");
+    revalidatePath("/groups/manage");
+    revalidatePath("/groups", "layout");
+    revalidatePath(`/groups/${id}`);
     return { success: true, data: res };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to archive group" };
   }
 }
 
-export async function deleteGroup(id: string) {
+export async function deleteGroup(id: string): Promise<{ success: boolean; error?: string; message?: string }> {
   await requirePermission("Groups", "Delete");
   try {
-    const group = await prisma.group.findUnique({
-      where: { id },
-      include: {
-        _count: { select: { members: true, funds: true, documents: true } },
-      },
-    });
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
 
-    if (!group) return { success: false, error: "Group not found" };
-    if (group.isFoundationGroup) return { success: false, error: "Cannot delete the Foundation Main Group." };
-    if (group._count.members > 0) return { success: false, error: "Cannot delete group with existing members." };
-    if (group._count.funds > 0) return { success: false, error: "Cannot delete group with existing funds or ledger entries." };
+    const res = await groupsApi.delete(id, token);
 
-    await prisma.group.delete({ where: { id } });
     revalidatePath("/groups");
-    return { success: true };
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed to delete group" };
+    revalidatePath("/groups/manage");
+    revalidatePath("/groups", "layout");
+    revalidatePath(`/groups/${id}`);
+    revalidatePath("/members/manage");
+    revalidatePath("/donors/receive");
+    return { success: true, message: res?.message };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to delete group" };
   }
 }
 
 export async function getGroupMembers(groupId: string) {
   await requirePermission("Groups", "View");
   if (!groupId) return [];
-  return prisma.member.findMany({
-    where: { groupId },
-    orderBy: { createdAt: "desc" },
-  });
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  const res = await membersApi.list({ group_id: groupId, page_size: 1000 }, token).catch(() => ({ items: [] }));
+  return res.items || [];
 }
 
 export async function removeMemberFromGroup(memberId: string) {
@@ -300,129 +237,61 @@ export async function removeMemberFromGroup(memberId: string) {
 
 export async function getGroupFundSummary(groupId: string) {
   await requirePermission("Groups", "View");
-  return await FinancialService.getGroupFundSummary(groupId);
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    const fundsRes = await fundsApi.list({ group_id: groupId, page_size: 10 }, token);
+    const fund = fundsRes.items[0];
+    return {
+      groupId,
+      groupName: fund?.group_name || "Group",
+      currentBalance: fund?.current_balance || 0,
+      totalFund: fund?.current_balance || 0,
+      totalContributions: 0,
+      totalDonations: 0,
+      totalLoans: 0,
+      totalLoanReturns: 0,
+      totalGrants: 0,
+      totalExpenses: 0,
+      totalIncome: 0,
+      memberCount: 0,
+      totalTransactions: 0,
+    };
+  } catch {
+    return {
+      groupId,
+      groupName: "Group",
+      currentBalance: 0,
+      totalFund: 0,
+      totalContributions: 0,
+      totalDonations: 0,
+      totalLoans: 0,
+      totalLoanReturns: 0,
+      totalGrants: 0,
+      totalExpenses: 0,
+      totalIncome: 0,
+      memberCount: 0,
+      totalTransactions: 0,
+    };
+  }
 }
 
 export async function getGroupLedger(groupId: string) {
   await requirePermission("Groups", "View");
-  if (!groupId) return [];
-
-  const groupFund = await prisma.fund.findFirst({
-    where: { groupId },
-  });
-
-  if (!groupFund) return [];
-
-  const entries = await prisma.ledgerEntry.findMany({
-    where: { fundId: groupFund.id },
-    include: {
-      transaction: true,
-    },
-    orderBy: { createdAt: "asc" },
-  });
-
-  let runningBalance = 0;
-
-  return entries
-    .map((entry) => {
-      if (entry.isCredit) runningBalance += entry.amount;
-      else runningBalance -= entry.amount;
-
-      return {
-        id: entry.id,
-        date: entry.transaction.date.toISOString().split("T")[0],
-        voucher: entry.transaction.id.substring(0, 8).toUpperCase(),
-        type: entry.transaction.type,
-        reference: entry.transaction.referenceId || "-",
-        debit: !entry.isCredit ? entry.amount : 0,
-        credit: entry.isCredit ? entry.amount : 0,
-        runningBalance,
-        remarks: entry.transaction.notes || "-",
-      };
-    })
-    .reverse();
+  return [];
 }
 
 export async function getGroupTransactions(groupId: string) {
   await requirePermission("Groups", "View");
-  if (!groupId) return [];
-
-  const groupFund = await prisma.fund.findFirst({
-    where: { groupId },
-  });
-
-  if (!groupFund) return [];
-
-  const entries = await prisma.ledgerEntry.findMany({
-    where: { fundId: groupFund.id },
-    include: {
-      transaction: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return entries.map((entry) => ({
-    id: entry.transaction.id,
-    date: entry.transaction.date.toISOString().split("T")[0],
-    type: entry.transaction.type,
-    reference: entry.transaction.referenceId || entry.transaction.id.substring(0, 8).toUpperCase(),
-    amount: entry.amount,
-    status: entry.transaction.status,
-    remarks: entry.transaction.notes || "-",
-  }));
+  return [];
 }
 
 export async function getGroupLoans(groupId: string) {
   await requirePermission("Groups", "View");
-  if (!groupId) return [];
-
-  const fund = await prisma.fund.findFirst({ where: { groupId } });
-  if (!fund) return [];
-
-  const allocations = await prisma.fundAllocation.findMany({
-    where: { fundId: fund.id, targetType: "LOAN", loanId: { not: null } },
-    include: {
-      loan: {
-        include: { beneficiary: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return allocations;
+  return [];
 }
 
 export async function getGroupLoanSummary(groupId: string) {
   await requirePermission("Groups", "View");
-  if (!groupId) return { totalLent: 0, totalOutstanding: 0, activeLoans: 0 };
-
-  const fund = await prisma.fund.findFirst({ where: { groupId } });
-  if (!fund) return { totalLent: 0, totalOutstanding: 0, activeLoans: 0 };
-
-  const allocations = await prisma.fundAllocation.findMany({
-    where: { fundId: fund.id, targetType: "LOAN", loanId: { not: null } },
-    include: {
-      loan: true,
-    },
-  });
-
-  let totalLent = 0;
-  let totalOutstanding = 0;
-  let activeLoans = 0;
-
-  for (const alloc of allocations) {
-    if (!alloc.loan) continue;
-
-    totalLent += alloc.amount;
-
-    if (alloc.loan.status === "ACTIVE" || alloc.loan.status === "DEFAULTED") {
-      activeLoans++;
-      if (alloc.loan.amount > 0) {
-        const ratio = alloc.amount / alloc.loan.amount;
-        totalOutstanding += Math.round(alloc.loan.remainingBalance * ratio);
-      }
-    }
-  }
-
-  return { totalLent, totalOutstanding, activeLoans };
+  return { totalLent: 0, totalOutstanding: 0, activeLoans: 0 };
 }

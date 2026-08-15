@@ -55,4 +55,8 @@ export const groupsApi = {
   async update(id: string, data: GroupUpdatePayload, token?: string): Promise<GroupDto> {
     return apiClient.patch<GroupDto>(`/api/v1/groups/${id}`, data, { token });
   },
+
+  async delete(id: string, token?: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.delete<{ success: boolean; message: string }>(`/api/v1/groups/${id}`, { token });
+  },
 };

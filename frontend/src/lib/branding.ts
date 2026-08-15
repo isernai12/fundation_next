@@ -1,17 +1,10 @@
-import { prisma } from "./prisma";
 import { unstable_cache } from "next/cache";
+import { settingsApi } from "./api/settings";
 
 export const getBrandingSettings = unstable_cache(
   async () => {
     try {
-      const settings = await prisma.systemSettings.findMany({
-        where: {
-          OR: [
-            { key: { startsWith: "BRANDING_" } },
-            { key: { in: ["APP_TIMEZONE", "APP_DATE_FORMAT"] } }
-          ]
-        }
-      });
+      const settings: Record<string, string> = await settingsApi.getSystemSettings().catch(() => ({}));
       
       const defaultBranding = {
         foundationName: "Foundation ERP",
@@ -25,18 +18,16 @@ export const getBrandingSettings = unstable_cache(
         dateFormat: "DD MMM YYYY"
       };
 
-      const result = settings.reduce((acc, curr) => {
-        if (curr.key === "BRANDING_FOUNDATION_NAME") acc.foundationName = curr.value;
-        if (curr.key === "BRANDING_SHORT_NAME") acc.shortName = curr.value;
-        if (curr.key === "BRANDING_LOGO") acc.logo = curr.value;
-        if (curr.key === "BRANDING_FAVICON") acc.favicon = curr.value;
-        if (curr.key === "BRANDING_LOGIN_LOGO") acc.loginLogo = curr.value;
-        if (curr.key === "BRANDING_SIDEBAR_LOGO") acc.sidebarLogo = curr.value;
-        if (curr.key === "BRANDING_HEADER_LOGO") acc.headerLogo = curr.value;
-        if (curr.key === "APP_TIMEZONE") acc.timezone = curr.value;
-        if (curr.key === "APP_DATE_FORMAT") acc.dateFormat = curr.value;
-        return acc;
-      }, defaultBranding);
+      const result = { ...defaultBranding };
+      if (settings["BRANDING_FOUNDATION_NAME"]) result.foundationName = settings["BRANDING_FOUNDATION_NAME"];
+      if (settings["BRANDING_SHORT_NAME"]) result.shortName = settings["BRANDING_SHORT_NAME"];
+      if (settings["BRANDING_LOGO"]) result.logo = settings["BRANDING_LOGO"];
+      if (settings["BRANDING_FAVICON"]) result.favicon = settings["BRANDING_FAVICON"];
+      if (settings["BRANDING_LOGIN_LOGO"]) result.loginLogo = settings["BRANDING_LOGIN_LOGO"];
+      if (settings["BRANDING_SIDEBAR_LOGO"]) result.sidebarLogo = settings["BRANDING_SIDEBAR_LOGO"];
+      if (settings["BRANDING_HEADER_LOGO"]) result.headerLogo = settings["BRANDING_HEADER_LOGO"];
+      if (settings["APP_TIMEZONE"]) result.timezone = settings["APP_TIMEZONE"];
+      if (settings["APP_DATE_FORMAT"]) result.dateFormat = settings["APP_DATE_FORMAT"];
 
       return result;
     } catch (e) {

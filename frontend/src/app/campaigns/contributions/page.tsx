@@ -11,9 +11,9 @@ export default async function CampaignContributionsManagePage() {
   const campaigns = await getCampaigns()
 
   // Calculate high-level metrics for quick summary cards
-  const totalAmount = contributions.reduce((sum, c) => sum + c.amount, 0)
-  const memberContributionsCount = contributions.filter(c => c.memberId).length
-  const donorContributionsCount = contributions.filter(c => c.donorId).length
+  const totalAmount = (contributions || []).reduce((sum: number, c: any) => sum + (c.amount || 0), 0)
+  const memberContributionsCount = (contributions || []).filter((c: any) => c.memberId).length
+  const donorContributionsCount = (contributions || []).filter((c: any) => c.donorId).length
 
   return (
     <div className="space-y-4">
@@ -88,8 +88,8 @@ export default async function CampaignContributionsManagePage() {
 
       {/* Main Filter & Table Component */}
       <CampaignContributionsTable 
-        data={contributions} 
-        campaigns={campaigns} 
+        data={contributions as any} 
+        campaigns={campaigns as any} 
       />
     </div>
   )

@@ -168,7 +168,7 @@ export default async function GroupDetailsPage({ params }: { params: Promise<{ i
                     </td>
                   </tr>
                 ) : (
-                  loans.map((alloc) => (
+                  loans.map((alloc: any) => (
                     <tr key={alloc.id} className="border-b last:border-0 hover:bg-muted/50">
                       <td className="px-4 py-2">{alloc.loan?.loanNumber}</td>
                       <td className="px-4 py-2">{alloc.loan?.beneficiary?.fullName || "-"}</td>

@@ -1,13 +1,11 @@
-import { formatDate } from "@/lib/format"
-import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, Wallet } from "lucide-react"
-import { generateMissingContributions } from "@/features/members/due-actions"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Wallet } from "lucide-react";
+import { getMember } from "@/features/members/actions";
+import { settingsApi } from "@/lib/api/settings";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Trans } from "@/components/shared/trans";
-
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,73 +29,65 @@ function toBengaliNumerals(num: number | string) {
 export default async function DueDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   
-  // Ensure contributions are up to date
-  await generateMissingContributions();
-  
-  const member = await prisma.member.findUnique({
-    where: { id: resolvedParams.id },
-    include: {
-      group: true,
-      contributions: {
-        include: { payments: true }
-      }
-    }
-  });
+  const [member, defaultFee] = await Promise.all([
+    getMember(resolvedParams.id),
+    settingsApi.getMonthlyMembershipFee(),
+  ]);
 
   if (!member) return notFound();
 
-  let expectedContribution = 0;
-  let totalPaid = 0;
-  let monthlyContribution = 0;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const joinDate = member.joinDate ? new Date(member.joinDate) : new Date();
+  const monthlyContribution = defaultFee;
 
-  // The most recent default contribution
-  const regularConts = member.contributions.filter(c => !c.isAdditional).sort((a, b) => {
-    if (a.year !== b.year) return b.year - a.year;
-    return b.month - a.month;
-  });
-  
-  if (regularConts.length > 0) {
-    monthlyContribution = regularConts[0].expectedAmount;
+  const joinYear = joinDate.getFullYear();
+  const joinMonth = joinDate.getMonth() + 1;
+
+  const monthsSinceJoin = Math.max(
+    1,
+    (currentYear - joinYear) * 12 + (currentMonth - joinMonth) + 1
+  );
+
+  const expectedContribution = monthsSinceJoin * monthlyContribution;
+  const paidUntilMonth = member.paidUntilMonth || 0;
+  const paidUntilYear = member.paidUntilYear || 0;
+
+  let monthsPaid = 0;
+  if (paidUntilYear > 0) {
+    monthsPaid = Math.max(
+      0,
+      (paidUntilYear - joinYear) * 12 + (paidUntilMonth - joinMonth) + 1
+    );
   }
 
-  // Calculate totals
-  member.contributions.forEach(cont => {
-    if (!cont.isAdditional) {
-      expectedContribution += cont.expectedAmount;
-    }
-    cont.payments.forEach(payment => {
-      totalPaid += payment.amount;
-    });
-  });
+  const totalPaid = monthsPaid * monthlyContribution;
+  const currentDue = Math.max(0, expectedContribution - totalPaid);
+  const advanceBalance = Math.max(0, totalPaid - expectedContribution);
 
-  let currentDue = expectedContribution - totalPaid;
-  let advanceBalance = 0;
+  const monthData: any[] = [];
+  let tempY = joinYear;
+  let tempM = joinMonth;
 
-  if (currentDue < 0) {
-    advanceBalance = Math.abs(currentDue);
-    currentDue = 0;
-  }
-
-  // Distribute totalPaid chronologically
-  let remainingTotalPaid = totalPaid;
-  
-  const chronologicalMonths = [...regularConts].reverse(); // oldest first
-  const monthData = [];
-  
   let totalDueMonths = 0;
+  while (tempY < currentYear || (tempY === currentYear && tempM <= currentMonth)) {
+    const isPaid = tempY < paidUntilYear || (tempY === paidUntilYear && tempM <= paidUntilMonth);
+    monthData.push({
+      month: tempM,
+      year: tempY,
+      expectedAmount: monthlyContribution,
+      status: isPaid ? "পরিশোধিত" : "বকেয়া",
+    });
+    if (!isPaid) totalDueMonths++;
 
-  for (const month of chronologicalMonths) {
-    if (remainingTotalPaid >= month.expectedAmount) {
-      monthData.push({ ...month, status: 'পরিশোধিত' });
-      remainingTotalPaid -= month.expectedAmount;
-    } else {
-      monthData.push({ ...month, status: 'বকেয়া' });
-      totalDueMonths++;
-      // We don't deduct partial amounts to keep things simple as "বকেয়া" or "পরিশোধিত"
+    tempM++;
+    if (tempM > 12) {
+      tempM = 1;
+      tempY++;
     }
   }
 
-  // Reverse back to newest first for display
   monthData.reverse();
 
   return (
@@ -165,7 +155,7 @@ export default async function DueDetailsPage({ params }: { params: Promise<{ id:
                   {monthData.length === 0 && (
                     <tr>
                       <td colSpan={3} className="py-8 text-center text-muted-foreground">
-                        </td>
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -175,5 +165,5 @@ export default async function DueDetailsPage({ params }: { params: Promise<{ id:
         </div>
       </div>
     </div>
-  )
+  );
 }

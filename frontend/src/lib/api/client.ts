@@ -54,11 +54,16 @@ export class ApiClient {
 
     const url = this.buildUrl(path, params);
 
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+
     const reqHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
       Accept: "application/json",
       ...(headers as Record<string, string>),
     };
+
+    if (!isFormData && !reqHeaders["Content-Type"]) {
+      reqHeaders["Content-Type"] = "application/json";
+    }
 
     if (token) {
       reqHeaders["Authorization"] = `Bearer ${token}`;
@@ -71,7 +76,7 @@ export class ApiClient {
       const response = await fetch(url, {
         ...fetchOptions,
         headers: reqHeaders,
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : (body !== undefined ? JSON.stringify(body) : undefined),
         signal: controller.signal,
         credentials: "include",
       });

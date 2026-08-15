@@ -133,9 +133,9 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
-                {loan.allocations.map(a => (
+                {(loan.allocations || []).map((a: any) => (
                   <div key={a.id} className="flex justify-between border-b pb-2">
-                    <span className="text-muted-foreground">{a.fund.group?.name || "General Fund"} ({a.fund.name})</span>
+                    <span className="text-muted-foreground">{a.fund?.group?.name || "General Fund"} ({a.fund?.name || "Fund"})</span>
                     <span className="font-medium">৳{a.amount}</span>
                   </div>
                 ))}
@@ -167,7 +167,7 @@ export default async function LoanDetailsPage({ params }: { params: Promise<{ id
                 </tr>
               </thead>
               <tbody>
-                {loan.repayments.map(r => (
+                {(loan.repayments || []).map((r: any) => (
                   <tr key={r.id} className="border-b last:border-0">
                     <td className="py-3">{formatDate(r.date)}</td>
                     <td className="py-3 text-muted-foreground text-xs">{r.ledgerTransactionId}</td>

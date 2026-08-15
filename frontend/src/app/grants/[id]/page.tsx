@@ -74,12 +74,12 @@ export default async function GrantDetailsPage({ params }: { params: Promise<{ i
             <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6"><Trans tKey="grants.details.allocations" /></h2>
             <table className="w-full text-sm border-collapse">
               <tbody>
-                {grant.allocations.length === 0 ? (
+                {(grant.allocations || []).length === 0 ? (
                   <tr><td className="py-2 text-muted-foreground"><Trans tKey="grants.details.noAllocations" /></td></tr>
                 ) : (
-                  grant.allocations.map(a => (
+                  (grant.allocations || []).map((a: any) => (
                     <tr key={a.id} className="border-b">
-                      <td className="py-2 w-2/3">{a.fund.name} <span className="text-xs text-muted-foreground">({a.fund.group?.name || "Foundation"})</span></td>
+                      <td className="py-2 w-2/3">{a.fund?.name || "Fund"} <span className="text-xs text-muted-foreground">({a.fund?.group?.name || "Foundation"})</span></td>
                       <td className="py-2 font-medium">৳{formatCurrency(a.amount)}</td>
                     </tr>
                   ))

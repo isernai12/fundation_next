@@ -1,27 +1,26 @@
-import { getReceivedDonations, getDonors } from "@/features/donors/actions"
-import { getMembers } from "@/features/members/actions"
-import { prisma } from "@/lib/prisma"
-import { DonorLedgerClient } from "@/features/donors/components/donor-ledger-client"
-import { BookOpen } from "lucide-react"
-import Link from "next/link"
-import { ChevronRight, FileSpreadsheet } from "lucide-react"
+import { getReceivedDonations, getDonors } from "@/features/donors/actions";
+import { getMembers } from "@/features/members/actions";
+import { groupsApi } from "@/lib/api/groups";
+import { DonorLedgerClient } from "@/features/donors/components/donor-ledger-client";
+import { BookOpen } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { Trans } from "@/components/shared/trans";
 
 export const metadata = {
   title: "Donor Ledger | Foundation ERP",
   description: "Master Ledger for all Donor transactions",
-}
+};
 
 export default async function DonorLedgerPage() {
-  const [donations, donors, members, groups] = await Promise.all([
+  const [donations, donors, members, groupsRes] = await Promise.all([
     getReceivedDonations(),
     getDonors(),
     getMembers(),
-    prisma.group.findMany({
-      where: { status: "ACTIVE" },
-      orderBy: { name: "asc" },
-    }),
-  ])
+    groupsApi.list({ status: "ACTIVE", page_size: 1000 }).catch(() => ({ items: [] })),
+  ]);
+
+  const groups = groupsRes.items || [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -66,5 +65,5 @@ export default async function DonorLedgerPage() {
         }))}
       />
     </div>
-  )
+  );
 }

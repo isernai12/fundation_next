@@ -52,14 +52,19 @@ export function GroupForm() {
 
   async function onSubmit(data: GroupFormValues) {
     setIsSubmitting(true)
-    const res = await createGroup(data)
-    setIsSubmitting(false)
-
-    if (res.success) {
-      toast.success(t("groups.form.success"))
-      router.push("/groups/manage")
-    } else {
-      toast.error(res.error)
+    try {
+      const res = await createGroup(data)
+      if (res.success) {
+        toast.success(t("groups.form.success"))
+        router.refresh()
+        router.push("/groups/manage")
+      } else {
+        toast.error(res.error)
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to create group")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

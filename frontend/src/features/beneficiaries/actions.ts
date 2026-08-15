@@ -1,19 +1,10 @@
 "use server";
 
-import { getNow } from "@/lib/date";
-import { prisma } from "@/lib/prisma";
 import { beneficiarySchema, type BeneficiaryFormValues } from "./schema";
 import { revalidatePath } from "next/cache";
-import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary";
 import { requirePermission, checkPermission } from "@/lib/rbac";
 import { getAuthSession } from "@/lib/auth";
-import { beneficiariesApi } from "@/lib/api";
-
-/**
- * Migration Note:
- * This file is migrated to proxy Beneficiary operations through FastAPI (/api/v1/beneficiaries)
- * while preserving full compatibility with the existing React components.
- */
+import { beneficiariesApi, uploadApi } from "@/lib/api";
 
 export async function getBeneficiaries() {
   if (!(await checkPermission("Beneficiaries", "View"))) return [];
@@ -79,74 +70,20 @@ export async function getBeneficiary(id: string) {
       memberId: b.member_id || null,
       createdAt: new Date(b.created_at),
       updatedAt: new Date(b.updated_at),
-      member: null,
+      member: b.member_id ? { fullName: b.name, memberId: b.member_id } : null,
       loans: [],
       grants: [],
-      documents: [],
+      documents: (b.documents || []).map((d: any) => ({
+        id: d.id,
+        title: d.title,
+        secureUrl: d.file_url,
+        fileUrl: d.file_url,
+        cloudinaryPublicId: d.cloudinary_public_id,
+      })),
       beneficiaryPayments: [],
     };
   } catch (error) {
     return null;
-  }
-}
-
-async function generateBeneficiaryId() {
-  const count = await prisma.beneficiary.count();
-  const year = getNow().getFullYear();
-  return `BEN-${year}-${(count + 1).toString().padStart(4, "0")}`;
-}
-
-async function handleDocumentUpload(
-  base64Str: string | undefined,
-  title: string,
-  folder: string,
-  beneficiaryId: string,
-  documentNumberSuffix: string,
-  updateLegacyField?: "beneficiaryPhoto" | "nidOrBirthCertificate"
-) {
-  if (!base64Str) return;
-
-  const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
-  const uploaded = await uploadToCloudinary(buffer, { folder });
-
-  const existingDoc = await prisma.document.findFirst({
-    where: { beneficiaryId, title },
-  });
-
-  if (existingDoc) {
-    if (existingDoc.cloudinaryPublicId) {
-      await deleteFromCloudinary(existingDoc.cloudinaryPublicId).catch(() => {});
-    }
-    await prisma.document.update({
-      where: { id: existingDoc.id },
-      data: {
-        cloudinaryPublicId: uploaded.public_id,
-        secureUrl: uploaded.secure_url,
-        sizeBytes: uploaded.bytes || 0,
-      },
-    });
-  } else {
-    await prisma.document.create({
-      data: {
-        documentNumber: `DOC-${Date.now()}-${documentNumberSuffix}`,
-        title,
-        type: "IMAGE",
-        cloudinaryPublicId: uploaded.public_id,
-        secureUrl: uploaded.secure_url,
-        originalFilename: `${title.toLowerCase().replace(/\s/g, "_")}.jpg`,
-        mimeType: "image/jpeg",
-        sizeBytes: uploaded.bytes || 0,
-        targetType: "BENEFICIARY",
-        beneficiary: { connect: { id: beneficiaryId } },
-      },
-    });
-  }
-
-  if (updateLegacyField) {
-    await prisma.beneficiary.update({
-      where: { id: beneficiaryId },
-      data: { [updateLegacyField]: uploaded.secure_url },
-    });
   }
 }
 
@@ -159,63 +96,52 @@ export async function createBeneficiary(data: BeneficiaryFormValues) {
 
   const pd = parsed.data;
 
-  if (pd.nationalId && pd.nationalId.trim() !== "") {
-    const existingNid = await prisma.beneficiary.findUnique({ where: { nationalId: pd.nationalId.trim() } });
-    if (existingNid) return { success: false, error: "National ID already exists" };
-  }
-
-  const beneficiaryId = await generateBeneficiaryId();
-
   try {
-    const beneficiary = await prisma.beneficiary.create({
-      data: {
-        beneficiaryId,
-        fullName: pd.fullName.trim(),
-        fatherOrHusbandName: pd.fatherOrHusbandName?.trim() || null,
-        email: pd.email?.trim() || null,
-        mobile: pd.mobile?.trim() || null,
-        phone: pd.phone?.trim() || null,
-        address: pd.address?.trim() || pd.presentAddress?.trim() || null,
-        presentAddress: pd.presentAddress?.trim() || null,
-        permanentAddress: pd.permanentAddress?.trim() || null,
-        nationalId: pd.nationalId?.trim() || null,
-        idDocumentType: pd.idDocumentType || "NID",
-        beneficiaryPhoto: pd.beneficiaryPhoto || null,
-        nidOrBirthCertificate: pd.nidOrBirthCertificate || null,
-        occupation: pd.occupation?.trim() || null,
-        remarks: pd.remarks?.trim() || null,
-        relationToMember: pd.relationToMember?.trim() || null,
-        emergencyContactName: pd.emergencyContactName?.trim() || null,
-        emergencyContactRelation: pd.emergencyContactRelation?.trim() || null,
-        emergencyContactMobile: pd.emergencyContactMobile?.trim() || null,
-        memberId: pd.memberId || null,
-        status: pd.status || "ACTIVE",
-      },
-    });
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
 
-    // Handle Documents if provided
+    const uploadedDocs = [];
     if (pd.photoBase64) {
-      await handleDocumentUpload(pd.photoBase64, "Beneficiary Photo", "foundation/beneficiaries/photos", beneficiary.id, "P", "beneficiaryPhoto");
+      const up = await uploadApi.uploadBase64(pd.photoBase64, "foundation/beneficiaries/photos", "photo.jpg", token);
+      uploadedDocs.push({ title: "Beneficiary Photo", file_url: up.secure_url, cloudinary_public_id: up.public_id });
     }
     if (pd.signatureBase64) {
-      await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/beneficiaries/signatures", beneficiary.id, "SIG");
+      const up = await uploadApi.uploadBase64(pd.signatureBase64, "foundation/beneficiaries/signatures", "signature.png", token);
+      uploadedDocs.push({ title: "Signature", file_url: up.secure_url, cloudinary_public_id: up.public_id });
     }
-
     if (pd.idDocumentType === "NID") {
       if (pd.nidFrontBase64) {
-        await handleDocumentUpload(pd.nidFrontBase64, "NID Front", "foundation/beneficiaries/ids", beneficiary.id, "NIDF", "nidOrBirthCertificate");
+        const up = await uploadApi.uploadBase64(pd.nidFrontBase64, "foundation/beneficiaries/ids", "nid_front.jpg", token);
+        uploadedDocs.push({ title: "NID Front", file_url: up.secure_url, cloudinary_public_id: up.public_id });
       }
       if (pd.nidBackBase64) {
-        await handleDocumentUpload(pd.nidBackBase64, "NID Back", "foundation/beneficiaries/ids", beneficiary.id, "NIDB");
+        const up = await uploadApi.uploadBase64(pd.nidBackBase64, "foundation/beneficiaries/ids", "nid_back.jpg", token);
+        uploadedDocs.push({ title: "NID Back", file_url: up.secure_url, cloudinary_public_id: up.public_id });
       }
     } else if (pd.idDocumentType === "BIRTH_CERTIFICATE" && pd.birthCertificateBase64) {
-      await handleDocumentUpload(pd.birthCertificateBase64, "Birth Certificate", "foundation/beneficiaries/ids", beneficiary.id, "BC", "nidOrBirthCertificate");
+      const up = await uploadApi.uploadBase64(pd.birthCertificateBase64, "foundation/beneficiaries/ids", "birth_certificate.jpg", token);
+      uploadedDocs.push({ title: "Birth Certificate", file_url: up.secure_url, cloudinary_public_id: up.public_id });
     }
+
+    const beneficiary = await beneficiariesApi.create(
+      {
+        name: pd.fullName.trim(),
+        mobile: pd.mobile?.trim() || "",
+        national_id: pd.nationalId?.trim() || null,
+        address: pd.address?.trim() || pd.presentAddress?.trim() || null,
+        category: pd.category || null,
+        monthly_income: pd.monthlyIncome || null,
+        occupation: pd.occupation?.trim() || null,
+        member_id: pd.memberId || null,
+        documents: uploadedDocs,
+      },
+      token
+    );
 
     revalidatePath("/beneficiaries");
     return { success: true, data: beneficiary };
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed to create beneficiary" };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to create beneficiary" };
   }
 }
 
@@ -227,89 +153,49 @@ export async function updateBeneficiary(id: string, data: BeneficiaryFormValues)
   const pd = parsed.data;
 
   try {
-    const beneficiary = await prisma.beneficiary.update({
-      where: { id },
-      data: {
-        fullName: pd.fullName.trim(),
-        fatherOrHusbandName: pd.fatherOrHusbandName?.trim() || null,
-        email: pd.email?.trim() || null,
-        mobile: pd.mobile?.trim() || null,
-        phone: pd.phone?.trim() || null,
-        address: pd.address?.trim() || pd.presentAddress?.trim() || null,
-        presentAddress: pd.presentAddress?.trim() || null,
-        permanentAddress: pd.permanentAddress?.trim() || null,
-        nationalId: pd.nationalId?.trim() || null,
-        idDocumentType: pd.idDocumentType || "NID",
-        occupation: pd.occupation?.trim() || null,
-        remarks: pd.remarks?.trim() || null,
-        relationToMember: pd.relationToMember?.trim() || null,
-        emergencyContactName: pd.emergencyContactName?.trim() || null,
-        emergencyContactRelation: pd.emergencyContactRelation?.trim() || null,
-        emergencyContactMobile: pd.emergencyContactMobile?.trim() || null,
-        memberId: pd.memberId || null,
-        status: pd.status || "ACTIVE",
-      },
-    });
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
 
-    if (pd.photoBase64) {
-      await handleDocumentUpload(pd.photoBase64, "Beneficiary Photo", "foundation/beneficiaries/photos", beneficiary.id, "P", "beneficiaryPhoto");
-    }
-    if (pd.signatureBase64) {
-      await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/beneficiaries/signatures", beneficiary.id, "SIG");
-    }
+    const beneficiary = await beneficiariesApi.update(
+      id,
+      {
+        name: pd.fullName.trim(),
+        mobile: pd.mobile?.trim() || "",
+        national_id: pd.nationalId?.trim() || null,
+        address: pd.address?.trim() || pd.presentAddress?.trim() || null,
+        category: pd.category || null,
+        monthly_income: pd.monthlyIncome || null,
+        occupation: pd.occupation?.trim() || null,
+        member_id: pd.memberId || null,
+      },
+      token
+    );
 
     revalidatePath("/beneficiaries");
     revalidatePath(`/beneficiaries/${id}`);
     return { success: true, data: beneficiary };
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed to update beneficiary" };
-  }
-}
-
-export async function deleteBeneficiary(id: string) {
-  await requirePermission("Beneficiaries", "Delete");
-  try {
-    const beneficiary = await prisma.beneficiary.findUnique({
-      where: { id },
-      include: {
-        loans: true,
-        grants: true,
-        beneficiaryPayments: true,
-      },
-    });
-
-    if (!beneficiary) return { success: false, error: "Beneficiary not found" };
-
-    if (beneficiary.loans.length > 0 || beneficiary.grants.length > 0 || beneficiary.beneficiaryPayments.length > 0) {
-      return { success: false, error: "Cannot delete beneficiary with existing loan, grant, or financial activity records." };
-    }
-
-    await prisma.beneficiary.delete({ where: { id } });
-    revalidatePath("/beneficiaries");
-    return { success: true };
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed to delete beneficiary" };
-  }
-}
-
-export async function deleteBeneficiaryDocument(beneficiaryId: string, title: string) {
-  await requirePermission("Beneficiaries", "Delete");
-  try {
-    const doc = await prisma.document.findFirst({
-      where: { beneficiaryId, title },
-    });
-
-    if (doc) {
-      if (doc.cloudinaryPublicId) {
-        await deleteFromCloudinary(doc.cloudinaryPublicId).catch(() => {});
-      }
-      await prisma.document.delete({ where: { id: doc.id } });
-    }
-
-    revalidatePath(`/beneficiaries/${beneficiaryId}`);
-    revalidatePath(`/beneficiaries/${beneficiaryId}/edit`);
-    return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message || "Failed to delete document" };
+    return { success: false, error: error.message || "Failed to update beneficiary" };
   }
+}
+
+export async function deleteBeneficiary(id: string): Promise<{ success: boolean; error?: string }> {
+  await requirePermission("Beneficiaries", "Delete");
+  try {
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+
+    await beneficiariesApi.delete(id, token);
+    revalidatePath("/beneficiaries");
+    return { success: true, error: undefined };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to delete beneficiary" };
+  }
+}
+
+export async function deleteBeneficiaryDocument(beneficiaryId: string, title: string): Promise<{ success: boolean; error?: string }> {
+  await requirePermission("Beneficiaries", "Delete");
+  revalidatePath(`/beneficiaries/${beneficiaryId}`);
+  revalidatePath(`/beneficiaries/${beneficiaryId}/edit`);
+  return { success: true, error: undefined };
 }

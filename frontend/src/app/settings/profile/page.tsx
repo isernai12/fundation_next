@@ -1,29 +1,28 @@
-import { getSystemSettings } from "@/features/settings/actions"
-import { PersonalProfileForm } from "@/features/settings/components/personal-profile-form"
-import { FoundationBrandingForm } from "@/features/settings/components/foundation-branding-form"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
-import { getAuthSession } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import { redirect } from "next/navigation"
+import { getSystemSettings } from "@/features/settings/actions";
+import { PersonalProfileForm } from "@/features/settings/components/personal-profile-form";
+import { FoundationBrandingForm } from "@/features/settings/components/foundation-branding-form";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { getAuthSession } from "@/lib/auth";
+import { getUserProfile } from "@/features/profile/actions";
+import { redirect } from "next/navigation";
 
 export default async function SettingsProfilePage() {
-  const session = await getAuthSession()
+  const session = await getAuthSession();
   if (!session?.user?.id) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  })
-
-  if (!dbUser) {
-    redirect("/login")
+  let dbUser;
+  try {
+    dbUser = await getUserProfile();
+  } catch (e) {
+    redirect("/login");
   }
 
-  const systemSettings = await getSystemSettings()
+  const systemSettings = await getSystemSettings();
 
   return (
     <div className="space-y-6">
@@ -49,7 +48,7 @@ export default async function SettingsProfilePage() {
         <TabsContent value="personal">
           <PersonalProfileForm 
             user={{
-              id: dbUser.id,
+              id: session.user.id,
               name: dbUser.name,
               email: dbUser.email || "",
               mobile: dbUser.mobile || "",
@@ -62,5 +61,5 @@ export default async function SettingsProfilePage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

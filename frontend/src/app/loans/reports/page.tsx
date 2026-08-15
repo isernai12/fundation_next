@@ -1,43 +1,43 @@
 import { getNow } from "@/lib/date";
-import { formatCurrency } from "@/lib/format"
-
-import { prisma } from "@/lib/prisma"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { PrintButton } from "@/components/shared/print-button"
+import { formatCurrency } from "@/lib/format";
+import { getLoans } from "@/features/loans/actions";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PrintButton } from "@/components/shared/print-button";
 
 export default async function LoanReportsPage() {
-  const loans = await prisma.loan.findMany({
-    include: { repayments: true }
-  })
+  const loans = await getLoans();
 
-  const totalLoans = loans.length
-  const activeLoans = loans.filter(l => l.status === "ACTIVE").length
-  const completedLoans = loans.filter(l => l.status === "COMPLETED").length
-  const defaultedLoans = loans.filter(l => l.status === "DEFAULTED").length
+  const totalLoans = loans.length;
+  const activeLoans = loans.filter((l) => l.status === "ACTIVE").length;
+  const completedLoans = loans.filter((l) => l.status === "COMPLETED").length;
+  const defaultedLoans = loans.filter((l) => l.status === "DEFAULTED").length;
 
-  const totalAmount = loans.reduce((s, l) => s + l.amount, 0)
-  const totalRepaid = loans.reduce((s, l) => s + l.totalPaidAmount, 0)
-  const totalOutstanding = loans.reduce((s, l) => s + l.remainingBalance, 0)
+  const totalAmount = loans.reduce((s, l) => s + l.amount, 0);
+  const totalRepaid = loans.reduce((s, l) => s + l.totalRepaid, 0);
+  const totalOutstanding = loans.reduce((s, l) => s + l.balance, 0);
 
-  const repaymentPercentage = totalAmount > 0 ? (totalRepaid / totalAmount) * 100 : 0
+  const repaymentPercentage = totalAmount > 0 ? (totalRepaid / totalAmount) * 100 : 0;
   
-  const today = getNow()
-  today.setHours(0, 0, 0, 0)
+  const today = getNow();
+  today.setHours(0, 0, 0, 0);
   
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  const allRepayments = loans.flatMap(l => l.repayments)
+  const allRepayments = loans.flatMap((l) => l.repayments || []);
   const todaysCollection = allRepayments
-    .filter(r => { const d = new Date(r.date); d.setHours(0,0,0,0); return d.getTime() === today.getTime() })
-    .reduce((s, r) => s + r.amount, 0)
+    .filter((r: any) => {
+      const d = new Date(r.date);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === today.getTime();
+    })
+    .reduce((s: number, r: any) => s + r.amount, 0);
     
   const monthlyCollection = allRepayments
-    .filter(r => new Date(r.date) >= firstDayOfMonth)
-    .reduce((s, r) => s + r.amount, 0)
+    .filter((r: any) => new Date(r.date) >= firstDayOfMonth)
+    .reduce((s: number, r: any) => s + r.amount, 0);
 
   return (
     <div className="flex flex-col h-full">
-
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-5xl space-y-6">
           <div>
@@ -139,5 +139,5 @@ export default async function LoanReportsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

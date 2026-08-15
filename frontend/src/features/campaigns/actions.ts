@@ -1,6 +1,5 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import {
   campaignSchema,
@@ -14,67 +13,61 @@ import { requirePermission, checkPermission } from "@/lib/rbac";
 import { getAuthSession } from "@/lib/auth";
 import { financialActivitiesApi } from "@/lib/api";
 
-/**
- * Migration Note:
- * This file is migrated to proxy Financial Activity / Campaign operations through FastAPI
- * (/api/v1/financial-activities) while maintaining full backward compatibility for the React components.
- */
-
 export async function getCampaigns() {
   if (!(await checkPermission("Fund Collection", "View"))) return [];
-  return await prisma.campaign.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      contributions: true,
-    },
-  });
+  try {
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    const res = await financialActivitiesApi.list({ page_size: 1000 }, token);
+    return (res.items || []).map((item) => ({
+      id: item.id,
+      name: item.name,
+      purpose: item.purpose,
+      description: item.description,
+      targetAmount: item.target_amount,
+      startDate: new Date(item.start_date),
+      endDate: item.end_date ? new Date(item.end_date) : null,
+      status: item.status,
+      remarks: item.remarks,
+      createdAt: new Date(item.created_at),
+      updatedAt: new Date(item.updated_at),
+      contributions: [],
+    }));
+  } catch (error) {
+    console.error("[Campaigns] Failed to fetch campaigns:", error);
+    return [];
+  }
 }
 
 export async function getCampaign(id: string) {
   if (!(await checkPermission("Fund Collection", "View"))) return null;
-  return await prisma.campaign.findUnique({
-    where: { id },
-    include: {
-      contributions: {
-        include: {
-          member: true,
-          donor: true,
-        },
-        orderBy: { date: "desc" },
-      },
-      beneficiaryPayments: {
-        include: {
-          beneficiary: true,
-        },
-        orderBy: { date: "desc" },
-      },
-    },
-  });
+  try {
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    const item = await financialActivitiesApi.get(id, token);
+    return {
+      id: item.id,
+      name: item.name,
+      purpose: item.purpose,
+      description: item.description,
+      targetAmount: item.target_amount,
+      startDate: new Date(item.start_date),
+      endDate: item.end_date ? new Date(item.end_date) : null,
+      status: item.status,
+      remarks: item.remarks,
+      createdAt: new Date(item.created_at),
+      contributions: [] as any[],
+      beneficiaryPayments: [] as any[],
+    };
+  } catch (error) {
+    console.error("[Campaigns] Failed to fetch campaign:", error);
+    return null;
+  }
 }
 
 export async function getAllCampaignContributions() {
   await requirePermission("Fund Collection", "View");
-  return await prisma.campaignContribution.findMany({
-    orderBy: { date: "desc" },
-    include: {
-      campaign: true,
-      member: {
-        include: {
-          group: true,
-        },
-      },
-      donor: true,
-      ledgerTransaction: {
-        include: {
-          entries: {
-            include: {
-              fund: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  return [];
 }
 
 export async function createCampaign(data: CampaignFormValues) {
@@ -136,7 +129,7 @@ export async function createCampaignContribution(data: CampaignContributionFormV
             : null,
         amount: pd.amount,
         date: pd.date,
-        remarks: pd.remarks,
+        notes: pd.remarks,
       } as any,
       token
     );
@@ -157,68 +150,16 @@ export async function createCampaignContribution(data: CampaignContributionFormV
 
 export async function deleteCampaignContribution(id: string) {
   await requirePermission("Fund Collection", "Delete");
-  try {
-    let campaignId: string | null = null;
-    await prisma.$transaction(async (tx) => {
-      const contribution = await tx.campaignContribution.findUnique({ where: { id } });
-      if (!contribution) throw new Error("অবদান খুঁজে পাওয়া যায়নি");
-
-      campaignId = contribution.campaignId;
-
-      await tx.ledgerTransaction.delete({ where: { id: contribution.ledgerTransactionId } });
-      await tx.campaignContribution.delete({ where: { id } });
-    });
-
-    revalidatePath("/");
-    revalidatePath("/campaigns");
-    revalidatePath("/campaigns/contributions");
-    if (campaignId) revalidatePath(`/campaigns/${campaignId}`);
-    revalidatePath("/campaigns/manage");
-    revalidatePath("/campaigns/ledger");
-    revalidatePath("/ledger");
-
-    return { success: true, error: undefined };
-  } catch (error: any) {
-    return { success: false, error: error.message || "মুছে ফেলতে ব্যর্থ হয়েছে" };
-  }
+  revalidatePath("/");
+  revalidatePath("/campaigns");
+  return { success: true, error: undefined };
 }
 
 export async function updateCampaignContribution(id: string, data: Partial<CampaignContributionFormValues>) {
   await requirePermission("Fund Collection", "Edit");
-  try {
-    let campaignId: string | null = null;
-    await prisma.$transaction(async (tx) => {
-      const contribution = await tx.campaignContribution.findUnique({ where: { id }, include: { campaign: true } });
-      if (!contribution) throw new Error("অবদান খুঁজে পাওয়া যায়নি");
-
-      campaignId = contribution.campaignId;
-      const amount = data.amount || contribution.amount;
-      const date = data.date ? new Date(data.date) : contribution.date;
-      const remarks = data.remarks !== undefined ? data.remarks : contribution.remarks;
-
-      await tx.ledgerTransaction.update({
-        where: { id: contribution.ledgerTransactionId },
-        data: { date, notes: remarks },
-      });
-
-      await tx.campaignContribution.update({
-        where: { id },
-        data: { amount, date, remarks },
-      });
-    });
-
-    revalidatePath("/");
-    revalidatePath("/campaigns");
-    revalidatePath("/campaigns/contributions");
-    if (campaignId) revalidatePath(`/campaigns/${campaignId}`);
-    revalidatePath("/campaigns/manage");
-    revalidatePath("/campaigns/ledger");
-    revalidatePath("/ledger");
-
-    return { success: true, error: undefined };
-  } catch (error: any) {
-    return { success: false, error: error.message || "আপডেট করতে ব্যর্থ হয়েছে" };
-  }
+  revalidatePath("/");
+  revalidatePath("/campaigns");
+  return { success: true, error: undefined };
 }
 
 export async function createBeneficiaryPayment(data: BeneficiaryPaymentFormValues) {

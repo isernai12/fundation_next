@@ -1,31 +1,22 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { requirePermission, checkPermission } from "@/lib/rbac";
 import { getAuthSession } from "@/lib/auth";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
-import { getNow } from "@/lib/date";
 import { baseMemberSchema, type BaseMemberFormValues } from "@/features/members/schema";
-import { generateMemberId } from "@/features/members/actions";
-import { membersApi, groupsApi } from "@/lib/api";
-
-/**
- * Migration Note:
- * This file is migrated to proxy public registration and admin review through the FastAPI backend
- * (/api/v1/member-requests) while keeping full backward compatibility for the React components.
- */
+import { membersApi, groupsApi, uploadApi } from "@/lib/api";
 
 async function uploadBase64(base64Str: string, folder: string) {
-  const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
-  return uploadToCloudinary(buffer, { folder });
+  return uploadApi.uploadBase64(base64Str, folder);
 }
 
 export async function getGroups() {
   try {
-    const res = await groupsApi.list({ member_signup_enabled: true, page_size: 1000 });
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    const res = await groupsApi.list({ member_signup_enabled: true, status: "ACTIVE", page_size: 1000 }, token);
     return res.items
-      .filter((g) => !g.is_foundation_group && g.member_signup_enabled)
+      .filter((g) => !g.is_foundation_group && g.member_signup_enabled && g.status === "ACTIVE")
       .map((g) => ({
         id: g.id,
         name: g.name,
@@ -35,21 +26,8 @@ export async function getGroups() {
         isFoundationGroup: g.is_foundation_group,
       }));
   } catch (error) {
-    return prisma.group.findMany({
-      where: {
-        isFoundationGroup: false,
-        memberSignupEnabled: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        shortName: true,
-        memberSignupEnabled: true,
-        isFoundationGroup: true,
-      },
-      orderBy: { name: "asc" },
-    });
+    console.error("[MemberRequests] Failed to fetch groups:", error);
+    return [];
   }
 }
 
@@ -69,7 +47,7 @@ export async function submitMemberRequest(data: BaseMemberFormValues) {
       ...restData
     } = parsed.data;
 
-    // Upload files to Cloudinary
+    // Upload files to Cloudinary via FastAPI backend
     const uploadedDocuments: Array<{ title: string; cloudinaryPublicId: string; secureUrl: string }> = [];
 
     if (photoBase64) {
@@ -140,32 +118,95 @@ export async function submitMemberRequest(data: BaseMemberFormValues) {
 }
 
 export async function getMemberRequestByApplicationNumber(applicationNumber: string) {
-  const request = await prisma.memberRequest.findUnique({
-    where: { applicationNumber },
-    select: {
-      id: true,
-      applicationNumber: true,
-      status: true,
-      fullName: true,
-      submittedAt: true,
-      approvedAt: true,
-      adminMessage: true,
-      rejectionReason: true,
-    },
-  });
-  return request;
+  try {
+    const res = await membersApi.getRequestStatus(applicationNumber);
+    return {
+      id: res.id,
+      applicationNumber: res.application_number,
+      status: res.status,
+      fullName: res.full_name,
+      submittedAt: res.submitted_at,
+      approvedAt: res.approved_at,
+      adminMessage: res.admin_message,
+      rejectionReason: res.rejection_reason,
+    };
+  } catch (error) {
+    return null;
+  }
 }
 
 export async function getMemberRequests() {
   await requirePermission("Members", "View");
-  return prisma.memberRequest.findMany({
-    orderBy: { submittedAt: "desc" },
-  });
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    const res = await membersApi.listRequests({ page_size: 100 }, token);
+    return res.items.map((item) => ({
+      id: item.id,
+      applicationNumber: item.application_number,
+      fullName: item.full_name,
+      mobile: item.mobile,
+      groupId: item.group_id,
+      group: item.group_name ? { name: item.group_name } : null,
+      status: item.status,
+      submittedAt: item.submitted_at,
+      approvedAt: item.approved_at,
+    }));
+  } catch (error) {
+    console.error("[MemberRequests] Failed to fetch member requests:", error);
+    return [];
+  }
 }
 
 export async function getMemberRequest(id: string) {
   await requirePermission("Members", "View");
-  return prisma.memberRequest.findUnique({ where: { id } });
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    const req = await membersApi.getRequest(id, token);
+    return {
+      id: req.id,
+      applicationNumber: req.application_number,
+      groupId: req.group_id,
+      group: req.group_name ? { id: req.group_id, name: req.group_name } : null,
+      fullName: req.full_name,
+      mobile: req.mobile,
+      fatherName: req.father_name,
+      motherName: req.mother_name,
+      gender: req.gender,
+      dob: req.dob,
+      nationalId: req.national_id,
+      idDocumentType: req.id_document_type,
+      occupation: req.occupation,
+      education: req.education,
+      bloodGroup: req.blood_group,
+      maritalStatus: req.marital_status,
+      altMobile: req.alt_mobile,
+      email: req.email,
+      phone: req.phone,
+      presentAddress: req.present_address,
+      permanentAddress: req.permanent_address,
+      emergencyContactName: req.emergency_contact_name,
+      emergencyContactMobile: req.emergency_contact_mobile,
+      emergencyContactRelation: req.emergency_contact_relation,
+      reference: req.reference,
+      reasonForJoining: req.reason_for_joining,
+      status: req.status,
+      rejectionReason: req.rejection_reason,
+      adminMessage: req.admin_message,
+      submittedAt: req.submitted_at,
+      approvedAt: req.approved_at,
+      documents: (req.documents || []).map((d) => ({
+        id: d.id,
+        title: d.title,
+        fileUrl: d.file_url,
+        cloudinaryPublicId: d.cloudinary_public_id,
+      })),
+    };
+  } catch (error) {
+    console.error("[MemberRequests] Failed to fetch member request detail:", error);
+    return null;
+  }
 }
 
 export async function approveMemberRequest(id: string) {
@@ -215,14 +256,9 @@ export async function requestChangesMemberRequest(id: string, adminMessage: stri
   }
 
   try {
-    await prisma.memberRequest.update({
-      where: { id },
-      data: {
-        adminMessage,
-        status: "PENDING",
-      },
-    });
-
+    const session = await getAuthSession();
+    const token = (session as any)?.accessToken;
+    await membersApi.rejectRequest(id, { rejection_reason: "Changes requested", remarks: adminMessage }, token);
     revalidatePath("/members/requests");
     return { success: true };
   } catch (error: any) {

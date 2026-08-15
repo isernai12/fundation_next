@@ -1,122 +1,104 @@
-"use server"
+"use server";
 
-import { prisma } from "@/lib/prisma"
-import { requirePermission, checkPermission } from "@/lib/rbac"
-import { revalidatePath } from "next/cache"
-import bcrypt from "bcryptjs"
+import { requirePermission, checkPermission } from "@/lib/rbac";
+import { revalidatePath } from "next/cache";
+import { usersApi, rolesApi } from "@/lib/api";
+import { getAuthSession } from "@/lib/auth";
 
 export async function getUsers() {
-  if (!await checkPermission("Users", "View")) return []
-  return prisma.user.findMany({
-    include: { role: true },
-    orderBy: { createdAt: "desc" }
-  })
+  if (!(await checkPermission("Users", "View"))) return [];
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    return await usersApi.list(token);
+  } catch (error) {
+    console.error("[Users] Failed to fetch users:", error);
+    return [];
+  }
 }
 
 export async function getRoles() {
-  if (!await checkPermission("Users", "View")) return []
-  return prisma.role.findMany({
-    orderBy: { name: "asc" }
-  })
+  if (!(await checkPermission("Users", "View"))) return [];
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    const res = await rolesApi.list(token);
+    return res.items || [];
+  } catch (error) {
+    console.error("[Users] Failed to fetch roles:", error);
+    return [];
+  }
 }
 
 export async function getAllPermissions() {
-  if (!await checkPermission("Users", "View")) return []
-  return prisma.permission.findMany({
-    orderBy: [{ module: "asc" }, { action: "asc" }]
-  })
+  if (!(await checkPermission("Users", "View"))) return [];
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    const res = await rolesApi.listPermissions(token);
+    const list: any[] = [];
+    if (res?.modules) {
+      for (const [module, perms] of Object.entries(res.modules)) {
+        for (const p of perms) {
+          list.push({
+            id: p.id,
+            module: p.module || module,
+            action: p.action,
+            name_en: p.name_en,
+            name_bn: p.name_bn,
+          });
+        }
+      }
+    }
+    return list;
+  } catch (error) {
+    console.error("[Users] Failed to fetch permissions:", error);
+    return [];
+  }
 }
 
 export async function getUserWithPermissions(userId: string) {
-  await requirePermission("Users", "View")
-  return prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          permissions: {
-            include: { permission: true }
-          }
-        }
-      },
-      userPermissions: {
-        include: { permission: true }
-      }
-    }
-  })
+  await requirePermission("Users", "View");
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  try {
+    return await usersApi.get(userId, token);
+  } catch (error) {
+    console.error("[Users] Failed to fetch user with permissions:", error);
+    return null;
+  }
 }
 
 export async function createUser(data: any) {
-  await requirePermission("Users", "Manage")
-  
-  const hashedPassword = await bcrypt.hash(data.password, 10)
-  
-  const user = await prisma.user.create({
-    data: {
-      name: data.name,
-      username: data.username,
-      email: data.email || null,
-      mobile: data.mobile || null,
-      password: hashedPassword,
-      roleId: data.roleId,
-      status: data.status || "ACTIVE"
-    }
-  })
-  
-  revalidatePath("/settings/users")
-  return user
+  await requirePermission("Users", "Manage");
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  const user = await usersApi.create(data, token);
+  revalidatePath("/settings/users");
+  return user;
 }
 
 export async function updateUser(userId: string, data: any) {
-  await requirePermission("Users", "Manage")
-  
-  const updateData: any = {
-    name: data.name,
-    username: data.username,
-    email: data.email || null,
-    mobile: data.mobile || null,
-    roleId: data.roleId,
-    status: data.status
-  }
-  
-  if (data.password) {
-    updateData.password = await bcrypt.hash(data.password, 10)
-  }
-  
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: updateData
-  })
-  
-  revalidatePath("/settings/users")
-  return user
+  await requirePermission("Users", "Manage");
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  const user = await usersApi.update(userId, data, token);
+  revalidatePath("/settings/users");
+  return user;
 }
 
 export async function updateUserPermissions(userId: string, permissionIds: string[]) {
-  await requirePermission("Users", "Manage")
-  
-  // Start a transaction to replace user permissions
-  await prisma.$transaction([
-    prisma.userPermission.deleteMany({
-      where: { userId }
-    }),
-    prisma.userPermission.createMany({
-      data: permissionIds.map(permissionId => ({
-        userId,
-        permissionId
-      }))
-    })
-  ])
-  
-  revalidatePath("/settings/users")
+  await requirePermission("Users", "Manage");
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  await usersApi.updatePermissions(userId, permissionIds, token);
+  revalidatePath("/settings/users");
 }
 
 export async function deleteUser(userId: string) {
-  await requirePermission("Users", "Manage")
-  
-  await prisma.user.delete({
-    where: { id: userId }
-  })
-  
-  revalidatePath("/settings/users")
+  await requirePermission("Users", "Manage");
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
+  await usersApi.update(userId, { status: "SUSPENDED" }, token);
+  revalidatePath("/settings/users");
 }

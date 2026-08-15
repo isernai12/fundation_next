@@ -1,17 +1,17 @@
-import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft } from "lucide-react"
-import { BeneficiaryProfileActions } from "@/features/beneficiaries/components/beneficiary-profile-actions"
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
+import { getBeneficiary } from "@/features/beneficiaries/actions";
+import { BeneficiaryProfileActions } from "@/features/beneficiaries/components/beneficiary-profile-actions";
 import { Trans } from "@/components/shared/trans";
 
-const DocumentCard = ({ title, url }: { title: React.ReactNode, url?: string | null }) => (
+const DocumentCard = ({ title, url }: { title: React.ReactNode; url?: string | null }) => (
   <div className="border rounded-md p-3">
     <p className="font-semibold text-sm mb-2 text-center border-b pb-2">{title}</p>
     {url ? (
       <a href={url} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full overflow-hidden hover:opacity-90">
-        {url.endsWith('.pdf') ? (
+        {url.endsWith(".pdf") ? (
           <div className="flex h-full items-center justify-center bg-muted/10 text-primary underline"><Trans tKey="app.pdf" /></div>
         ) : (
           <Image src={url} alt="Document" fill className="object-contain bg-muted/10" />
@@ -19,34 +19,25 @@ const DocumentCard = ({ title, url }: { title: React.ReactNode, url?: string | n
       </a>
     ) : (
       <div className="h-40 flex items-center justify-center text-sm text-muted-foreground italic">
-        <Trans tKey="beneficiaries.form.personal_info" /></div>
+        <Trans tKey="beneficiaries.form.personal_info" />
+      </div>
     )}
   </div>
 );
 
 export default async function BeneficiaryDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const beneficiary = await prisma.beneficiary.findUnique({
-    where: { id: resolvedParams.id },
-    include: { 
-      member: true, 
-      documents: true,
-      beneficiaryPayments: {
-        include: { campaign: true },
-        orderBy: { date: 'desc' }
-      }
-    }
-  })
+  const beneficiary = await getBeneficiary(resolvedParams.id);
 
-  if (!beneficiary) return notFound()
+  if (!beneficiary) return notFound();
 
-  const getDoc = (title: string) => beneficiary.documents?.find(d => d.title === title)?.secureUrl;
-  
+  const getDoc = (title: string) => beneficiary.documents?.find((d: any) => d.title === title)?.secureUrl || beneficiary.documents?.find((d: any) => d.title === title)?.fileUrl;
+
   const photoDoc = getDoc("Beneficiary Photo") || beneficiary.beneficiaryPhoto;
   const signatureDoc = getDoc("Signature");
-  const nidFrontDoc = getDoc("NID Front") || beneficiary.nidOrBirthCertificate; // Fallback to legacy string if needed
+  const nidFrontDoc = getDoc("NID Front") || beneficiary.nidOrBirthCertificate;
   const nidBackDoc = getDoc("NID Back");
-  const bcDoc = getDoc("Birth Certificate") || beneficiary.nidOrBirthCertificate; // Fallback to legacy string if needed
+  const bcDoc = getDoc("Birth Certificate") || beneficiary.nidOrBirthCertificate;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 print:m-0 print:p-0 bg-background text-foreground p-6 rounded-md shadow-sm border print:border-none print:shadow-none">
@@ -100,7 +91,7 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
               <DocumentCard title={<Trans tKey="beneficiaries.form.photo" />} url={photoDoc} />
               <DocumentCard title={<Trans tKey="beneficiaries.form.signature" />} url={signatureDoc} />
               
-              {beneficiary.idDocumentType === "NID" ? (
+              {beneficiary.category === "NID" ? (
                 <>
                   <DocumentCard title={<Trans tKey="beneficiaries.form.nid_front" />} url={nidFrontDoc} />
                   <DocumentCard title={<Trans tKey="beneficiaries.form.nid_back" />} url={nidBackDoc} />
@@ -109,39 +100,6 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
                 <DocumentCard title={<Trans tKey="beneficiaries.form.id_birth_cert" />} url={bcDoc} />
               )}
             </div>
-          </section>
-
-          {/* SECTION 4 - Financial Activity History */}
-          <section className="print:break-before-page">
-            <h2 className="text-lg font-bold bg-muted/30 px-3 py-1.5 border-l-4 border-primary mb-3 mt-6">Financial Activity History</h2>
-            <table className="w-full text-sm border-collapse border">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="py-2 px-3 text-left border-b">Date</th>
-                  <th className="py-2 px-3 text-left border-b">Activity</th>
-                  <th className="py-2 px-3 text-left border-b">Amount</th>
-                  <th className="py-2 px-3 text-left border-b">Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {beneficiary.beneficiaryPayments?.length ? (
-                  beneficiary.beneficiaryPayments.map(p => (
-                    <tr key={p.id} className="border-b">
-                      <td className="py-2 px-3">{new Date(p.date).toLocaleDateString()}</td>
-                      <td className="py-2 px-3 font-medium">
-                        <Link href={`/campaigns/${p.campaignId}`} className="text-primary hover:underline">{p.campaign.name}</Link>
-                      </td>
-                      <td className="py-2 px-3 font-bold text-red-600">৳{p.amount}</td>
-                      <td className="py-2 px-3 text-muted-foreground">{p.reason}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="py-4 text-center text-muted-foreground">No financial activity history found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </section>
         </div>
 
@@ -172,5 +130,5 @@ export default async function BeneficiaryDetailsPage({ params }: { params: Promi
         </div>
       </div>
     </div>
-  )
+  );
 }

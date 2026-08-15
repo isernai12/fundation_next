@@ -41,7 +41,7 @@ export default async function GroupMembersPage({ searchParams }: { searchParams:
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold"><Trans tKey="groups.members.totalMembers" />: {members.length}</h2>
           </div>
-          <GroupMembersTable data={members} />
+          <GroupMembersTable data={members as any} />
         </div>
       )}
     </div>

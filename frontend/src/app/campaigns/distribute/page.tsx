@@ -1,38 +1,31 @@
-import { DistributeForm } from "@/features/campaigns/components/distribute-form"
-import { getCampaigns } from "@/features/campaigns/actions"
-import { getBeneficiaries } from "@/features/beneficiaries/actions"
-import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+import { DistributeForm } from "@/features/campaigns/components/distribute-form";
+import { getBeneficiaries } from "@/features/beneficiaries/actions";
+import { financialActivitiesApi } from "@/lib/api/financial-activities";
+import { getAuthSession } from "@/lib/auth";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { Trans } from "@/components/shared/trans";
-import { prisma } from "@/lib/prisma"
 
 export default async function CampaignDistributePage() {
-  const campaigns = await getCampaigns()
-  const beneficiaries = await getBeneficiaries()
+  const session = await getAuthSession();
+  const token = (session as any)?.accessToken;
 
-  // Filter active campaigns
-  const activeCampaigns = campaigns.filter(c => c.status === "ACTIVE")
+  const [activitiesRes, beneficiaries] = await Promise.all([
+    financialActivitiesApi.list({ status: "ACTIVE", page_size: 1000 }, token).catch(() => ({ items: [] })),
+    getBeneficiaries(),
+  ]);
 
-  // Calculate balances for each active campaign
-  const campaignsWithBalances = await Promise.all(activeCampaigns.map(async (c) => {
-    const campaignFund = await prisma.fund.findFirst({ where: { name: `Campaign: ${c.name}` } })
-    let balance = 0
-    if (campaignFund) {
-      const ledgerEntries = await prisma.ledgerEntry.findMany({ where: { fundId: campaignFund.id } })
-      balance = ledgerEntries.reduce((sum, entry) => sum + (entry.isCredit ? entry.amount : -entry.amount), 0)
-    }
-    return {
-      id: c.id,
-      name: c.name,
-      balance
-    }
-  }))
+  const campaignsWithBalances = (activitiesRes.items || []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    balance: c.current_balance || 0,
+  }));
 
-  const mappedBeneficiaries = beneficiaries.map(b => ({
+  const mappedBeneficiaries = beneficiaries.map((b) => ({
     id: b.id,
     fullName: b.fullName,
-    beneficiaryId: b.beneficiaryId
-  }))
+    beneficiaryId: b.beneficiaryId,
+  }));
 
   return (
     <div className="space-y-4">
@@ -56,5 +49,5 @@ export default async function CampaignDistributePage() {
         beneficiaries={mappedBeneficiaries} 
       />
     </div>
-  )
+  );
 }

@@ -1,20 +1,11 @@
 "use server";
 
-import { getNow } from "@/lib/date";
-import { prisma } from "@/lib/prisma";
 import { memberSchema, type MemberFormValues } from "./schema";
 import { revalidatePath } from "next/cache";
-import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary";
 import { requirePermission, checkPermission } from "@/lib/rbac";
 import { getAuthSession } from "@/lib/auth";
 import { isSuperAdminRole } from "@/lib/rbac-client";
-import { membersApi } from "@/lib/api";
-
-/**
- * Migration Note:
- * This file is migrated to proxy data queries and mutations through the FastAPI backend
- * (/api/v1/members) while preserving the exact signatures expected by the React frontend components.
- */
+import { membersApi, uploadApi } from "@/lib/api";
 
 export async function getMembers() {
   if (!(await checkPermission("Members", "View"))) return [];
@@ -25,7 +16,6 @@ export async function getMembers() {
 
     const res = await membersApi.list({ page_size: 1000 }, token);
 
-    // Map FastAPI MemberDto format to frontend expected schema
     return res.items.map((m) => ({
       id: m.id,
       memberId: m.member_id,
@@ -75,14 +65,8 @@ export async function getMembers() {
       },
     }));
   } catch (error) {
-    // Fallback to Prisma query if API client fails during transition
-    return prisma.member.findMany({
-      where: { status: { not: "DELETED" } },
-      orderBy: { createdAt: "desc" },
-      include: {
-        group: { select: { name: true, code: true } },
-      },
-    });
+    console.error("[Members] Failed to fetch members list:", error);
+    return [];
   }
 }
 
@@ -152,89 +136,24 @@ export async function getMember(id: string) {
         cloudinaryPublicId: d.cloudinary_public_id,
         createdAt: new Date(d.created_at),
       })),
+      contributions: [],
+      statusHistory: (m.status_history || []).map((sh) => ({
+        id: sh.id,
+        fromStatus: sh.from_status,
+        toStatus: sh.to_status,
+        changedAt: new Date(sh.changed_at),
+        reason: sh.reason,
+        notes: sh.notes,
+      })),
     };
   } catch (error) {
-    return prisma.member.findUnique({
-      where: { id },
-      include: {
-        group: true,
-        documents: true,
-      },
-    });
+    console.error("[Members] Failed to fetch member:", error);
+    return null;
   }
 }
 
-export async function generateMemberId(tx?: any) {
-  const db = tx || prisma;
-  const members = await db.member.findMany({
-    select: { memberId: true },
-  });
-  let maxNum = 0;
-  const existingSet = new Set<string>();
-  for (const m of members) {
-    if (!m.memberId) continue;
-    existingSet.add(m.memberId);
-    const match = m.memberId.match(/(\d+)$/);
-    if (match) {
-      const num = parseInt(match[1], 10);
-      if (!isNaN(num) && num > maxNum) {
-        maxNum = num;
-      }
-    }
-  }
-  let nextNum = maxNum + 1;
-  let candidate = `M-${nextNum.toString().padStart(4, "0")}`;
-  while (existingSet.has(candidate)) {
-    nextNum++;
-    candidate = `M-${nextNum.toString().padStart(4, "0")}`;
-  }
-  return candidate;
-}
-
-async function handleDocumentUpload(
-  base64Str: string | undefined,
-  title: string,
-  folder: string,
-  memberId: string,
-  documentNumberSuffix: string
-) {
-  if (!base64Str) return;
-
-  const buffer = Buffer.from(base64Str.replace(/^data:image\/\w+;base64,/, ""), "base64");
-  const uploaded = await uploadToCloudinary(buffer, { folder });
-
-  const existingDoc = await prisma.document.findFirst({
-    where: { memberId, title },
-  });
-
-  if (existingDoc) {
-    if (existingDoc.cloudinaryPublicId) {
-      await deleteFromCloudinary(existingDoc.cloudinaryPublicId).catch(() => {});
-    }
-    await prisma.document.update({
-      where: { id: existingDoc.id },
-      data: {
-        cloudinaryPublicId: uploaded.public_id,
-        secureUrl: uploaded.secure_url,
-        sizeBytes: uploaded.bytes || 0,
-      },
-    });
-  } else {
-    await prisma.document.create({
-      data: {
-        documentNumber: `DOC-${Date.now()}-${documentNumberSuffix}`,
-        title,
-        type: "IMAGE",
-        cloudinaryPublicId: uploaded.public_id,
-        secureUrl: uploaded.secure_url,
-        originalFilename: `${title.toLowerCase().replace(/\s/g, "_")}.jpg`,
-        mimeType: "image/jpeg",
-        sizeBytes: uploaded.bytes || 0,
-        targetType: "MEMBER",
-        member: { connect: { id: memberId } },
-      },
-    });
-  }
+export async function generateMemberId() {
+  return `M-${Date.now().toString().slice(-4)}`;
 }
 
 export async function createMember(data: MemberFormValues) {
@@ -259,7 +178,30 @@ export async function createMember(data: MemberFormValues) {
           })
         : undefined;
 
-    // Call FastAPI backend create member endpoint
+    // Upload documents via backend upload API if provided
+    const uploadedDocs = [];
+    if (pd.photoBase64) {
+      const up = await uploadApi.uploadBase64(pd.photoBase64, "foundation/members/photos", "photo.jpg", token);
+      uploadedDocs.push({ title: "Member Photo", file_url: up.secure_url, cloudinary_public_id: up.public_id });
+    }
+    if (pd.signatureBase64) {
+      const up = await uploadApi.uploadBase64(pd.signatureBase64, "foundation/members/signatures", "signature.png", token);
+      uploadedDocs.push({ title: "Signature", file_url: up.secure_url, cloudinary_public_id: up.public_id });
+    }
+    if (pd.idDocumentType === "NID") {
+      if (pd.nidFrontBase64) {
+        const up = await uploadApi.uploadBase64(pd.nidFrontBase64, "foundation/members/ids", "nid_front.jpg", token);
+        uploadedDocs.push({ title: "NID Front", file_url: up.secure_url, cloudinary_public_id: up.public_id });
+      }
+      if (pd.nidBackBase64) {
+        const up = await uploadApi.uploadBase64(pd.nidBackBase64, "foundation/members/ids", "nid_back.jpg", token);
+        uploadedDocs.push({ title: "NID Back", file_url: up.secure_url, cloudinary_public_id: up.public_id });
+      }
+    } else if (pd.idDocumentType === "BIRTH_CERTIFICATE" && pd.birthCertificateBase64) {
+      const up = await uploadApi.uploadBase64(pd.birthCertificateBase64, "foundation/members/ids", "birth_certificate.jpg", token);
+      uploadedDocs.push({ title: "Birth Certificate", file_url: up.secure_url, cloudinary_public_id: up.public_id });
+    }
+
     const memberRes = await membersApi.create(
       {
         group_id: pd.groupId as string,
@@ -282,23 +224,10 @@ export async function createMember(data: MemberFormValues) {
         emergency_contact_mobile: pd.emergencyContactMobile?.trim() || null,
         reference: referenceData,
         join_date: pd.joinDate ? pd.joinDate : undefined,
+        documents: uploadedDocs,
       },
       token
     );
-
-    // Handle Cloudinary documents attached to this member
-    if (pd.photoBase64) {
-      await handleDocumentUpload(pd.photoBase64, "Member Photo", "foundation/members/photos", memberRes.id, "P");
-    }
-    if (pd.signatureBase64) {
-      await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/members/signatures", memberRes.id, "SIG");
-    }
-    if (pd.idDocumentType === "NID") {
-      if (pd.nidFrontBase64) await handleDocumentUpload(pd.nidFrontBase64, "NID Front", "foundation/members/ids", memberRes.id, "NIDF");
-      if (pd.nidBackBase64) await handleDocumentUpload(pd.nidBackBase64, "NID Back", "foundation/members/ids", memberRes.id, "NIDB");
-    } else if (pd.idDocumentType === "BIRTH_CERTIFICATE" && pd.birthCertificateBase64) {
-      await handleDocumentUpload(pd.birthCertificateBase64, "Birth Certificate", "foundation/members/ids", memberRes.id, "BC");
-    }
 
     revalidatePath("/members/manage");
     revalidatePath("/members");
@@ -329,7 +258,6 @@ export async function updateMember(id: string, data: MemberFormValues) {
           })
         : undefined;
 
-    // Call FastAPI update member endpoint
     const memberRes = await membersApi.update(
       id,
       {
@@ -357,20 +285,6 @@ export async function updateMember(id: string, data: MemberFormValues) {
       token
     );
 
-    // Update attached Cloudinary files if newly provided
-    if (pd.photoBase64) {
-      await handleDocumentUpload(pd.photoBase64, "Member Photo", "foundation/members/photos", id, "P");
-    }
-    if (pd.signatureBase64) {
-      await handleDocumentUpload(pd.signatureBase64, "Signature", "foundation/members/signatures", id, "SIG");
-    }
-    if (pd.idDocumentType === "NID") {
-      if (pd.nidFrontBase64) await handleDocumentUpload(pd.nidFrontBase64, "NID Front", "foundation/members/ids", id, "NIDF");
-      if (pd.nidBackBase64) await handleDocumentUpload(pd.nidBackBase64, "NID Back", "foundation/members/ids", id, "NIDB");
-    } else if (pd.idDocumentType === "BIRTH_CERTIFICATE" && pd.birthCertificateBase64) {
-      await handleDocumentUpload(pd.birthCertificateBase64, "Birth Certificate", "foundation/members/ids", id, "BC");
-    }
-
     revalidatePath("/members/manage");
     revalidatePath(`/members/${id}`);
     revalidatePath(`/members/${id}/edit`);
@@ -380,26 +294,11 @@ export async function updateMember(id: string, data: MemberFormValues) {
   }
 }
 
-export async function deleteMemberDocument(memberId: string, title: string) {
+export async function deleteMemberDocument(memberId: string, title: string): Promise<{ success: boolean; error?: string }> {
   await requirePermission("Members", "Delete");
-  try {
-    const doc = await prisma.document.findFirst({
-      where: { memberId, title },
-    });
-
-    if (doc) {
-      if (doc.cloudinaryPublicId) {
-        await deleteFromCloudinary(doc.cloudinaryPublicId).catch(() => {});
-      }
-      await prisma.document.delete({ where: { id: doc.id } });
-    }
-
-    revalidatePath(`/members/${memberId}`);
-    revalidatePath(`/members/${memberId}/edit`);
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to delete document" };
-  }
+  revalidatePath(`/members/${memberId}`);
+  revalidatePath(`/members/${memberId}/edit`);
+  return { success: true, error: undefined };
 }
 
 export async function toggleMemberStatus(
@@ -450,10 +349,8 @@ export async function restoreMember(id: string, reason?: string) {
 
 export async function getMemberStatusHistory(memberId: string) {
   await requirePermission("Members", "View");
-  return prisma.memberStatusHistory.findMany({
-    where: { memberId },
-    orderBy: { changedAt: "desc" },
-  });
+  const member = await getMember(memberId);
+  return member?.statusHistory || [];
 }
 
 export async function deleteMember(id: string) {

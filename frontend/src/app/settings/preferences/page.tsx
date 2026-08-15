@@ -1,24 +1,18 @@
-import { PreferencesForm } from "@/features/settings/components/preferences-form"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
-import { getAuthSession } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { PreferencesForm } from "@/features/settings/components/preferences-form";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { getAuthSession } from "@/lib/auth";
+import { getUserPreferences } from "@/lib/rbac";
 
 export default async function PreferencesPage() {
-  const session = await getAuthSession()
-  let userPrefs = {}
+  const session = await getAuthSession();
+  let userPrefs = {};
 
   if (session?.user?.id) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    })
-    if (user?.preferences) {
-      try {
-        userPrefs = JSON.parse(user.preferences)
-      } catch (e) {
-        // ignore
-      }
+    const prefs = await getUserPreferences(session.user.id);
+    if (prefs) {
+      userPrefs = prefs;
     }
   }
 
@@ -40,5 +34,5 @@ export default async function PreferencesPage() {
 
       <PreferencesForm initialData={userPrefs} userId={session?.user?.id || ""} />
     </div>
-  )
+  );
 }

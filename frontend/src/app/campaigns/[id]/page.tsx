@@ -121,7 +121,7 @@ export default async function CampaignDetailsPage({ params }: { params: Promise<
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1"><Trans tKey="app.text" /></p>
-                  <p className="font-medium">{campaign.campaignId}</p>
+                  <p className="font-medium">{(campaign as any).campaignId || campaign.id}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1"><Trans tKey="app.text" /></p>

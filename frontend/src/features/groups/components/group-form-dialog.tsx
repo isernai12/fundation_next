@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { groupSchema, type GroupFormValues } from "../schema"
 import { createGroup, updateGroup } from "../actions"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -37,8 +38,10 @@ interface GroupFormDialogProps {
 }
 
 export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
-    const { t } = useLanguage();
+  const { t } = useLanguage();
+  const router = useRouter();
   const [open, setOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const isEditing = !!group
 
   const form = useForm<GroupFormValues>({
@@ -56,17 +59,31 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
     },
   })
 
-  async function onSubmit(data: GroupFormValues) {
-    const res = isEditing
-      ? await updateGroup(group.id, data)
-      : await createGroup(data)
+  useEffect(() => {
+    if (!isEditing && open && !form.getValues("code")) {
+      form.setValue("code", "G-" + Math.floor(1000 + Math.random() * 9000))
+    }
+  }, [isEditing, open, form])
 
-    if (res.success) {
-      toast.success(isEditing ? t("groups.form.updateSuccess") : t("groups.form.success"))
-      setOpen(false)
-      form.reset()
-    } else {
-      toast.error(res.error)
+  async function onSubmit(data: GroupFormValues) {
+    setIsSubmitting(true)
+    try {
+      const res = isEditing
+        ? await updateGroup(group.id, data)
+        : await createGroup(data)
+
+      if (res.success) {
+        toast.success(isEditing ? t("groups.form.updateSuccess") : t("groups.form.success"))
+        setOpen(false)
+        form.reset()
+        router.refresh()
+      } else {
+        toast.error(res.error)
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save group")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -179,7 +196,9 @@ export function GroupFormDialog({ group, trigger }: GroupFormDialogProps) {
             <div className="flex justify-end space-x-2 pt-4">
               <Button variant="outline" type="button" onClick={() => setOpen(false)}>
                 {t("groups.form.cancel")}</Button>
-              <Button type="submit">{t("groups.form.save")}</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? t("groups.form.saving") : t("groups.form.save")}
+              </Button>
             </div>
           </form>
         </Form>

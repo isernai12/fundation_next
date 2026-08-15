@@ -65,7 +65,7 @@ export default async function ManageCampaignsPage() {
           <TableBody>
             {campaigns.length ? (
               campaigns.map((campaign) => {
-                const totalCollected = campaign.contributions.reduce((sum, c) => sum + c.amount, 0)
+                const totalCollected = (campaign.contributions || []).reduce((sum: number, c: any) => sum + (c.amount || 0), 0)
                 
                 return (
                   <TableRow key={campaign.id}>

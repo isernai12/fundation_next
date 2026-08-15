@@ -100,4 +100,11 @@ export const membersApi = {
   async rejectRequest(id: string, data: MemberRequestRejectPayload, token?: string): Promise<MemberRequestDto> {
     return apiClient.post<MemberRequestDto>(`/api/v1/member-requests/${id}/reject`, data, { token });
   },
+
+  /**
+   * Get application status by application number or ID (public)
+   */
+  async getRequestStatus(identifier: string): Promise<any> {
+    return apiClient.get<any>(`/api/v1/member-requests/${identifier}/status`);
+  },
 };

@@ -26,8 +26,8 @@ export default async function EditGrantPage({ params }: { params: Promise<{ id: 
     amount: grant.amount,
     grantReason: grant.purpose,
     comment: grant.notes || "",
-    allocations: grant.allocations.length > 0 
-      ? grant.allocations.map(a => ({ groupId: a.fund.groupId || "", amount: a.amount })) 
+    allocations: (grant.allocations || []).length > 0 
+      ? (grant.allocations || []).map((a: any) => ({ groupId: a.fund?.groupId || "", amount: a.amount })) 
       : [{ groupId: "", amount: 0 }]
   }
 

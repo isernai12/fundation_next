@@ -34,7 +34,7 @@ It handles:
 | **Forms & Validation** | React Hook Form & Zod | Schema-based client and server-side form validation |
 | **Data Visualization** | Recharts, Chart.js, react-chartjs-2 | Financial breakdowns, monthly collection charts, dashboard stats |
 | **Authentication** | NextAuth.js v4 | Session management, HTTP-only cookie security, credentials provider |
-| **Media Management** | Cloudinary SDK | Cloud storage for member photos and identity verification documents |
+| **Media Uploads** | FastAPI Media Proxy | Delegates secure file and document uploads to FastAPI backend |
 | **Internationalization**| Custom i18n Provider | Dynamic runtime language switching (English & Bengali) |
 
 ---
@@ -62,7 +62,7 @@ It handles:
 │   │   │   └── profile/          # User profile, password reset, active devices
 │   │   ├── api/                  # Frontend internal API route handlers
 │   │   │   ├── auth/[...nextauth]/ # NextAuth authentication handler
-│   │   │   └── upload/           # Cloudinary media upload proxy
+│   │   │   └── upload/           # Media upload proxy to FastAPI backend
 │   │   ├── member-request/       # Public member registration & status lookup
 │   │   ├── layout.tsx            # Global HTML layout, font loader, theme providers
 │   │   └── page.tsx              # Public home page
@@ -93,10 +93,10 @@ It handles:
 │   │   │   ├── grants.ts         # Grants endpoints
 │   │   │   ├── campaigns.ts      # Campaigns endpoints
 │   │   │   ├── reports.ts        # Financial reports & analytics endpoints
+│   │   │   ├── upload.ts         # Media upload (images/PDFs) endpoints
 │   │   │   ├── errors.ts         # Standardized API error handler
 │   │   │   └── types.ts          # Complete DTO definitions & interfaces
 │   │   ├── auth.ts               # NextAuth credentials provider & JWT callbacks
-│   │   ├── cloudinary.ts         # Cloudinary SDK image uploader helpers
 │   │   ├── format.ts             # Currency, date, and phone number formatters
 │   │   └── utils.ts              # Styling helpers (clsx + tailwind-merge)
 │   └── proxy.ts                  # Route protection middleware (withAuth)
@@ -196,15 +196,6 @@ NEXTAUTH_URL="http://localhost:3000"
 
 # Secure random 32+ character string used to encrypt session tokens
 NEXTAUTH_SECRET="change-this-to-a-secure-random-secret-key-at-least-32-chars"
-
-# =============================================================================
-# Cloudinary CDN Configuration (Optional - for photo & document attachments)
-# =============================================================================
-CLOUDINARY_CLOUD_NAME="your_cloud_name"
-CLOUDINARY_API_KEY="your_api_key"
-CLOUDINARY_API_SECRET="your_api_secret"
-CLOUDINARY_URL="cloudinary://api_key:api_secret@cloud_name"
-CLOUDINARY_FOLDER="foundation-erp"
 ```
 
 > [!WARNING]
@@ -285,8 +276,7 @@ npm run start -- -p 3000
    ```
 
 ### Production Deployment
-1. Set `NEXT_PUBLIC_API_URL` in your hosting provider to the public HTTPS URL of your deployed FastAPI backend (e.g., `https://foundation-backend.onrender.com`).
-2. Verify that the backend's `CORS_ORIGINS` environment variable includes your frontend domain (e.g., `https://foundation-frontend.vercel.app`).
+Set `NEXT_PUBLIC_API_URL` in your hosting provider to the public HTTPS URL of your deployed FastAPI backend (e.g., `https://foundation-backend.onrender.com`).
 
 ---
 
@@ -299,7 +289,6 @@ npm run start -- -p 3000
    - `NEXT_PUBLIC_API_URL`: `https://your-backend-service.onrender.com`
    - `NEXTAUTH_URL`: `https://your-frontend-app.vercel.app`
    - `NEXTAUTH_SECRET`: *Generate using `openssl rand -base64 32`*
-   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 4. Click **Deploy**.
 
 ### Deploying to Render (Web Service)
@@ -328,15 +317,11 @@ pm2 start npm --name "foundation-frontend" -- start -- -p 3000
 - **Cause**: The FastAPI backend is not running or the port is mismatched.
 - **Fix**: Start the backend service and verify by accessing `http://127.0.0.1:8000/health`.
 
-### 2. Browser CORS Errors (`Access to fetch blocked by CORS policy`)
-- **Cause**: The backend's `CORS_ORIGINS` does not allow the frontend origin.
-- **Fix**: Update `CORS_ORIGINS` in `backend/.env` to include your frontend URL (e.g. `http://localhost:3000`).
-
-### 3. NextAuth `JWT_SESSION_ERROR` or Login Redirection Loop
+### 2. NextAuth `JWT_SESSION_ERROR` or Login Redirection Loop
 - **Cause**: `NEXTAUTH_SECRET` is missing or `NEXTAUTH_URL` does not match the browser's address.
 - **Fix**: Ensure `NEXTAUTH_SECRET` is configured with a 32+ character key and `NEXTAUTH_URL` matches your exact domain.
 
-### 4. Build Error: `PrismaClientInitializationError`
+### 3. Build Error: `PrismaClientInitializationError`
 - **Cause**: Next.js build executing static generation without generated Prisma types.
 - **Fix**: The build script `npm run build` runs `prisma generate && next build` automatically. Ensure dependencies are up to date.
 
@@ -347,7 +332,7 @@ pm2 start npm --name "foundation-frontend" -- start -- -p 3000
 1. **Zero Database Exposure**: The frontend possesses no direct PostgreSQL connection strings, preventing client-side SQL injection.
 2. **Encrypted Session Cookies**: NextAuth JWT tokens use HTTP-only, Secure, and SameSite cookie attributes.
 3. **Client-Side Sanitization**: All form inputs are validated using strict Zod schemas before submission to backend API routes.
-4. **Secret Isolation**: Cloudinary secrets and NextAuth keys remain server-side; only public keys use the `NEXT_PUBLIC_` prefix.
+4. **Delegated File Uploads**: Image and file uploads are delegated to the FastAPI backend with server-side MIME type and byte validation.
 
 ---
 

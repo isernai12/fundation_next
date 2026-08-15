@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadToCloudinary } from "@/lib/cloudinary";
-
 import { getAuthSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -12,26 +10,36 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const folder = formData.get("folder") as string || "foundation-erp";
+    const folder = (formData.get("folder") as string) || "foundation-erp";
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const backendUrl =
+      process.env.INTERNAL_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.FASTAPI_INTERNAL_URL ||
+      "http://127.0.0.1:8000";
 
-    const result = await uploadToCloudinary(buffer, { folder });
+    const backendFormData = new FormData();
+    backendFormData.append("file", file, file.name || "upload");
+    backendFormData.append("folder", folder);
+    backendFormData.append("resource_type", "auto");
 
-    return NextResponse.json({
-      success: true,
-      secure_url: result.secure_url,
-      public_id: result.public_id,
-      format: result.format,
-      bytes: result.bytes,
-      resource_type: result.resource_type,
-      original_filename: file.name
+    const response = await fetch(`${backendUrl.replace(/\/$/, "")}/api/v1/upload`, {
+      method: "POST",
+      body: backendFormData,
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = data?.error?.message || data?.detail || "Failed to upload file";
+      return NextResponse.json({ error: errorMsg }, { status: response.status });
+    }
+
+    return NextResponse.json(data);
   } catch (error: any) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: error.message || "Failed to upload" }, { status: 500 });

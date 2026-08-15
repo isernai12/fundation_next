@@ -31,15 +31,14 @@ app = FastAPI(
 # Exception handlers for safe, standardized error formatting
 register_exception_handlers(app)
 
-# CORS middleware
-if settings.CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# Standard CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Root Health Endpoints
@@ -87,3 +86,17 @@ def root():
         "health": "/health",
         "health_db": "/health/db",
     }
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+
+    port = int(os.environ.get("PORT", settings.PORT))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run(
+        "app.main:app",
+        host=host,
+        port=port,
+        reload=False,
+    )

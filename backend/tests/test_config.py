@@ -6,7 +6,15 @@ def test_settings_defaults():
     settings = Settings()
     assert settings.APP_NAME == "Foundation API"
     assert settings.API_V1_STR == "/api/v1"
-    assert isinstance(settings.CORS_ORIGINS, list)
+    assert settings.HOST == "0.0.0.0"
+    assert settings.PORT == 8000
+
+
+def test_settings_robust_with_empty_strings():
+    settings = Settings(PORT="", DEBUG="", DATABASE_URL="")
+    assert settings.PORT == 8000
+    assert settings.DEBUG is False
+    assert settings.sqlalchemy_database_url.startswith("postgresql+psycopg://")
 
 
 def test_safe_database_display_masks_credentials():
@@ -35,9 +43,19 @@ def test_sqlalchemy_database_url_normalization():
     settings3 = Settings(DATABASE_URL=url3)
     assert settings3.sqlalchemy_database_url == url3
 
+    # Quoted string in double quotes
+    url4 = '"postgresql://user:pass@host:5432/db"'
+    settings4 = Settings(DATABASE_URL=url4)
+    assert settings4.sqlalchemy_database_url.startswith("postgresql+psycopg://")
+    assert '"' not in settings4.sqlalchemy_database_url
 
-def test_cors_origins_parsing():
-    settings = Settings(CORS_ORIGINS="http://localhost:3000, https://app.example.com")
-    assert "http://localhost:3000" in settings.CORS_ORIGINS
-    assert "https://app.example.com" in settings.CORS_ORIGINS
-    assert len(settings.CORS_ORIGINS) == 2
+    # Quoted string in single quotes
+    url5 = "'postgresql+psycopg2://user:pass@host:5432/db'"
+    settings5 = Settings(DATABASE_URL=url5)
+    assert settings5.sqlalchemy_database_url.startswith("postgresql+psycopg://")
+    assert "'" not in settings5.sqlalchemy_database_url
+
+    # postgresql+psycopg2 -> postgresql+psycopg
+    url6 = "postgresql+psycopg2://user:pass@host:5432/db"
+    settings6 = Settings(DATABASE_URL=url6)
+    assert settings6.sqlalchemy_database_url == "postgresql+psycopg://user:pass@host:5432/db"

@@ -12,6 +12,12 @@ export interface BeneficiaryDto {
   remarks?: string | null;
   created_at: string;
   updated_at: string;
+  documents?: any[];
+  member_id?: string | null;
+  father_or_husband_name?: string | null;
+  mother_name?: string | null;
+  monthly_income?: number | null;
+  occupation?: string | null;
 }
 
 export const beneficiariesApi = {
@@ -35,6 +41,10 @@ export const beneficiariesApi = {
     address?: string | null;
     category?: string | null;
     remarks?: string | null;
+    monthly_income?: number | null;
+    occupation?: string | null;
+    member_id?: string | null;
+    documents?: any[];
   }, token?: string): Promise<BeneficiaryDto> {
     return apiClient.post<BeneficiaryDto>("/api/v1/beneficiaries", data, { token });
   },
@@ -47,7 +57,14 @@ export const beneficiariesApi = {
     category?: string | null;
     remarks?: string | null;
     status?: string;
+    monthly_income?: number | null;
+    occupation?: string | null;
+    member_id?: string | null;
   }>, token?: string): Promise<BeneficiaryDto> {
     return apiClient.patch<BeneficiaryDto>(`/api/v1/beneficiaries/${id}`, data, { token });
+  },
+
+  async delete(id: string, token?: string): Promise<{ success: boolean }> {
+    return apiClient.delete<{ success: boolean }>(`/api/v1/beneficiaries/${id}`, { token });
   },
 };

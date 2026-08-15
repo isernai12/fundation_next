@@ -122,7 +122,7 @@ export function LoanForm({ beneficiaries, groups, initialData, initialDocuments 
     setIsLoading(false)
 
     if (result.success) {
-      const currentLoanId = isEditMode ? initialData?.id : (result.success && 'data' in result && result.data && typeof result.data === 'object' && 'id' in result.data ? String(result.data.id) : undefined)
+      const currentLoanId = isEditMode ? initialData?.id : ((result as any)?.data?.id ? String((result as any).data.id) : undefined)
 
       if (currentLoanId && pendingFiles.length > 0) {
         toast.info(t("loans.form.summary"))

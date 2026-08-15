@@ -1,8 +1,8 @@
-import { LoanForm } from "@/features/loans/components/loan-form"
-import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
-import { getGroups } from "@/features/groups/actions"
-import { getBeneficiaries } from "@/features/beneficiaries/actions"
+import { LoanForm } from "@/features/loans/components/loan-form";
+import { notFound } from "next/navigation";
+import { getGroups } from "@/features/groups/actions";
+import { getBeneficiaries } from "@/features/beneficiaries/actions";
+import { getLoan } from "@/features/loans/actions";
 import { Trans } from "@/components/shared/trans";
 
 export const dynamic = "force-dynamic";
@@ -10,17 +10,17 @@ export const dynamic = "force-dynamic";
 export default async function EditLoanPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   
-  const loan = await prisma.loan.findUnique({
-    where: { id: resolvedParams.id },
-    include: { documents: true, allocations: { include: { fund: true } } }
-  })
+  const [loan, rawBeneficiaries, groups] = await Promise.all([
+    getLoan(resolvedParams.id),
+    getBeneficiaries(),
+    getGroups(),
+  ]);
 
   if (!loan) {
-    notFound()
+    notFound();
   }
 
-  const rawBeneficiaries = await getBeneficiaries()
-  const beneficiaries = rawBeneficiaries.map(b => ({
+  const beneficiaries = rawBeneficiaries.map((b) => ({
     id: b.id,
     beneficiaryId: b.beneficiaryId,
     fullName: b.name,
@@ -38,27 +38,23 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
     monthlyIncome: b.monthlyIncome,
     beneficiaryPhoto: null,
     nidOrBirthCertificate: null,
-  }))
-
-  const groups = await getGroups()
+  }));
 
   const initialData = {
     id: loan.id,
-    beneficiaryId: loan.beneficiaryId || "",
-    loanType: loan.loanType as "BUSINESS" | "OTHER",
-    businessType: loan.businessType || "",
+    beneficiaryId: loan.beneficiary?.id || "",
+    loanType: "BUSINESS" as "BUSINESS" | "OTHER",
+    businessType: "",
     purpose: loan.purpose,
     amount: loan.amount,
     notes: loan.notes || "",
     installmentType: (loan.installmentType as "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM") || undefined,
     installmentAmount: loan.installmentAmount || undefined,
-    totalInstallments: loan.totalInstallments || undefined,
-    firstInstallmentDate: loan.firstInstallmentDate || undefined,
-    isMultiGroup: loan.allocations.length > 1,
-    fundAllocations: loan.allocations.length > 0 
-      ? loan.allocations.map(a => ({ groupId: a.fund.groupId || "", amount: a.amount }))
-      : [{ groupId: "", amount: loan.amount }]
-  }
+    totalInstallments: undefined,
+    firstInstallmentDate: undefined,
+    isMultiGroup: false,
+    fundAllocations: [{ groupId: "", amount: loan.amount }],
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -69,9 +65,9 @@ export default async function EditLoanPage({ params }: { params: Promise<{ id: s
             <p className="text-muted-foreground">
               <Trans tKey="loans.table.actions.edit" /></p>
           </div>
-          <LoanForm beneficiaries={beneficiaries as any} groups={groups} initialData={initialData} initialDocuments={loan.documents} />
+          <LoanForm beneficiaries={beneficiaries as any} groups={groups} initialData={initialData} initialDocuments={[]} />
         </div>
       </div>
     </div>
-  )
+  );
 }

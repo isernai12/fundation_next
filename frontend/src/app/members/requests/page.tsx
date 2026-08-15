@@ -64,7 +64,7 @@ export default async function MemberRequestsPage() {
         </Card>
       </div>
 
-      <RequestsTable data={requests} />
+      <RequestsTable data={requests as any} />
     </div>
   )
 }

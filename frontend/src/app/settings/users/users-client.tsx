@@ -112,11 +112,15 @@ export default function UsersClient({ initialUsers, roles, allPermissions }: any
       setCurrentUser(data)
       
       const rPerms = new Set<string>()
-      data?.role.permissions.forEach((rp: any) => rPerms.add(rp.permission.id))
+      if (data?.role && (data.role as any).permissions) {
+        (data.role as any).permissions.forEach((rp: any) => rPerms.add(rp.permission?.id || rp.id || rp))
+      }
       setUserRolePermissions(rPerms)
       
       const cPerms = new Set<string>()
-      data?.userPermissions.forEach((up: any) => cPerms.add(up.permission.id))
+      if (data?.userPermissions) {
+        data.userPermissions.forEach((up: any) => cPerms.add(up.permission?.id || up.permissionId || up.id))
+      }
       setCustomPermissions(cPerms)
       
       setIsPermModalOpen(true)

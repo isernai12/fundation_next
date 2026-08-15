@@ -29,7 +29,7 @@ import { GroupFormDialog } from "./group-form-dialog"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Eye, Edit, Trash, MoreHorizontal, ArrowUpDown, Building2 } from "lucide-react"
+import { Eye, Edit, Trash, Trash2, MoreHorizontal, ArrowUpDown, Building2, AlertTriangle, Loader2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,15 +37,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { archiveGroup, deleteGroup, updateGroup } from "../actions"
 import type { GroupWithCount } from "../types"
 import { useRbac } from "@/components/providers/rbac-provider"
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useRouter } from "next/navigation";
 
 export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount[], manageMode?: boolean }) {
-    const { t } = useLanguage();
+  const { t } = useLanguage();
+  const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [groupToDelete, setGroupToDelete] = useState<GroupWithCount | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const { can } = useRbac()
 
   const canView = can("Groups", "View")
@@ -178,8 +190,12 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                               isFoundationGroup: group.isFoundationGroup ?? false,
                             }
                             const res = await updateGroup(group.id, payload)
-                            if (res.success) toast.success(t("groups.table.activateSuccess"))
-                            else toast.error(res.error)
+                            if (res.success) {
+                              toast.success(t("groups.table.activateSuccess"))
+                              router.refresh()
+                            } else {
+                              toast.error(res.error)
+                            }
                           }}
                         >
                           <Eye className="mr-2 h-4 w-4" /> {t("groups.table.actions.activate")}</DropdownMenuItem>
@@ -198,8 +214,12 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                               isFoundationGroup: group.isFoundationGroup ?? false,
                             }
                             const res = await updateGroup(group.id, payload)
-                            if (res.success) toast.success(t("groups.table.deactivateSuccess"))
-                            else toast.error(res.error)
+                            if (res.success) {
+                              toast.success(t("groups.table.deactivateSuccess"))
+                              router.refresh()
+                            } else {
+                              toast.error(res.error)
+                            }
                           }}
                         >
                           <Eye className="mr-2 h-4 w-4" /> {t("groups.table.actions.deactivate")}</DropdownMenuItem>
@@ -207,29 +227,20 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
                     </>
                   )}
                   {canDelete && (
-                    <>
-                      <DropdownMenuItem
-                        onClick={async () => {
-                          if (confirm(t("groups.table.archiveConfirm"))) {
-                            const res = await archiveGroup(group.id)
-                            if (res.success) toast.success(t("groups.table.archiveSuccess"))
-                            else toast.error(res.error)
-                          }
-                        }}
-                      >
-                        <Trash className="mr-2 h-4 w-4" /> {t("groups.table.actions.archive")}</DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={async () => {
-                          if (confirm(t("groups.table.deleteConfirm"))) {
-                            const res = await deleteGroup(group.id)
-                            if (res.success) toast.success(t("groups.table.deleteSuccess"))
-                            else toast.error(res.error)
-                          }
-                        }}
-                      >
-                        <Trash className="mr-2 h-4 w-4" /> {t("groups.table.actions.delete")}</DropdownMenuItem>
-                    </>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                      disabled={group.isFoundationGroup}
+                      onClick={() => {
+                        if (group.isFoundationGroup) {
+                          toast.error(t("groups.table.cannotDeleteFoundationGroup") || "The root Foundation Central Group cannot be deleted.");
+                          return;
+                        }
+                        setGroupToDelete(group);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                      {t("groups.table.actions.delete")}
+                    </DropdownMenuItem>
                   )}
                 </>
               )}
@@ -239,6 +250,31 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
       },
     },
   ]
+
+  const handleHardDelete = async () => {
+    if (!groupToDelete) return
+    if (groupToDelete.isFoundationGroup) {
+      toast.error(t("groups.table.cannotDeleteFoundationGroup") || "The root Foundation Central Group cannot be deleted.")
+      setGroupToDelete(null)
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const res = await deleteGroup(groupToDelete.id)
+      if (res.success) {
+        toast.success(res.message || t("groups.table.hardDeleteSuccess"))
+        setGroupToDelete(null)
+        router.refresh()
+      } else {
+        toast.error(res.error || t("groups.table.hardDeleteFailed"))
+      }
+    } catch (err: any) {
+      toast.error(err?.message || t("groups.table.hardDeleteFailed"))
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const table = useReactTable({
     data,
@@ -330,6 +366,82 @@ export function GroupsTable({ data, manageMode = false }: { data: GroupWithCount
         >
           {t("groups.table.pagination.next")}</Button>
       </div>
+
+      {/* Hard Delete Confirmation Dialog */}
+      <Dialog
+        open={!!groupToDelete}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setGroupToDelete(null)
+        }}
+      >
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <div className="flex items-center space-x-2 text-destructive">
+              <AlertTriangle className="h-6 w-6 shrink-0" />
+              <DialogTitle className="text-xl">
+                {t("groups.table.hardDeleteTitle") || "Permanently Delete Group"}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="pt-2 text-sm text-foreground/80 font-medium">
+              {t("groups.table.hardDeleteWarning") || "Warning: This is a permanent deletion. This action cannot be undone."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              {t("groups.table.hardDeleteDesc") || "The group itself and ALL data related to this group (members, transactions, loans, funds, and documents) will be permanently deleted from the database."}
+            </p>
+
+            {groupToDelete && (
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3.5 space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("groups.form.name") || "Group Name"}:</span>
+                  <span className="font-semibold text-foreground">{groupToDelete.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("groups.form.code") || "Code"}:</span>
+                  <span className="font-mono font-medium text-foreground">{groupToDelete.code}</span>
+                </div>
+                {groupToDelete._count?.members !== undefined && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("groups.table.memberCount") || "Members"}:</span>
+                    <span className="font-medium text-foreground">{groupToDelete._count.members}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setGroupToDelete(null)}
+            >
+              {t("groups.table.cancelBtn") || t("groups.form.cancel") || "Cancel"}
+            </Button>
+            <Button
+              variant="destructive"
+              type="button"
+              disabled={isDeleting}
+              onClick={handleHardDelete}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("groups.table.deleting") || "Deleting..."}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t("groups.table.confirmHardDeleteBtn") || "Delete Permanently"}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -46,6 +46,7 @@ The **Foundation ERP Backend** is a modular RESTful web service that handles all
 │   ├── api/                      # REST API routing layer
 │   │   ├── v1/                   # Version 1 API endpoints
 │   │   │   ├── endpoints/        # Feature-specific route handlers
+│   │   │   │   ├── upload.py             # Cloudinary media upload (images/PDFs) & deletions
 │   │   │   │   ├── members.py            # Members CRUD, profile, and dues status
 │   │   │   │   ├── member_requests.py    # Public registration and review workflows
 │   │   │   │   ├── groups.py             # Foundation groups and group ledgers
@@ -108,7 +109,7 @@ The **Foundation ERP Backend** is a modular RESTful web service that handles all
 │   │   ├── fund_service.py       # Dedicated fund management
 │   │   ├── sadaqah_service.py    # Sadaqah donation intake
 │   │   └── reports_service.py    # Financial statement generators
-│   └── main.py                   # FastAPI application factory, CORS, exception handlers
+│   └── main.py                   # FastAPI application factory, exception handlers
 ├── alembic/                      # Database migrations
 │   ├── versions/                 # Revision scripts
 │   └── env.py                    # Alembic migration environment
@@ -219,10 +220,13 @@ SESSION_COOKIE_NAME=foundation_session
 DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/foundation_db
 
 # =============================================================================
-# CORS Configuration
+# Cloudinary CDN Configuration (Media Storage)
 # =============================================================================
-# Comma-separated list of allowed frontend origins
-CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://your-frontend.vercel.app
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+CLOUDINARY_FOLDER=foundation-erp
 ```
 
 ---
@@ -251,16 +255,7 @@ async def create_member(
 
 ---
 
-## 8. CORS Configuration
-
-CORS middleware is registered in `app/main.py`:
-- Configured via `CORS_ORIGINS` environment variable (comma-separated list).
-- Supports credentials (`allow_credentials=True`) for Bearer tokens and cookies.
-- Allows all standard HTTP methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`.
-
----
-
-## 9. How to Install Dependencies
+## 8. How to Install Dependencies
 
 ### Prerequisites
 - **Python**: `3.12.x` or higher
@@ -284,21 +279,21 @@ pip install -r requirements.txt
 
 ---
 
-## 10. How to Run Locally
+## 9. How to Run Locally
 
-### Start FastAPI with Auto-Reload
+### Start FastAPI Locally
 ```bash
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-The service starts at `http://127.0.0.1:8000`:
-- **API Root**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- **Swagger Documentation**: [http://127.0.0.1:8000/api/v1/docs](http://127.0.0.1:8000/api/v1/docs)
-- **ReDoc Documentation**: [http://127.0.0.1:8000/api/v1/redoc](http://127.0.0.1:8000/api/v1/redoc)
+The service starts at `http://0.0.0.0:8000` (or `http://localhost:8000`):
+- **API Root**: [http://localhost:8000/](http://localhost:8000/)
+- **Swagger Documentation**: [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs)
+- **ReDoc Documentation**: [http://localhost:8000/api/v1/redoc](http://localhost:8000/api/v1/redoc)
 
 ---
 
-## 11. Health Check Endpoints
+## 10. Health Check Endpoints
 
 | Endpoint | Method | Purpose | Response Format |
 | :--- | :--- | :--- | :--- |
@@ -309,7 +304,7 @@ The service starts at `http://127.0.0.1:8000`:
 
 ---
 
-## 12. Automated Tests (Pytest)
+## 11. Automated Tests (Pytest)
 
 The backend includes a comprehensive 73-test suite covering all critical workflows.
 
@@ -329,7 +324,7 @@ pytest tests/test_dues_and_financial_activities.py
 
 ---
 
-## 13. Database Migrations (Alembic)
+## 12. Database Migrations (Alembic)
 
 ```bash
 # Apply pending migrations
@@ -344,7 +339,7 @@ alembic downgrade -1
 
 ---
 
-## 14. Production Deployment & Hosting
+## 13. Production Deployment & Hosting
 
 ### Deploying to Render (Web Service)
 1. Create a new **Web Service** on [Render](https://render.com) from `isernai12/foundation-backend`.
@@ -356,7 +351,6 @@ alembic downgrade -1
 3. Configure environment variables in the Render Dashboard:
    - `DATABASE_URL`: `postgresql+psycopg://...`
    - `SECRET_KEY`: *Secure random key*
-   - `CORS_ORIGINS`: `https://your-frontend.vercel.app`
    - `ENVIRONMENT`: `production`
    - `DEBUG`: `false`
 
@@ -372,7 +366,7 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 
 ---
 
-## 15. Common Troubleshooting
+## 14. Common Troubleshooting
 
 ### 1. `ModuleNotFoundError: No module named 'app'`
 - **Cause**: Running uvicorn or pytest without the repository root in `PYTHONPATH`.
@@ -388,16 +382,15 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 
 ---
 
-## 16. Security Notes
+## 15. Security Notes
 
 1. **Password Encryption**: All passwords are encrypted with one-way Bcrypt hashes using Passlib.
 2. **SQL Injection Defense**: All database operations use SQLAlchemy ORM with parameterized queries.
-3. **Strict CORS**: CORS origins are restricted to configured domains, preventing unauthorized cross-origin requests.
-4. **Secret Isolation**: Secrets, tokens, and database credentials must never be committed to Git; inject them via environment variables.
+3. **Secret Isolation**: Secrets, tokens, and database credentials must never be committed to Git; inject them via environment variables.
 
 ---
 
-## 17. Important Development Notes
+## 16. Important Development Notes
 
 - **Package Imports**: All backend files use standard `from app...` package imports (e.g. `from app.models.member import Member`).
 - **Timestamp Defaults**: SQLAlchemy models explicitly configure `default=func.now()` and `onupdate=func.now()` to ensure timestamp columns satisfy PostgreSQL `NOT NULL` constraints.
